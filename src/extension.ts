@@ -62,7 +62,7 @@ async function updateRelativeLineNumbers(
 
 function getEnableRelativeLineDefault() {
   const config = vscode.workspace.getConfiguration("LineNumberDeco");
-  return config.get<boolean>("enableRlativeLineOnDefault");
+  return config.get<boolean>("enableRlativeLineOnDefault",true);
 }
 
 function updateEnableRelativeLineDefault(set: boolean) {
@@ -91,7 +91,7 @@ function getActiveLineNumberColor() {
     : new vscode.ThemeColor("LineNumberDeco.activeForeground");
 }
 
-function enableDeco() {
+export function enableDeco() {
   const decorationType = vscode.window.createTextEditorDecorationType({});
   vscode.window.onDidChangeActiveTextEditor((e) => {
     updateRelativeLineNumbers(e, decorationType);
