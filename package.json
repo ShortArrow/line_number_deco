@@ -2,14 +2,26 @@
   "name": "line-number-deco",
   "displayName": "LineNumberDeco",
   "description": "VSCode extension to display relative line numbers",
-  "version": "0.0.1",
+  "publisher": "ShortArrow",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.76.0"
   },
+  "icon": "images/icon.png",
+  "keywords": [
+    "vim",
+    "neovim",
+    "rownumber",
+    "relative",
+    "linenumber",
+    "number"
+  ],
   "categories": [
     "Other"
   ],
-  "activationEvents": ["onStartupFinished"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -29,7 +41,6 @@
         "command": "line-number-doco.disableRelativeLineNumbersGlobal",
         "title": "LineNumberDeco: Disable Relative Line Numbers for User"
       }
-
     ],
     "configuration": {
       "title": "LineNumberDeco",
@@ -38,6 +49,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enable display relative line"
+        },
+        "LineNumberDeco.enableRainbow": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable rainbow color for relative line number"
         },
         "LineNumberDeco.activeForeground": {
           "type": "string",
@@ -85,17 +101,17 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.76.0",
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
+    "@types/vscode": "^1.76.0",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.53.0",
+    "@vscode/test-electron": "^2.2.3",
     "eslint": "^8.34.0",
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
-    "typescript": "^4.9.5",
-    "@vscode/test-electron": "^2.2.3"
+    "typescript": "^4.9.5"
   },
   "license": "MIT",
   "repository": {
