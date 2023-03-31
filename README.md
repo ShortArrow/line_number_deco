@@ -15,6 +15,7 @@ Use with these recomended plugins.
 ## Features
 
 Show relative line numbers
+![visual representation of the action](./images/Animation.gif)
 
 ## Requirements
 
@@ -36,6 +37,11 @@ none.
 ## Known Issues
 
 none.
+
+## Inspired
+
+- [Double line numbers](https://marketplace.visualstudio.com/items?itemName=slhsxcmy.vscode-double-line-numbers)
+- [Relative line numbers](https://marketplace.visualstudio.com/items?itemName=extr0py.vscode-relative-line-numbers)
 
 ## License
 
