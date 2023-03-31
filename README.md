@@ -1,6 +1,7 @@
 # Line number deco
 
 ![version icon](https://shields.io/visual-studio-marketplace/v/ShortArrow.line-number-deco)
+![license icon](https://shields.io/github/license/ShortArrow/line_number_deco)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blueviolet.svg)
 
 Line number deco is a simple Visual Studio Code extension that adds relative line numbers to Visual Studio Code.
