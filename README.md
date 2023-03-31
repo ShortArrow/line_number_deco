@@ -4,8 +4,11 @@
 [![license icon](https://shields.io/github/license/ShortArrow/line_number_deco.svg)](https://github.com/ShortArrow/line_number_deco/blob/main/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blueviolet.svg)](https://github.com/ShortArrow/line_number_deco/pulls)
 
-Line number deco is a simple Visual Studio Code extension that adds relative line numbers to Visual Studio Code.
-This is useful if you are using one of the VIM plugins.
+Line number deco is a Visual Studio Code extension.
+Adds relative line numbers to Visual Studio Code with decorations.
+This is useful if you are using one of the Vim or Vim like plugins.
+
+The relative line number can be displayed with only the standard function of vscode. However, when doing pair programming using liveshare or  face-to-face, it is easier to communicate if absolute line numbers are displayed. This extension is useful when you want to display both absolute and relative line numbers.
 
 ## Recommended Usage
 
