@@ -35,6 +35,8 @@ none.
 - `LineNumberDeco.enableRlativeLineOnDefault`: Enable display relative line on vscode startup
 - `LineNumberDeco.activeForeground`: Override color of active relative line number
 - `LineNumberDeco.foreground`: Override color of inactive relative line number
+- `LineNumberDeco.centerColorOfRainbow`: Center color of rainbow
+- `LineNumberDeco.enableRainbow`: Enable rainbow color
 
 ## Extension Commands
 
