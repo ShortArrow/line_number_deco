@@ -50,10 +50,15 @@
           "default": true,
           "description": "Enable display relative line"
         },
+        "LineNumberDeco.centerColorOfRainbow": {
+          "type": "string",
+          "default": "#0000ff",
+          "description": "Center color of rainbow"
+        },
         "LineNumberDeco.enableRainbow": {
           "type": "boolean",
           "default": false,
-          "description": "Enable rainbow color for relative line number"
+          "description": "Enable rainbow color"
         },
         "LineNumberDeco.activeForeground": {
           "type": "string",
