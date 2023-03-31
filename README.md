@@ -23,7 +23,7 @@ Use with these recomended plugins.
 
 Show relative line numbers
 ![visual representation of the action](./images/Animation.gif)
-![stative image](./images/staticImage.png)
+![stative image](./images/static_image.png)
 
 This extension has not anoying for testrunners or debuggers.
 
