@@ -1,10 +1,10 @@
-# Line number deco
+# LineNumberDeco
 
 [![version icon](https://shields.io/visual-studio-marketplace/v/ShortArrow.line-number-deco)](https://marketplace.visualstudio.com/items?itemName=ShortArrow.line-number-deco)
 [![license icon](https://shields.io/github/license/ShortArrow/line_number_deco)](https://github.com/ShortArrow/line_number_deco/blob/main/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blueviolet.svg)](https://github.com/ShortArrow/line_number_deco/pulls)
 
-Line number deco is a Visual Studio Code extension.
+LineNumberDeco is a Visual Studio Code extension.
 Adds relative line numbers to Visual Studio Code with decorations.
 This is useful if you are using one of the Vim or Vim like plugins.
 
