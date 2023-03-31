@@ -10,6 +10,8 @@ This is useful if you are using one of the Vim or Vim like plugins.
 
 The relative line number can be displayed with only the standard function of vscode. However, when doing pair programming using liveshare or  face-to-face, it is easier to communicate if absolute line numbers are displayed. This extension is useful when you want to display both absolute and relative line numbers.
 
+This extension has not anoying for testrunners or debuggers.
+
 ## Recommended Usage
 
 Use with these recomended plugins.
@@ -24,8 +26,6 @@ Use with these recomended plugins.
 Show relative line numbers
 ![visual representation of the action](./images/Animation.gif)
 ![stative image](./images/static_image.png)
-
-This extension has not anoying for testrunners or debuggers.
 
 ## Requirements
 
