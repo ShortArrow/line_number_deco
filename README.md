@@ -69,3 +69,7 @@ first release
 ### 0.0.2
 
 add color option
+
+### 0.0.3
+
+add rainbow color
