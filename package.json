@@ -26,6 +26,18 @@
   "contributes": {
     "commands": [
       {
+        "command": "line-number-doco.enableRainbow",
+        "title": "LineNumberDeco: Enable rainbow color"
+      },
+      {
+        "command": "line-number-doco.disableRainbow",
+        "title": "LineNumberDeco: Disable rainbow color"
+      },
+      {
+        "command": "line-number-doco.updateCenterColorOfRainbow",
+        "title": "LineNumberDeco: Update center color of rainbow"
+      },
+      {
         "command": "line-number-doco.enableRelativeLineNumbers",
         "title": "LineNumberDeco: Enable Relative Line Numbers in This workspace"
       },

@@ -3,6 +3,8 @@ import * as vscode from "vscode";
 const vsCodeGlobal = vscode.ConfigurationTarget
   .Global as vscode.ConfigurationTarget;
 
+const defaultCenterColorOfRainbow = "#8888ff";
+
 /**
  * get is dark theme
  * @returns if dark theme, return true
@@ -21,7 +23,7 @@ function shiftHue(colorCode: string, shift: number) {
   const [r, g, b] = rgbFromColorCode(colorCode);
   const [h, s, l] = hslFromRgb(r, g, b);
   const huePerStep = 360 / 16;
-  const hue = (((h + ( shift) * huePerStep) % 360) + 360) % 360;
+  const hue = (((h + shift * huePerStep) % 360) + 360) % 360;
   return colorCodeFromHsl(hue, s, l);
 }
 
@@ -90,10 +92,10 @@ function colorCodeFromHsl(h: number, s: number, l: number): string {
 }
 
 /**
- * Hsl to rgb translation helper function 
- * @param h 
- * @param s 
- * @param l 
+ * Hsl to rgb translation helper function
+ * @param h
+ * @param s
+ * @param l
  * @returns HSL value array [h, s, l]
  */
 function rgbFromHsl(h: number, s: number, l: number): [number, number, number] {
@@ -119,10 +121,10 @@ function rgbFromHsl(h: number, s: number, l: number): [number, number, number] {
 
 /**
  * rgb to #?????? formatted string translation helper function
- * @param r 
- * @param g 
- * @param b 
- * @returns 
+ * @param r
+ * @param g
+ * @param b
+ * @returns
  */
 function rgbToColorCode(r: number, g: number, b: number): string {
   return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
@@ -130,9 +132,9 @@ function rgbToColorCode(r: number, g: number, b: number): string {
 
 /**
  * update relative line numbers
- * @param editor 
- * @param decorationType 
- * @returns 
+ * @param editor
+ * @param decorationType
+ * @returns
  */
 async function updateRelativeLineNumbers(
   editor: vscode.TextEditor | undefined,
@@ -166,7 +168,7 @@ async function updateRelativeLineNumbers(
       range: rangeScope,
       renderOptions: {
         before: {
-          width: `${labelWidth}em`,
+          width: `${labelWidth / 2 + 0.5}em`,
           align: "right",
           contentText: label,
           color: isCurrentLine
@@ -199,9 +201,34 @@ function getEnableRainbow() {
   return config.get<boolean>("enableRainbow", false);
 }
 
+function updateEnableRainbow(set: boolean) {
+  const extensionConfigs = vscode.workspace.getConfiguration("LineNumberDeco");
+  extensionConfigs.update("enableRainbow", set);
+}
+
 function getCenterColorOfRainbow() {
   const config = vscode.workspace.getConfiguration("LineNumberDeco");
-  return config.get<string>("centerColorOfRainbow", "#8888FF");
+  return config.get<string>(
+    "centerColorOfRainbow",
+    defaultCenterColorOfRainbow
+  );
+}
+
+function updateCenterColorOfRainbow(set: string) {
+  const extensionConfigs = vscode.workspace.getConfiguration("LineNumberDeco");
+  extensionConfigs.update("centerColorOfRainbow", set);
+}
+
+async function getCenterColorCode() {
+  const preValue = getCenterColorOfRainbow() || defaultCenterColorOfRainbow;
+  const options: vscode.InputBoxOptions = {
+    prompt: "Please Center color code",
+    placeHolder: preValue,
+  };
+
+  const result = (await vscode.window.showInputBox(options)) || preValue;
+  updateCenterColorOfRainbow(result);
+  vscode.window.showInformationMessage(`Center color is update by, ${result}!`);
 }
 
 function getEnableRelativeLineDefault() {
@@ -236,7 +263,7 @@ function getActiveLineNumberColor() {
 }
 
 /**
- * enable relative line numbers 
+ * enable relative line numbers
  */
 export function enableDeco() {
   const decorationType = vscode.window.createTextEditorDecorationType({});
@@ -250,7 +277,7 @@ export function enableDeco() {
 
 /**
  * activate extension
- * @param context 
+ * @param context
  */
 export function activate(context: vscode.ExtensionContext) {
   enableDeco();
@@ -270,6 +297,16 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       "line-number-doco.disableRelativeLineNumbersGlobal",
       () => updateEnableRelativeLineDefaultGlobal(false)
+    ),
+    vscode.commands.registerCommand("line-number-doco.enableRainbow", () =>
+      updateEnableRainbow(true)
+    ),
+    vscode.commands.registerCommand("line-number-doco.disableRainbow", () =>
+      updateEnableRainbow(false)
+    ),
+    vscode.commands.registerCommand(
+      "line-number-doco.updateCenterColorOfRainbow",
+      async () => getCenterColorCode()
     )
   );
 }
