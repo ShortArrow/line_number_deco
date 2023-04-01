@@ -228,7 +228,9 @@ async function getCenterColorCode() {
 
   const result = (await vscode.window.showInputBox(options)) || preValue;
   updateCenterColorOfRainbow(result);
-  vscode.window.showInformationMessage(`Center color is update by, ${result}!`);
+  vscode.window.showInformationMessage(
+    `Center color is updated by, ${result}!`
+  );
 }
 
 function getEnableRelativeLineDefault() {
@@ -306,7 +308,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
     vscode.commands.registerCommand(
       "line-number-doco.updateCenterColorOfRainbow",
-      async () => getCenterColorCode()
+      () => getCenterColorCode()
     )
   );
 }
