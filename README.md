@@ -28,10 +28,6 @@ Show relative line numbers
 ![visual representation of the action](./images/Animation.gif)
 ![stative image](./images/static_image.png)
 
-## Requirements
-
-none.
-
 ## Extension Settings
 
 - `LineNumberDeco.enableRlativeLineOnDefault`: Enable display relative line on vscode startup
@@ -47,10 +43,6 @@ none.
 - `line-number-doco.disableRelativeLineNumbers`: Disable Relative Line Numbers in This workspace
 - `line-number-doco.disableRelativeLineNumbersGlobal`: Disable Relative Line Numbers for User
 
-## Known Issues
-
-none.
-
 ## Inspired
 
 Thank you for pioneering
@@ -61,6 +53,11 @@ Thank you for pioneering
 ## License
 
 MIT License
+
+## Road Map
+
+- More faster!!!
+- More variations to the decoration
 
 ## Release Notes
 
@@ -75,3 +72,11 @@ add color option
 ### 0.0.3
 
 add rainbow color
+
+### 0.0.4
+
+add rainbow commands
+
+### 0.0.5
+
+add color update commands

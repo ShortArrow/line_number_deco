@@ -3,7 +3,7 @@
   "displayName": "LineNumberDeco",
   "description": "VSCode extension to display relative line numbers",
   "publisher": "ShortArrow",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.76.0"
   },
@@ -27,31 +27,59 @@
     "commands": [
       {
         "command": "line-number-doco.enableRainbow",
-        "title": "LineNumberDeco: Enable rainbow color"
+        "title": "LineNumberDeco: Enable rainbow for workspace"
       },
       {
         "command": "line-number-doco.disableRainbow",
-        "title": "LineNumberDeco: Disable rainbow color"
+        "title": "LineNumberDeco: Disable rainbow for workspace"
       },
       {
-        "command": "line-number-doco.updateCenterColorOfRainbow",
-        "title": "LineNumberDeco: Update center color of rainbow"
+        "command": "line-number-doco.enableRainbowForUser",
+        "title": "LineNumberDeco: Enable rainbow for user"
+      },
+      {
+        "command": "line-number-doco.disableRainbowForUser",
+        "title": "LineNumberDeco: Disable rainbow for user"
+      },
+      {
+        "command": "line-number-doco.updateColorAtCenterOfRainbow",
+        "title": "LineNumberDeco: Update color at center of rainbow for workspace"
+      },
+      {
+        "command": "line-number-doco.updateColorAtCenterOfRainbowForUser",
+        "title": "LineNumberDeco: Update color at center of rainbow for user"
+      },
+      {
+        "command": "line-number-doco.updateColorAtActiveRowNumber",
+        "title": "LineNumberDeco: Update color at current row number"
+      },
+      {
+        "command": "line-number-doco.updateColorAtActiveRowNumberForUser",
+        "title": "LineNumberDeco: Update color at current row number for user"
+      },
+      {
+        "command": "line-number-doco.updateColorAtInactiveRowNumber",
+        "title": "LineNumberDeco: Update color at inactive row number"
+      },
+      {
+        "command": "line-number-doco.updateColorAtInactiveRowNumberForUser",
+        "title": "LineNumberDeco: Update color at inactive row number for user"
       },
       {
         "command": "line-number-doco.enableRelativeLineNumbers",
         "title": "LineNumberDeco: Enable Relative Line Numbers in This workspace"
       },
       {
-        "command": "line-number-doco.enableRelativeLineNumbersGlobal",
-        "title": "LineNumberDeco: Enable Relative Line Numbers for User"
+        "command": "line-number-doco.enableRelativeLineNumbersForUser",
+        "title": "LineNumberDeco: Enable Relative Line Numbers for user"
       },
       {
         "command": "line-number-doco.disableRelativeLineNumbers",
         "title": "LineNumberDeco: Disable Relative Line Numbers in This workspace"
       },
       {
-        "command": "line-number-doco.disableRelativeLineNumbersGlobal",
-        "title": "LineNumberDeco: Disable Relative Line Numbers for User"
+        "command": "line-number-doco.disableRelativeLineNumbersForUser",
+        "title": "LineNumberDeco: Disable Relative Line Numbers for user"
       }
     ],
     "configuration": {

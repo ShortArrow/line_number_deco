@@ -5,6 +5,10 @@ const vsCodeGlobal = vscode.ConfigurationTarget
 
 const defaultCenterColorOfRainbow = "#8888ff";
 
+const nameOfExtension = "LineNumberDeco";
+
+const decorationType = vscode.window.createTextEditorDecorationType({});
+
 /**
  * get is dark theme
  * @returns if dark theme, return true
@@ -93,9 +97,9 @@ function colorCodeFromHsl(h: number, s: number, l: number): string {
 
 /**
  * Hsl to rgb translation helper function
- * @param h
- * @param s
- * @param l
+ * @param h hue
+ * @param s saturation
+ * @param l luminescence
  * @returns HSL value array [h, s, l]
  */
 function rgbFromHsl(h: number, s: number, l: number): [number, number, number] {
@@ -121,10 +125,10 @@ function rgbFromHsl(h: number, s: number, l: number): [number, number, number] {
 
 /**
  * rgb to #?????? formatted string translation helper function
- * @param r
- * @param g
- * @param b
- * @returns
+ * @param r red component (0～255)
+ * @param g green component (0～255)
+ * @param b blue component (0～255)
+ * @returns #?????? formatted string
  */
 function rgbToColorCode(r: number, g: number, b: number): string {
   return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
@@ -134,7 +138,7 @@ function rgbToColorCode(r: number, g: number, b: number): string {
  * update relative line numbers
  * @param editor
  * @param decorationType
- * @returns
+ * @returns void
  */
 async function updateRelativeLineNumbers(
   editor: vscode.TextEditor | undefined,
@@ -151,7 +155,7 @@ async function updateRelativeLineNumbers(
   const activeLineNumberColor = getActiveLineNumberColor();
   const inactiveLineNumberColor = getInactiveLineNumberColor();
   const enableRainbow = getEnableRainbow();
-  const centerColorOfRainbow = getCenterColorOfRainbow();
+  const centerColorOfRainbow = getColorAtCenterOfRainbow();
 
   const labelWidth = document.lineCount.toString().length;
 
@@ -164,29 +168,28 @@ async function updateRelativeLineNumbers(
       : String(Math.abs(lineIndex - activeLineNumber));
 
     const rangeScope = new vscode.Range(lineRange.start, lineRange.start);
-    const decoration: vscode.DecorationOptions = {
-      range: rangeScope,
-      renderOptions: {
-        before: {
-          width: `${labelWidth / 2 + 0.5}em`,
-          align: "right",
-          contentText: label,
-          color: isCurrentLine
-            ? activeLineNumberColor
-            : enableRainbow
-            ? shiftHue(
-                centerColorOfRainbow,
-                Math.abs(lineIndex - activeLineNumber)
-              )
-            : inactiveLineNumberColor,
-          textDecoration: `
+    const lineNumberStyle = {
+      width: `${labelWidth / 2 + 0.5}em`,
+      align: "right",
+      contentText: label,
+      color: isCurrentLine
+        ? activeLineNumberColor
+        : enableRainbow
+        ? shiftHue(centerColorOfRainbow, Math.abs(lineIndex - activeLineNumber))
+        : inactiveLineNumberColor,
+      textDecoration: `
             box-sizing: border-box;
             text-align: right;
             padding-right: 1em;
           `,
-          fontWeight: "bold",
-        } as vscode.DecorationRenderOptions,
-      } as vscode.DecorationRenderOptions,
+      fontWeight: "bold",
+    } as vscode.DecorationInstanceRenderOptions;
+    const lineNumberAreaStyle: vscode.DecorationInstanceRenderOptions = {
+      before: lineNumberStyle,
+    } as vscode.DecorationInstanceRenderOptions;
+    const decoration: vscode.DecorationOptions = {
+      range: rangeScope,
+      renderOptions: lineNumberAreaStyle,
     };
 
     decorations.push(decoration);
@@ -196,121 +199,218 @@ async function updateRelativeLineNumbers(
   editor.setDecorations(decorationType, enableRlativeLine ? decorations : []);
 }
 
+function getConfig<T>(key: string, defaultValue: T) {
+  const config = vscode.workspace.getConfiguration(nameOfExtension);
+  return config.get<T>(key, defaultValue);
+}
+
+function getColorAtCenterOfRainbow() {
+  return getConfig<string>("centerColorOfRainbow", defaultCenterColorOfRainbow);
+}
+
+function getColorAtActiveRowNumber() {
+  return getConfig<string>("activeForeground", "");
+}
+
+function getColorAtInactiveRowNumber() {
+  return getConfig<string>("foreground", "");
+}
+
 function getEnableRainbow() {
-  const config = vscode.workspace.getConfiguration("LineNumberDeco");
-  return config.get<boolean>("enableRainbow", false);
+  return getConfig<boolean>("enableRainbow", false);
 }
 
-function updateEnableRainbow(set: boolean) {
-  const extensionConfigs = vscode.workspace.getConfiguration("LineNumberDeco");
-  extensionConfigs.update("enableRainbow", set);
+function updateUserConfig(key: string, set: any) {
+  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
+  extensionConfigs.update(key, set, vsCodeGlobal);
 }
 
-function getCenterColorOfRainbow() {
-  const config = vscode.workspace.getConfiguration("LineNumberDeco");
-  return config.get<string>(
-    "centerColorOfRainbow",
-    defaultCenterColorOfRainbow
-  );
+function updateWorkspaceConfig(key: string, set: any) {
+  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
+  extensionConfigs.update(key, set);
 }
 
-function updateCenterColorOfRainbow(set: string) {
-  const extensionConfigs = vscode.workspace.getConfiguration("LineNumberDeco");
+function updateEnableRainbowForWorkspace(set: boolean) {
+  updateWorkspaceConfig("enableRainbow", set);
+}
+
+function updateEnableRainbowForUser(set: boolean) {
+  updateUserConfig("enableRainbow", set);
+}
+
+function updateColorAtCenterOfRainbow(set: string) {
+  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
   extensionConfigs.update("centerColorOfRainbow", set);
 }
 
-async function getCenterColorCode() {
-  const preValue = getCenterColorOfRainbow() || defaultCenterColorOfRainbow;
+function updateColorAtCenterOfRainbowForUser(set: string) {
+  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
+  extensionConfigs.update("centerColorOfRainbow", set, vsCodeGlobal);
+}
+
+function updateColorAtActiveRowNumber(set: string) {
+  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
+  extensionConfigs.update("activeForeground", set);
+}
+
+function updateColorAtActiveRowNumberForUser(set: string) {
+  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
+  extensionConfigs.update("activeForeground", set, vsCodeGlobal);
+}
+
+function updateColorAtInactiveRowNumber(set: string) {
+  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
+  extensionConfigs.update("foreground", set);
+}
+
+function updateColorAtInactiveRowNumberForUser(set: string) {
+  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
+  extensionConfigs.update("foreground", set, vsCodeGlobal);
+}
+
+async function getColorCode(
+  prompt: string,
+  defaultValue: string,
+  preValueGetter: () => string | undefined,
+  setter: (set: string) => void
+) {
+  const preValue = preValueGetter() || defaultValue;
   const options: vscode.InputBoxOptions = {
-    prompt: "Please Center color code",
+    prompt: prompt,
     placeHolder: preValue,
   };
-
   const result = (await vscode.window.showInputBox(options)) || preValue;
-  updateCenterColorOfRainbow(result);
-  vscode.window.showInformationMessage(
-    `Center color is updated by, ${result}!`
+  if (result === preValue || result === "") {
+    return;
+  }
+  setter(result);
+  vscode.window.showInformationMessage(`Color is updated by, ${result}!`);
+}
+
+async function getColorCodeAtCenterOfRainbow() {
+  await getColorCode(
+    "Please input color code at center of rainbow",
+    defaultCenterColorOfRainbow,
+    getColorAtCenterOfRainbow,
+    updateColorAtCenterOfRainbow
+  );
+}
+
+async function getColorCodeAtCenterOfRainbowForUser() {
+  await getColorCode(
+    "Please input color code at center of rainbow",
+    defaultCenterColorOfRainbow,
+    getColorAtCenterOfRainbow,
+    updateColorAtCenterOfRainbowForUser
+  );
+}
+
+async function getColorCodeAtActiveRowNumber() {
+  await getColorCode(
+    "Please input color code at active row number",
+    "",
+    getColorAtActiveRowNumber,
+    updateColorAtActiveRowNumber
+  );
+}
+
+async function getColorCodeAtActiveRowNumberForUser() {
+  await getColorCode(
+    "Please input color code at active row number",
+    "",
+    getColorAtActiveRowNumber,
+    updateColorAtActiveRowNumberForUser
+  );
+}
+
+async function getColorCodeAtInactiveRowNumber() {
+  await getColorCode(
+    "Please input color code at active row number",
+    "",
+    getColorAtInactiveRowNumber,
+    updateColorAtInactiveRowNumber
+  );
+}
+
+async function getColorCodeAtInactiveRowNumberForUser() {
+  await getColorCode(
+    "Please input color code at active row number",
+    "",
+    getColorAtInactiveRowNumber,
+    updateColorAtInactiveRowNumberForUser
   );
 }
 
 function getEnableRelativeLineDefault() {
-  const config = vscode.workspace.getConfiguration("LineNumberDeco");
-  return config.get<boolean>("enableRlativeLineOnDefault", true);
+  return getConfig<boolean>("enableRlativeLineOnDefault", true);
 }
 
-function updateEnableRelativeLineDefault(set: boolean) {
-  const extensionConfigs = vscode.workspace.getConfiguration("LineNumberDeco");
-  extensionConfigs.update("enableRlativeLineOnDefault", set);
+function updateEnableRelativeLine(set: boolean) {
+  updateWorkspaceConfig("enableRlativeLineOnDefault", set);
 }
 
-function updateEnableRelativeLineDefaultGlobal(set: boolean) {
-  const extensionConfigs = vscode.workspace.getConfiguration("LineNumberDeco");
-  extensionConfigs.update("enableRlativeLineOnDefault", set, vsCodeGlobal);
+function updateEnableRelativeLineForUser(set: boolean) {
+  updateUserConfig("enableRlativeLineOnDefault", set);
 }
 
 function getInactiveLineNumberColor() {
-  const config = vscode.workspace.getConfiguration("LineNumberDeco");
-
-  return config.get<string>("foreground") !== ""
-    ? config.get<string>("foreground")
+  const config = getConfig<string>("foreground", "");
+  return config !== ""
+    ? config
     : new vscode.ThemeColor("LineNumberDeco.foreground");
 }
 
 function getActiveLineNumberColor() {
-  const config = vscode.workspace.getConfiguration("LineNumberDeco");
+  const config = getConfig<string>("activeForeground", "");
 
-  return config.get<string>("activeForeground") !== ""
-    ? config.get<string>("activeForeground")
+  return config !== ""
+    ? config
     : new vscode.ThemeColor("LineNumberDeco.activeForeground");
 }
 
-/**
- * enable relative line numbers
- */
-export function enableDeco() {
-  const decorationType = vscode.window.createTextEditorDecorationType({});
+function cmdCurry(command: string, callback: Function) {
+  return vscode.commands.registerCommand(`line-number-doco.${command}`, () =>
+    callback()
+  );
+}
+
+const commands = [
   vscode.window.onDidChangeActiveTextEditor((e) => {
     updateRelativeLineNumbers(e, decorationType);
-  });
-  vscode.window.onDidChangeTextEditorSelection((ee) => {
-    updateRelativeLineNumbers(ee.textEditor, decorationType);
-  });
-}
+  }),
+  vscode.window.onDidChangeTextEditorSelection((e) => {
+    updateRelativeLineNumbers(e.textEditor, decorationType);
+  }),
+  cmdCurry("enableRelativeLineNumbers", () => updateEnableRelativeLine(true)),
+  cmdCurry("enableRelativeLineNumbersForUser", () =>
+    updateEnableRelativeLineForUser(true)
+  ),
+  cmdCurry("disableRelativeLineNumbers", () => updateEnableRelativeLine(false)),
+  cmdCurry("disableRelativeLineNumbersForUser", () =>
+    updateEnableRelativeLineForUser(false)
+  ),
+  cmdCurry("enableRainbow", () => updateEnableRainbowForWorkspace(true)),
+  cmdCurry("enableRainbowForUser", () => updateEnableRainbowForUser(true)),
+  cmdCurry("disableRainbow", () => updateEnableRainbowForWorkspace(false)),
+  cmdCurry("disableRainbowForUser", () => updateEnableRainbowForUser(false)),
+  cmdCurry("updateColorAtCenterOfRainbow", () =>
+    getColorCodeAtCenterOfRainbow()
+  ),
+  cmdCurry("updateColorAtCenterOfRainbowForUser", () =>
+    getColorCodeAtCenterOfRainbowForUser()
+  ),
+  cmdCurry("updateColorAtActiveRowNumber", () => getColorCodeAtActiveRowNumber()),
+  cmdCurry("updateColorAtActiveRowNumberForUser", () => getColorCodeAtActiveRowNumberForUser()),
+  cmdCurry("updateColorAtInactiveRowNumber", () => getColorCodeAtInactiveRowNumber()),
+  cmdCurry("updateColorAtInactiveRowNumberForUser", () => getColorCodeAtInactiveRowNumberForUser()),
+];
 
 /**
  * activate extension
  * @param context
  */
 export function activate(context: vscode.ExtensionContext) {
-  enableDeco();
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "line-number-doco.enableRelativeLineNumbers",
-      () => updateEnableRelativeLineDefault(true)
-    ),
-    vscode.commands.registerCommand(
-      "line-number-doco.enableRelativeLineNumbersGlobal",
-      () => updateEnableRelativeLineDefaultGlobal(true)
-    ),
-    vscode.commands.registerCommand(
-      "line-number-doco.disableRelativeLineNumbers",
-      () => updateEnableRelativeLineDefault(false)
-    ),
-    vscode.commands.registerCommand(
-      "line-number-doco.disableRelativeLineNumbersGlobal",
-      () => updateEnableRelativeLineDefaultGlobal(false)
-    ),
-    vscode.commands.registerCommand("line-number-doco.enableRainbow", () =>
-      updateEnableRainbow(true)
-    ),
-    vscode.commands.registerCommand("line-number-doco.disableRainbow", () =>
-      updateEnableRainbow(false)
-    ),
-    vscode.commands.registerCommand(
-      "line-number-doco.updateCenterColorOfRainbow",
-      () => getCenterColorCode()
-    )
-  );
+  context.subscriptions.push(...commands);
 }
 
 /**
