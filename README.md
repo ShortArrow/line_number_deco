@@ -18,9 +18,13 @@ Because, it does not block the display of breakpoint icons, test start icons, te
 Use with these recomended plugins.
 
 - [VSCode Neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim)
+- [Spacemacs](https://marketplace.visualstudio.com/items?itemName=cometeer.spacemacs)
+- [Emacs](https://marketplace.visualstudio.com/items?itemName=vscodeemacs.emacs)
 - [VSCode Vim](https://marketplace.visualstudio.com/items?itemName=vscodevim.vim)
 - [VSpaceCode](https://marketplace.visualstudio.com/items?itemName=VSpaceCode.vspacecode)
 - [Neovim UI Modifier](https://marketplace.visualstudio.com/items?itemName=JulianIaquinandi.nvim-ui-modifier)
+- [Emacs Friendly Keymap](https://marketplace.visualstudio.com/items?itemName=lfs.vscode-emacs-friendly)
+- [Vimacs](https://marketplace.visualstudio.com/items?itemName=migrs.vimacs)
 
 ## Features
 
