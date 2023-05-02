@@ -6,7 +6,7 @@
 
 LineNumberDeco is a Visual Studio Code extension.
 Adds relative line numbers to Visual Studio Code with decorations.
-This is useful if you are using one of the Vim or Vim like plugins.
+This is useful if you are using one of the Emacs or Vim like plugins.
 
 The relative line number can be displayed with only the standard function of vscode. However, when doing pair programming using liveshare or  face-to-face, it is easier to communicate if absolute line numbers are displayed. This extension is useful when you want to display both absolute and relative line numbers.
 
