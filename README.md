@@ -42,10 +42,10 @@ Show relative line numbers
 
 ## Extension Commands
 
-- `line-number-doco.enableRelativeLineNumbers`: Enable Relative Line Numbers in This workspace
-- `line-number-doco.enableRelativeLineNumbersGlobal`: Enable Relative Line Numbers for User
-- `line-number-doco.disableRelativeLineNumbers`: Disable Relative Line Numbers in This workspace
-- `line-number-doco.disableRelativeLineNumbersGlobal`: Disable Relative Line Numbers for User
+- `line-number-deco.enableRelativeLineNumbers`: Enable Relative Line Numbers in This workspace
+- `line-number-deco.enableRelativeLineNumbersGlobal`: Enable Relative Line Numbers for User
+- `line-number-deco.disableRelativeLineNumbers`: Disable Relative Line Numbers in This workspace
+- `line-number-deco.disableRelativeLineNumbersGlobal`: Disable Relative Line Numbers for User
 
 ## Inspired
 

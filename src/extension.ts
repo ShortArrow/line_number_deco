@@ -369,7 +369,7 @@ function getActiveLineNumberColor() {
 }
 
 function cmdCurry(command: string, callback: Function) {
-  return vscode.commands.registerCommand(`line-number-doco.${command}`, () =>
+  return vscode.commands.registerCommand(`line-number-deco.${command}`, () =>
     callback()
   );
 }
