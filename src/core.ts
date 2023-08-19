@@ -8,6 +8,7 @@ import {
     getInactiveLineNumberColor,
 } from "./config";
 
+const decorations: vscode.DecorationOptions[] = [];
 
 /**
  * update relative line numbers
@@ -23,15 +24,12 @@ export async function updateRelativeLineNumbers(
     return;
   }
 
-  const decorations: vscode.DecorationOptions[] = [];
-
   const activeLineNumber = editor.selection.active.line;
   const document = editor.document;
   const activeLineNumberColor = getActiveLineNumberColor();
   const inactiveLineNumberColor = getInactiveLineNumberColor();
   const enableRainbow = getEnableRainbow();
   const centerColorOfRainbow = getColorAtCenterOfRainbow();
-
   const labelWidth = document.lineCount.toString().length;
 
   for (let lineIndex = 0; lineIndex < document.lineCount; lineIndex++) {
