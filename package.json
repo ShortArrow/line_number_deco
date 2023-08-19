@@ -11,6 +11,7 @@
   "keywords": [
     "vim",
     "neovim",
+    "emacs",
     "rownumber",
     "relative",
     "linenumber",
@@ -26,59 +27,59 @@
   "contributes": {
     "commands": [
       {
-        "command": "line-number-doco.enableRainbow",
+        "command": "line-number-deco.enableRainbow",
         "title": "LineNumberDeco: Enable rainbow for workspace"
       },
       {
-        "command": "line-number-doco.disableRainbow",
+        "command": "line-number-deco.disableRainbow",
         "title": "LineNumberDeco: Disable rainbow for workspace"
       },
       {
-        "command": "line-number-doco.enableRainbowForUser",
+        "command": "line-number-deco.enableRainbowForUser",
         "title": "LineNumberDeco: Enable rainbow for user"
       },
       {
-        "command": "line-number-doco.disableRainbowForUser",
+        "command": "line-number-deco.disableRainbowForUser",
         "title": "LineNumberDeco: Disable rainbow for user"
       },
       {
-        "command": "line-number-doco.updateColorAtCenterOfRainbow",
+        "command": "line-number-deco.updateColorAtCenterOfRainbow",
         "title": "LineNumberDeco: Update color at center of rainbow for workspace"
       },
       {
-        "command": "line-number-doco.updateColorAtCenterOfRainbowForUser",
+        "command": "line-number-deco.updateColorAtCenterOfRainbowForUser",
         "title": "LineNumberDeco: Update color at center of rainbow for user"
       },
       {
-        "command": "line-number-doco.updateColorAtActiveRowNumber",
+        "command": "line-number-deco.updateColorAtActiveRowNumber",
         "title": "LineNumberDeco: Update color at current row number"
       },
       {
-        "command": "line-number-doco.updateColorAtActiveRowNumberForUser",
+        "command": "line-number-deco.updateColorAtActiveRowNumberForUser",
         "title": "LineNumberDeco: Update color at current row number for user"
       },
       {
-        "command": "line-number-doco.updateColorAtInactiveRowNumber",
+        "command": "line-number-deco.updateColorAtInactiveRowNumber",
         "title": "LineNumberDeco: Update color at inactive row number"
       },
       {
-        "command": "line-number-doco.updateColorAtInactiveRowNumberForUser",
+        "command": "line-number-deco.updateColorAtInactiveRowNumberForUser",
         "title": "LineNumberDeco: Update color at inactive row number for user"
       },
       {
-        "command": "line-number-doco.enableRelativeLineNumbers",
+        "command": "line-number-deco.enableRelativeLineNumbers",
         "title": "LineNumberDeco: Enable Relative Line Numbers in This workspace"
       },
       {
-        "command": "line-number-doco.enableRelativeLineNumbersForUser",
+        "command": "line-number-deco.enableRelativeLineNumbersForUser",
         "title": "LineNumberDeco: Enable Relative Line Numbers for user"
       },
       {
-        "command": "line-number-doco.disableRelativeLineNumbers",
+        "command": "line-number-deco.disableRelativeLineNumbers",
         "title": "LineNumberDeco: Disable Relative Line Numbers in This workspace"
       },
       {
-        "command": "line-number-doco.disableRelativeLineNumbersForUser",
+        "command": "line-number-deco.disableRelativeLineNumbersForUser",
         "title": "LineNumberDeco: Disable Relative Line Numbers for user"
       }
     ],

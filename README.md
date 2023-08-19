@@ -6,7 +6,7 @@
 
 LineNumberDeco is a Visual Studio Code extension.
 Adds relative line numbers to Visual Studio Code with decorations.
-This is useful if you are using one of the Vim or Vim like plugins.
+This is useful if you are using one of the Emacs or Vim like plugins.
 
 The relative line number can be displayed with only the standard function of vscode. However, when doing pair programming using liveshare or  face-to-face, it is easier to communicate if absolute line numbers are displayed. This extension is useful when you want to display both absolute and relative line numbers.
 
@@ -18,9 +18,13 @@ Because, it does not block the display of breakpoint icons, test start icons, te
 Use with these recomended plugins.
 
 - [VSCode Neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim)
+- [Spacemacs](https://marketplace.visualstudio.com/items?itemName=cometeer.spacemacs)
+- [Emacs](https://marketplace.visualstudio.com/items?itemName=vscodeemacs.emacs)
 - [VSCode Vim](https://marketplace.visualstudio.com/items?itemName=vscodevim.vim)
 - [VSpaceCode](https://marketplace.visualstudio.com/items?itemName=VSpaceCode.vspacecode)
 - [Neovim UI Modifier](https://marketplace.visualstudio.com/items?itemName=JulianIaquinandi.nvim-ui-modifier)
+- [Emacs Friendly Keymap](https://marketplace.visualstudio.com/items?itemName=lfs.vscode-emacs-friendly)
+- [Vimacs](https://marketplace.visualstudio.com/items?itemName=migrs.vimacs)
 
 ## Features
 
@@ -38,10 +42,10 @@ Show relative line numbers
 
 ## Extension Commands
 
-- `line-number-doco.enableRelativeLineNumbers`: Enable Relative Line Numbers in This workspace
-- `line-number-doco.enableRelativeLineNumbersGlobal`: Enable Relative Line Numbers for User
-- `line-number-doco.disableRelativeLineNumbers`: Disable Relative Line Numbers in This workspace
-- `line-number-doco.disableRelativeLineNumbersGlobal`: Disable Relative Line Numbers for User
+- `line-number-deco.enableRelativeLineNumbers`: Enable Relative Line Numbers in This workspace
+- `line-number-deco.enableRelativeLineNumbersGlobal`: Enable Relative Line Numbers for User
+- `line-number-deco.disableRelativeLineNumbers`: Disable Relative Line Numbers in This workspace
+- `line-number-deco.disableRelativeLineNumbersGlobal`: Disable Relative Line Numbers for User
 
 ## Inspired
 
