@@ -112,10 +112,20 @@
           "default": "#0000ff",
           "description": "Center color of rainbow"
         },
+        "LineNumberDeco.foregroundColorOfRepeatingDigits": {
+          "type": "string",
+          "default": "#00ff00",
+          "description": "Foreground color of Repeating digits"
+        },
         "LineNumberDeco.enableRainbow": {
           "type": "boolean",
           "default": false,
           "description": "Enable rainbow color"
+        },
+        "LineNumberDeco.enableRepeatingDigits": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable color of repeating digits"
         },
         "LineNumberDeco.activeForeground": {
           "type": "string",
