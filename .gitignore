@@ -1,3 +1,4 @@
 node_modules
 /out
 .yarn
+.vscode-test
