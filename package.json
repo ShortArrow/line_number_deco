@@ -83,20 +83,20 @@
         "title": "LineNumberDeco: Disable Relative Line Numbers for user"
       },
       {
-        "command": "line-number-deco.enableConsecutiveEffect",
-        "title": "LineNumberDeco: Enable Consecutive effect in This workspace"
+        "command": "line-number-deco.enableRepeatingDigits",
+        "title": "LineNumberDeco: Enable repeating digits in this workspace"
       },
       {
-        "command": "line-number-deco.disableConsecutiveEffect",
-        "title": "LineNumberDeco: Disable Consecutive effect in This workspace"
+        "command": "line-number-deco.disableRepeatingDigits",
+        "title": "LineNumberDeco: Disable repeating digits color in this workspace"
       },
       {
-        "command": "line-number-deco.enableConsecutiveEffectForUser",
-        "title": "LineNumberDeco: Enable Consecutive effect in for user"
+        "command": "line-number-deco.enableRepeatingDigitsForUser",
+        "title": "LineNumberDeco: Enable repeating digits color for user"
       },
       {
-        "command": "line-number-deco.disableConsecutiveEffectForUser",
-        "title": "LineNumberDeco: Disable Consecutive effect in for user"
+        "command": "line-number-deco.disableRepeatingDigitsForUser",
+        "title": "LineNumberDeco: Disable repeating digits color for user"
       }
     ],
     "configuration": {
