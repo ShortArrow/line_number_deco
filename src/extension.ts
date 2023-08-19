@@ -22,10 +22,14 @@ function cmdCurry(command: string, callback: Function) {
 }
 
 const commands = [
-  vscode.window.onDidChangeActiveTextEditor((e) => {
-    updateRelativeLineNumbers(e, decorationType);
+  vscode.workspace.onDidChangeTextDocument((e) => {
+    if (e.document === vscode.window.activeTextEditor?.document) {
+      // Update only if the change occurred in the currently active editor's document
+      updateRelativeLineNumbers(vscode.window.activeTextEditor, decorationType);
+    }
   }),
   vscode.window.onDidChangeTextEditorSelection((e) => {
+    // Update on selection change
     updateRelativeLineNumbers(e.textEditor, decorationType);
   }),
   cmdCurry("enableRelativeLineNumbers", () => updateEnableRelativeLine(true)),
