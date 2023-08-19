@@ -81,6 +81,22 @@
       {
         "command": "line-number-deco.disableRelativeLineNumbersForUser",
         "title": "LineNumberDeco: Disable Relative Line Numbers for user"
+      },
+      {
+        "command": "line-number-deco.enableConsecutiveEffect",
+        "title": "LineNumberDeco: Enable Consecutive effect in This workspace"
+      },
+      {
+        "command": "line-number-deco.disableConsecutiveEffect",
+        "title": "LineNumberDeco: Disable Consecutive effect in This workspace"
+      },
+      {
+        "command": "line-number-deco.enableConsecutiveEffectForUser",
+        "title": "LineNumberDeco: Enable Consecutive effect in for user"
+      },
+      {
+        "command": "line-number-deco.disableConsecutiveEffectForUser",
+        "title": "LineNumberDeco: Disable Consecutive effect in for user"
       }
     ],
     "configuration": {
