@@ -1128,7 +1128,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^10.2.2":
+"glob@npm:^10.2.2, glob@npm:^10.2.5":
   version: 10.3.3
   resolution: "glob@npm:10.3.3"
   dependencies:
@@ -1520,6 +1520,7 @@ __metadata:
     eslint: "npm:^8.34.0"
     glob: "npm:^8.1.0"
     mocha: "npm:^10.2.0"
+    rimraf: "npm:^5.0.1"
     typescript: "npm:^4.9.5"
   languageName: unknown
   linkType: soft
@@ -2098,6 +2099,17 @@ __metadata:
   bin:
     rimraf: bin.js
   checksum: 9cb7757acb489bd83757ba1a274ab545eafd75598a9d817e0c3f8b164238dd90eba50d6b848bd4dcc5f3040912e882dc7ba71653e35af660d77b25c381d402e8
+  languageName: node
+  linkType: hard
+
+"rimraf@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "rimraf@npm:5.0.1"
+  dependencies:
+    glob: "npm:^10.2.5"
+  bin:
+    rimraf: dist/cjs/src/bin.js
+  checksum: 9e6062c0aea96f384dd937e6bb06b624c881de2eee79a83d3068193183d44eb9b1f3f68a27a54b9ca8cce56bf34c2951ff4239b093b970e0501a091907031f52
   languageName: node
   linkType: hard
 

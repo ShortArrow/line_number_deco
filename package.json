@@ -163,14 +163,15 @@
     ]
   },
   "scripts": {
+    "clean": "rimraf ./out",
     "publish": "yarn run compile && vsce publish",
     "package": "yarn run compile",
     "vscode:prepublish": "yarn run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
+    "pretest": "yarn run clean && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "yarn run pretest && node ./out/test/runTest.js"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
@@ -183,6 +184,7 @@
     "eslint": "^8.34.0",
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
+    "rimraf": "^5.0.1",
     "typescript": "^4.9.5"
   },
   "license": "MIT",
