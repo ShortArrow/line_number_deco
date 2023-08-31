@@ -67,6 +67,14 @@
         "title": "LineNumberDeco: Update color at inactive row number for user"
       },
       {
+        "command": "line-number-deco.updateColorAtRepeatingDigits",
+        "title": "LineNumberDeco: Update color of repeating digits for workspace"
+      },
+      {
+        "command": "line-number-deco.updateColorAtRepeatingDigitsForUser",
+        "title": "LineNumberDeco: Update color of repeating digits for user"
+      },
+      {
         "command": "line-number-deco.enableRelativeLineNumbers",
         "title": "LineNumberDeco: Enable Relative Line Numbers in This workspace"
       },

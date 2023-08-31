@@ -6,10 +6,14 @@ import {
   getColorCodeAtCenterOfRainbowForUser,
   getColorCodeAtInactiveRowNumber,
   getColorCodeAtInactiveRowNumberForUser,
+  getColorCodeAtRepeatingDigits,
+  getColorCodeAtRepeatingDigitsForUser,
   updateEnableRainbowForUser,
   updateEnableRainbowForWorkspace,
   updateEnableRelativeLine,
   updateEnableRelativeLineForUser,
+  updateEnableRepeatingDigits,
+  updateEnableRepeatingDigitsForUser,
 } from "./config";
 import { updateRelativeLineNumbers } from "./core";
 
@@ -44,6 +48,12 @@ const commands = [
   cmdCurry("enableRainbowForUser", () => updateEnableRainbowForUser(true)),
   cmdCurry("disableRainbow", () => updateEnableRainbowForWorkspace(false)),
   cmdCurry("disableRainbowForUser", () => updateEnableRainbowForUser(false)),
+  cmdCurry("enableRepeatingDigits", () => updateEnableRepeatingDigits(true)),
+  cmdCurry("disableRepeatingDigits", () => updateEnableRepeatingDigits(false)),
+  cmdCurry("enableRepeatingDigitsForUser", () => updateEnableRepeatingDigitsForUser(true)),
+  cmdCurry("disableRepeatingDigitsForUser", () => updateEnableRepeatingDigitsForUser(false)),
+  cmdCurry("updateColorAtRepeatingDigits", () => getColorCodeAtRepeatingDigits()),
+  cmdCurry("updateColorAtRepeatingDigitsForUser", () => getColorCodeAtRepeatingDigitsForUser()),
   cmdCurry("updateColorAtCenterOfRainbow", () =>
     getColorCodeAtCenterOfRainbow()
   ),

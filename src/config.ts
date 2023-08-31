@@ -61,33 +61,35 @@ export function updateEnableRainbowForUser(set: boolean) {
 }
 
 function updateColorAtCenterOfRainbow(set: string) {
-  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
-  extensionConfigs.update("centerColorOfRainbow", set);
+  updateWorkspaceConfig("centerColorOfRainbow", set);
 }
 
 function updateColorAtCenterOfRainbowForUser(set: string) {
-  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
-  extensionConfigs.update("centerColorOfRainbow", set, vsCodeGlobal);
+  updateUserConfig("centerColorOfRainbow", set);
 }
 
 function updateColorAtActiveRowNumber(set: string) {
-  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
-  extensionConfigs.update("activeForeground", set);
+  updateWorkspaceConfig("activeForeground", set);
 }
 
 function updateColorAtActiveRowNumberForUser(set: string) {
-  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
-  extensionConfigs.update("activeForeground", set, vsCodeGlobal);
+  updateUserConfig("activeForeground", set);
 }
 
 function updateColorAtInactiveRowNumber(set: string) {
-  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
-  extensionConfigs.update("foreground", set);
+  updateWorkspaceConfig("foreground", set);
 }
 
 function updateColorAtInactiveRowNumberForUser(set: string) {
-  const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
-  extensionConfigs.update("foreground", set, vsCodeGlobal);
+  updateUserConfig("foreground", set);
+}
+
+function updateColorAtRepeatingDigits(set: string) {
+  updateWorkspaceConfig("repeatingDigitsColor", set);
+}
+
+function updateColorAtRepeatingDigitsForUser(set: string) {
+  updateUserConfig("repeatingDigitsColor", set);
 }
 
 async function getColorCode(
@@ -107,6 +109,24 @@ async function getColorCode(
   }
   setter(result);
   vscode.window.showInformationMessage(`Color is updated by, ${result}!`);
+}
+
+export async function getColorCodeAtRepeatingDigits() {
+  await getColorCode(
+    "Please input color code at repeating digits",
+    "",
+    getColorAtRepeatingDigits,
+    updateColorAtRepeatingDigits
+  );
+}
+
+export async function getColorCodeAtRepeatingDigitsForUser() {
+  await getColorCode(
+    "Please input color code at repeating digits",
+    "",
+    getColorAtRepeatingDigits,
+    updateColorAtRepeatingDigitsForUser
+  );
 }
 
 export async function getColorCodeAtCenterOfRainbow() {
@@ -173,6 +193,14 @@ export function updateEnableRelativeLine(set: boolean) {
 
 export function updateEnableRelativeLineForUser(set: boolean) {
   updateUserConfig("enableRlativeLineOnDefault", set);
+}
+
+export function updateEnableRepeatingDigits(set: boolean) {
+  updateWorkspaceConfig("enableRepeatingDigits", set);
+}
+
+export function updateEnableRepeatingDigitsForUser(set: boolean) {
+  updateUserConfig("enableRepeatingDigits", set);
 }
 
 export function getInactiveLineNumberColor() {
