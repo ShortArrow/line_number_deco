@@ -6,9 +6,20 @@ import {
     getEnableRainbow,
     getEnableRelativeLineDefault,
     getInactiveLineNumberColor,
+    getEnableRepeatingDigits,
+    getColorAtRepeatingDigits,
 } from "./config";
 
 const decorations: vscode.DecorationOptions[] = [];
+
+/**
+ * check repeating digits
+ * @param lineNumber line number
+ * @returns boolean if repeating digits, return true
+ */
+export function isRepeatingDigits(lineNumber: string) {
+  return lineNumber.match(/^(\d)\1+$/) !== null;
+}
 
 /**
  * update relative line numbers
@@ -29,6 +40,8 @@ export async function updateRelativeLineNumbers(
   const activeLineNumberColor = getActiveLineNumberColor();
   const inactiveLineNumberColor = getInactiveLineNumberColor();
   const enableRainbow = getEnableRainbow();
+  const enableRepeatingDigits = getEnableRepeatingDigits();
+  const repeatingDigitsColor = getColorAtRepeatingDigits();
   const centerColorOfRainbow = getColorAtCenterOfRainbow();
   const labelWidth = document.lineCount.toString().length;
 
@@ -47,6 +60,8 @@ export async function updateRelativeLineNumbers(
       contentText: label,
       color: isCurrentLine
         ? activeLineNumberColor
+        : (enableRepeatingDigits && isRepeatingDigits(label))
+        ? repeatingDigitsColor
         : enableRainbow
         ? shiftHue(centerColorOfRainbow, Math.abs(lineIndex - activeLineNumber))
         : inactiveLineNumberColor,

@@ -34,6 +34,14 @@ export function getEnableRainbow() {
   return getConfig<boolean>("enableRainbow", false);
 }
 
+export function getEnableRepeatingDigits() {
+  return getConfig<boolean>("enableRepeatingDigits", false);
+}
+
+export function getColorAtRepeatingDigits() {
+  return getConfig<string>("repeatingDigitsColor", "");
+}
+
 export function updateUserConfig(key: string, set: any) {
   const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
   extensionConfigs.update(key, set, vsCodeGlobal);
