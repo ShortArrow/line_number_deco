@@ -10,7 +10,6 @@ import {
     getColorAtRepeatingDigits,
 } from "./config";
 
-const decorations: vscode.DecorationOptions[] = [];
 
 /**
  * check repeating digits
@@ -34,6 +33,7 @@ export async function updateRelativeLineNumbers(
   if (!editor) {
     return;
   }
+  const decorations: vscode.DecorationOptions[] = [];
 
   const activeLineNumber = editor.selection.active.line;
   const document = editor.document;
