@@ -52,7 +52,7 @@ export function getEnableRepeatingDigits() {
 }
 
 export function getColorAtRepeatingDigits() {
-  return getConfig<string>("repeatingDigitsColor", "");
+  return getConfig<string>("foregroundColorOfRepeatingDigits", "");
 }
 
 export function getEnableRelativeLine() {

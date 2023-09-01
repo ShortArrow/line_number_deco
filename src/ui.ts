@@ -54,11 +54,11 @@ function updateColorAtInactiveRowNumberForUser(set: string) {
 }
 
 function updateColorAtRepeatingDigits(set: string) {
-  updateWorkspaceConfig("repeatingDigitsColor", set);
+  updateWorkspaceConfig("foregroundColorOfRepeatingDigits", set);
 }
 
 function updateColorAtRepeatingDigitsForUser(set: string) {
-  updateUserConfig("repeatingDigitsColor", set);
+  updateUserConfig("foregroundColorOfRepeatingDigits", set);
 }
 
 async function getColorCode(
