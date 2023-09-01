@@ -11,53 +11,53 @@ import {
 const vsCodeGlobal = vscode.ConfigurationTarget
   .Global as vscode.ConfigurationTarget;
 
-export function updateUserConfig(key: string, set: any) {
+export async function updateUserConfig(key: string, set: any) {
   const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
-  extensionConfigs.update(key, set, vsCodeGlobal);
+  await extensionConfigs.update(key, set, vsCodeGlobal);
 }
 
-export function updateWorkspaceConfig(key: string, set: any) {
+export async function updateWorkspaceConfig(key: string, set: any) {
   const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);
-  extensionConfigs.update(key, set);
+  await extensionConfigs.update(key, set);
 }
 
-export function updateEnableRainbowForWorkspace(set: boolean) {
-  updateWorkspaceConfig("enableRainbow", set);
+export async function updateEnableRainbowForWorkspace(set: boolean) {
+  await updateWorkspaceConfig("enableRainbow", set);
 }
 
-export function updateEnableRainbowForUser(set: boolean) {
+export async function updateEnableRainbowForUser(set: boolean) {
   updateUserConfig("enableRainbow", set);
 }
 
-export function updateColorAtCenterOfRainbow(set: string) {
+export async function updateColorAtCenterOfRainbow(set: string) {
   updateWorkspaceConfig("centerColorOfRainbow", set);
 }
 
-export function updateColorAtCenterOfRainbowForUser(set: string) {
+export async function updateColorAtCenterOfRainbowForUser(set: string) {
   updateUserConfig("centerColorOfRainbow", set);
 }
 
-function updateColorAtActiveRowNumber(set: string) {
+export async function updateColorAtActiveRowNumber(set: string) {
   updateWorkspaceConfig("activeForeground", set);
 }
 
-function updateColorAtActiveRowNumberForUser(set: string) {
+export async function updateColorAtActiveRowNumberForUser(set: string) {
   updateUserConfig("activeForeground", set);
 }
 
-function updateColorAtInactiveRowNumber(set: string) {
+export async function updateColorAtInactiveRowNumber(set: string) {
   updateWorkspaceConfig("foreground", set);
 }
 
-function updateColorAtInactiveRowNumberForUser(set: string) {
+export async function updateColorAtInactiveRowNumberForUser(set: string) {
   updateUserConfig("foreground", set);
 }
 
-function updateColorAtRepeatingDigits(set: string) {
+export async function updateColorAtRepeatingDigits(set: string) {
   updateWorkspaceConfig("foregroundColorOfRepeatingDigits", set);
 }
 
-function updateColorAtRepeatingDigitsForUser(set: string) {
+export async function updateColorAtRepeatingDigitsForUser(set: string) {
   updateUserConfig("foregroundColorOfRepeatingDigits", set);
 }
 
@@ -65,7 +65,7 @@ async function getColorCode(
   prompt: string,
   defaultValue: string,
   preValueGetter: () => string | undefined,
-  setter: (set: string) => void
+  setter: (set: string) => Promise<void>
 ) {
   const preValue = preValueGetter() || defaultValue;
   const options: vscode.InputBoxOptions = {
@@ -76,7 +76,7 @@ async function getColorCode(
   if (result === preValue || result === "") {
     return;
   }
-  setter(result);
+  await setter(result);
   vscode.window.showInformationMessage(`Color is updated by, ${result}!`);
 }
 
@@ -152,18 +152,18 @@ export async function getColorCodeAtInactiveRowNumberForUser() {
   );
 }
 
-export function updateEnableRelativeLine(set: boolean) {
+export async function updateEnableRelativeLine(set: boolean) {
   updateWorkspaceConfig("enableRelativeLine", set);
 }
 
-export function updateEnableRelativeLineForUser(set: boolean) {
+export async function updateEnableRelativeLineForUser(set: boolean) {
   updateUserConfig("enableRelativeLine", set);
 }
 
-export function updateEnableRepeatingDigits(set: boolean) {
+export async function updateEnableRepeatingDigits(set: boolean) {
   updateWorkspaceConfig("enableRepeatingDigits", set);
 }
 
-export function updateEnableRepeatingDigitsForUser(set: boolean) {
+export async function updateEnableRepeatingDigitsForUser(set: boolean) {
   updateUserConfig("enableRepeatingDigits", set);
 }
