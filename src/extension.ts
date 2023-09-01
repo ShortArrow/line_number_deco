@@ -36,34 +36,29 @@ const commands = [
     // Update on selection change
     updateRelativeLineNumbers(e.textEditor, decorationType);
   }),
-  cmdAssign("enableRelativeLineNumbers", () => updateEnableRelativeLine(true)),
-  cmdAssign("enableRelativeLineNumbersForUser", () =>
-    updateEnableRelativeLineForUser(true)
-  ),
-  cmdAssign("disableRelativeLineNumbers", () => updateEnableRelativeLine(false)),
-  cmdAssign("disableRelativeLineNumbersForUser", () =>
-    updateEnableRelativeLineForUser(false)
-  ),
-  cmdAssign("enableRainbow", () => updateEnableRainbowForWorkspace(true)),
-  cmdAssign("enableRainbowForUser", () => updateEnableRainbowForUser(true)),
-  cmdAssign("disableRainbow", () => updateEnableRainbowForWorkspace(false)),
-  cmdAssign("disableRainbowForUser", () => updateEnableRainbowForUser(false)),
-  cmdAssign("enableRepeatingDigits", () => updateEnableRepeatingDigits(true)),
-  cmdAssign("disableRepeatingDigits", () => updateEnableRepeatingDigits(false)),
-  cmdAssign("enableRepeatingDigitsForUser", () => updateEnableRepeatingDigitsForUser(true)),
-  cmdAssign("disableRepeatingDigitsForUser", () => updateEnableRepeatingDigitsForUser(false)),
-  cmdAssign("updateColorAtRepeatingDigits", () => getColorCodeAtRepeatingDigits()),
-  cmdAssign("updateColorAtRepeatingDigitsForUser", () => getColorCodeAtRepeatingDigitsForUser()),
-  cmdAssign("updateColorAtCenterOfRainbow", () =>
-    getColorCodeAtCenterOfRainbow()
-  ),
-  cmdAssign("updateColorAtCenterOfRainbowForUser", () =>
-    getColorCodeAtCenterOfRainbowForUser()
-  ),
-  cmdAssign("updateColorAtActiveRowNumber", () => getColorCodeAtActiveRowNumber()),
-  cmdAssign("updateColorAtActiveRowNumberForUser", () => getColorCodeAtActiveRowNumberForUser()),
-  cmdAssign("updateColorAtInactiveRowNumber", () => getColorCodeAtInactiveRowNumber()),
-  cmdAssign("updateColorAtInactiveRowNumberForUser", () => getColorCodeAtInactiveRowNumberForUser()),
+  ...[
+    {name: "enableRelativeLineNumbers", func: updateEnableRelativeLine, value: true},
+    {name: "disableRelativeLineNumbers", func: updateEnableRelativeLine, value: false},
+    {name: "enableRelativeLineNumbersForUser", func: updateEnableRelativeLineForUser, value: true},
+    {name: "disableRelativeLineNumbersForUser", func: updateEnableRelativeLineForUser, value: false},
+    {name: "enableRainbow", func: updateEnableRainbowForWorkspace, value: true},
+    {name: "disableRainbow", func: updateEnableRainbowForWorkspace, value: false},
+    {name: "enableRainbowForUser", func: updateEnableRainbowForUser, value: true},
+    {name: "disableRainbowForUser", func: updateEnableRainbowForUser, value: false},
+    {name: "enableRepeatingDigits", func: updateEnableRepeatingDigits, value: true},
+    {name: "disableRepeatingDigits", func: updateEnableRepeatingDigits, value: false},
+    {name: "enableRepeatingDigitsForUser", func: updateEnableRepeatingDigitsForUser, value: true},
+    {name: "disableRepeatingDigitsForUser", func: updateEnableRepeatingDigitsForUser, value: false},
+    {name: "updateColorAtRepeatingDigitsForUser", func: getColorCodeAtRepeatingDigits, value: undefined},
+    {name: "updateColorAtCenterOfRainbow", func: getColorCodeAtCenterOfRainbow, value: undefined},
+    {name: "updateColorAtCenterOfRainbowForUser", func: getColorCodeAtCenterOfRainbowForUser, value: undefined},
+    {name: "updateColorAtInactiveRowNumberForUser", func: getColorCodeAtInactiveRowNumberForUser, value: undefined},
+    {name: "updateColorAtActiveRowNumberForUser", func: getColorCodeAtActiveRowNumberForUser, value: undefined},
+    {name: "updateColorAtAInactiveRowNumber", func: getColorCodeAtInactiveRowNumber, value: undefined},
+    {name: "updateColorAtActiveRowNumber", func: getColorCodeAtActiveRowNumber, value: undefined},
+  ].map(({name, func, value}) => {
+    return cmdAssign(name, () => value === undefined ? func() : func(value));
+  }),
 ];
 
 /**
