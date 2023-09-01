@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import { getConfig } from "./config";
 import { nameOfExtension } from "./config";
 import {
     getColorAtCenterOfRainbow,
@@ -11,21 +10,6 @@ import {
     
 const vsCodeGlobal = vscode.ConfigurationTarget
   .Global as vscode.ConfigurationTarget;
-
-export function getInactiveLineNumberColor() {
-  const config = getConfig<string>("foreground", "");
-  return config !== ""
-    ? config
-    : new vscode.ThemeColor("LineNumberDeco.foreground");
-}
-
-export function getActiveLineNumberColor() {
-  const config = getConfig<string>("activeForeground", "");
-
-  return config !== ""
-    ? config
-    : new vscode.ThemeColor("LineNumberDeco.activeForeground");
-}
 
 export function updateUserConfig(key: string, set: any) {
   const extensionConfigs = vscode.workspace.getConfiguration(nameOfExtension);

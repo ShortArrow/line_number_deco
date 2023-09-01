@@ -6,13 +6,9 @@ import {
     getEnableRelativeLine,
     getEnableRepeatingDigits,
     getColorAtRepeatingDigits,
-} from "./config";
-import {
     getInactiveLineNumberColor,
     getActiveLineNumberColor,
-} from "./ui";
-
-
+} from "./config";
 
 /**
  * check repeating digits

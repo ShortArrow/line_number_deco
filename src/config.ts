@@ -16,6 +16,21 @@ export function getConfig<T>(key: string, defaultValue: T) {
   return config.get<T>(key, defaultValue);
 }
 
+export function getInactiveLineNumberColor() {
+  const config = getConfig<string>("foreground", "");
+  return config !== ""
+    ? config
+    : new vscode.ThemeColor("LineNumberDeco.foreground");
+}
+
+export function getActiveLineNumberColor() {
+  const config = getConfig<string>("activeForeground", "");
+
+  return config !== ""
+    ? config
+    : new vscode.ThemeColor("LineNumberDeco.activeForeground");
+}
+
 export function getColorAtCenterOfRainbow() {
   return getConfig<string>("centerColorOfRainbow", defaultCenterColorOfRainbow);
 }
