@@ -1,14 +1,17 @@
 import * as vscode from "vscode";
 import { shiftHue } from "./colors";
 import { 
-    getActiveLineNumberColor,
     getColorAtCenterOfRainbow,
     getEnableRainbow,
     getEnableRelativeLine,
-    getInactiveLineNumberColor,
     getEnableRepeatingDigits,
     getColorAtRepeatingDigits,
 } from "./config";
+import {
+    getInactiveLineNumberColor,
+    getActiveLineNumberColor,
+} from "./ui";
+
 
 
 /**
