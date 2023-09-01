@@ -183,16 +183,16 @@ export async function getColorCodeAtInactiveRowNumberForUser() {
   );
 }
 
-export function getEnableRelativeLineDefault() {
-  return getConfig<boolean>("enableRlativeLineOnDefault", true);
+export function getEnableRelativeLine() {
+  return getConfig<boolean>("enableRelativeLine", true);
 }
 
 export function updateEnableRelativeLine(set: boolean) {
-  updateWorkspaceConfig("enableRlativeLineOnDefault", set);
+  updateWorkspaceConfig("enableRelativeLine", set);
 }
 
 export function updateEnableRelativeLineForUser(set: boolean) {
-  updateUserConfig("enableRlativeLineOnDefault", set);
+  updateUserConfig("enableRelativeLine", set);
 }
 
 export function updateEnableRepeatingDigits(set: boolean) {

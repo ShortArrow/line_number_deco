@@ -4,7 +4,7 @@ import {
     getActiveLineNumberColor,
     getColorAtCenterOfRainbow,
     getEnableRainbow,
-    getEnableRelativeLineDefault,
+    getEnableRelativeLine,
     getInactiveLineNumberColor,
     getEnableRepeatingDigits,
     getColorAtRepeatingDigits,
@@ -82,7 +82,7 @@ export async function updateRelativeLineNumbers(
 
     decorations.push(decoration);
   }
-  const enableRlativeLine = getEnableRelativeLineDefault();
+  const enableRelativeLine = getEnableRelativeLine();
 
-  editor.setDecorations(decorationType, enableRlativeLine ? decorations : []);
+  editor.setDecorations(decorationType, enableRelativeLine ? decorations : []);
 }

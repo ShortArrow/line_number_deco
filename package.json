@@ -110,7 +110,7 @@
     "configuration": {
       "title": "LineNumberDeco",
       "properties": {
-        "LineNumberDeco.enableRlativeLineOnDefault": {
+        "LineNumberDeco.enableRelativeLine": {
           "type": "boolean",
           "default": true,
           "description": "Enable display relative line"
