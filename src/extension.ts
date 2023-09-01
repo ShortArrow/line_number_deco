@@ -19,7 +19,7 @@ import { updateRelativeLineNumbers } from "./core";
 
 const decorationType = vscode.window.createTextEditorDecorationType({});
 
-function cmdCurry(command: string, callback: Function) {
+function cmdAssign(command: string, callback: Function) {
   return vscode.commands.registerCommand(`line-number-deco.${command}`, () =>
     callback()
   );
@@ -36,34 +36,34 @@ const commands = [
     // Update on selection change
     updateRelativeLineNumbers(e.textEditor, decorationType);
   }),
-  cmdCurry("enableRelativeLineNumbers", () => updateEnableRelativeLine(true)),
-  cmdCurry("enableRelativeLineNumbersForUser", () =>
+  cmdAssign("enableRelativeLineNumbers", () => updateEnableRelativeLine(true)),
+  cmdAssign("enableRelativeLineNumbersForUser", () =>
     updateEnableRelativeLineForUser(true)
   ),
-  cmdCurry("disableRelativeLineNumbers", () => updateEnableRelativeLine(false)),
-  cmdCurry("disableRelativeLineNumbersForUser", () =>
+  cmdAssign("disableRelativeLineNumbers", () => updateEnableRelativeLine(false)),
+  cmdAssign("disableRelativeLineNumbersForUser", () =>
     updateEnableRelativeLineForUser(false)
   ),
-  cmdCurry("enableRainbow", () => updateEnableRainbowForWorkspace(true)),
-  cmdCurry("enableRainbowForUser", () => updateEnableRainbowForUser(true)),
-  cmdCurry("disableRainbow", () => updateEnableRainbowForWorkspace(false)),
-  cmdCurry("disableRainbowForUser", () => updateEnableRainbowForUser(false)),
-  cmdCurry("enableRepeatingDigits", () => updateEnableRepeatingDigits(true)),
-  cmdCurry("disableRepeatingDigits", () => updateEnableRepeatingDigits(false)),
-  cmdCurry("enableRepeatingDigitsForUser", () => updateEnableRepeatingDigitsForUser(true)),
-  cmdCurry("disableRepeatingDigitsForUser", () => updateEnableRepeatingDigitsForUser(false)),
-  cmdCurry("updateColorAtRepeatingDigits", () => getColorCodeAtRepeatingDigits()),
-  cmdCurry("updateColorAtRepeatingDigitsForUser", () => getColorCodeAtRepeatingDigitsForUser()),
-  cmdCurry("updateColorAtCenterOfRainbow", () =>
+  cmdAssign("enableRainbow", () => updateEnableRainbowForWorkspace(true)),
+  cmdAssign("enableRainbowForUser", () => updateEnableRainbowForUser(true)),
+  cmdAssign("disableRainbow", () => updateEnableRainbowForWorkspace(false)),
+  cmdAssign("disableRainbowForUser", () => updateEnableRainbowForUser(false)),
+  cmdAssign("enableRepeatingDigits", () => updateEnableRepeatingDigits(true)),
+  cmdAssign("disableRepeatingDigits", () => updateEnableRepeatingDigits(false)),
+  cmdAssign("enableRepeatingDigitsForUser", () => updateEnableRepeatingDigitsForUser(true)),
+  cmdAssign("disableRepeatingDigitsForUser", () => updateEnableRepeatingDigitsForUser(false)),
+  cmdAssign("updateColorAtRepeatingDigits", () => getColorCodeAtRepeatingDigits()),
+  cmdAssign("updateColorAtRepeatingDigitsForUser", () => getColorCodeAtRepeatingDigitsForUser()),
+  cmdAssign("updateColorAtCenterOfRainbow", () =>
     getColorCodeAtCenterOfRainbow()
   ),
-  cmdCurry("updateColorAtCenterOfRainbowForUser", () =>
+  cmdAssign("updateColorAtCenterOfRainbowForUser", () =>
     getColorCodeAtCenterOfRainbowForUser()
   ),
-  cmdCurry("updateColorAtActiveRowNumber", () => getColorCodeAtActiveRowNumber()),
-  cmdCurry("updateColorAtActiveRowNumberForUser", () => getColorCodeAtActiveRowNumberForUser()),
-  cmdCurry("updateColorAtInactiveRowNumber", () => getColorCodeAtInactiveRowNumber()),
-  cmdCurry("updateColorAtInactiveRowNumberForUser", () => getColorCodeAtInactiveRowNumberForUser()),
+  cmdAssign("updateColorAtActiveRowNumber", () => getColorCodeAtActiveRowNumber()),
+  cmdAssign("updateColorAtActiveRowNumberForUser", () => getColorCodeAtActiveRowNumberForUser()),
+  cmdAssign("updateColorAtInactiveRowNumber", () => getColorCodeAtInactiveRowNumber()),
+  cmdAssign("updateColorAtInactiveRowNumberForUser", () => getColorCodeAtInactiveRowNumberForUser()),
 ];
 
 /**
