@@ -29,11 +29,11 @@ export function updateEnableRainbowForUser(set: boolean) {
   updateUserConfig("enableRainbow", set);
 }
 
-function updateColorAtCenterOfRainbow(set: string) {
+export function updateColorAtCenterOfRainbow(set: string) {
   updateWorkspaceConfig("centerColorOfRainbow", set);
 }
 
-function updateColorAtCenterOfRainbowForUser(set: string) {
+export function updateColorAtCenterOfRainbowForUser(set: string) {
   updateUserConfig("centerColorOfRainbow", set);
 }
 
