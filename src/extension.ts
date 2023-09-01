@@ -14,7 +14,7 @@ import {
   updateEnableRelativeLineForUser,
   updateEnableRepeatingDigits,
   updateEnableRepeatingDigitsForUser,
-} from "./config";
+} from "./ui";
 import { updateRelativeLineNumbers } from "./core";
 
 const decorationType = vscode.window.createTextEditorDecorationType({});
