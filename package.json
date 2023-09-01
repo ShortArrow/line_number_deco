@@ -3,7 +3,7 @@
   "displayName": "LineNumberDeco",
   "description": "VSCode extension to display relative line numbers",
   "publisher": "ShortArrow",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "engines": {
     "vscode": "^1.76.0"
   },
@@ -67,6 +67,14 @@
         "title": "LineNumberDeco: Update color at inactive row number for user"
       },
       {
+        "command": "line-number-deco.updateColorAtRepeatingDigits",
+        "title": "LineNumberDeco: Update color of repeating digits for workspace"
+      },
+      {
+        "command": "line-number-deco.updateColorAtRepeatingDigitsForUser",
+        "title": "LineNumberDeco: Update color of repeating digits for user"
+      },
+      {
         "command": "line-number-deco.enableRelativeLineNumbers",
         "title": "LineNumberDeco: Enable Relative Line Numbers in This workspace"
       },
@@ -81,12 +89,28 @@
       {
         "command": "line-number-deco.disableRelativeLineNumbersForUser",
         "title": "LineNumberDeco: Disable Relative Line Numbers for user"
+      },
+      {
+        "command": "line-number-deco.enableRepeatingDigits",
+        "title": "LineNumberDeco: Enable repeating digits in this workspace"
+      },
+      {
+        "command": "line-number-deco.disableRepeatingDigits",
+        "title": "LineNumberDeco: Disable repeating digits color in this workspace"
+      },
+      {
+        "command": "line-number-deco.enableRepeatingDigitsForUser",
+        "title": "LineNumberDeco: Enable repeating digits color for user"
+      },
+      {
+        "command": "line-number-deco.disableRepeatingDigitsForUser",
+        "title": "LineNumberDeco: Disable repeating digits color for user"
       }
     ],
     "configuration": {
       "title": "LineNumberDeco",
       "properties": {
-        "LineNumberDeco.enableRlativeLineOnDefault": {
+        "LineNumberDeco.enableRelativeLine": {
           "type": "boolean",
           "default": true,
           "description": "Enable display relative line"
@@ -96,10 +120,20 @@
           "default": "#0000ff",
           "description": "Center color of rainbow"
         },
+        "LineNumberDeco.foregroundColorOfRepeatingDigits": {
+          "type": "string",
+          "default": "#00ff00",
+          "description": "Foreground color of Repeating digits"
+        },
         "LineNumberDeco.enableRainbow": {
           "type": "boolean",
           "default": false,
           "description": "Enable rainbow color"
+        },
+        "LineNumberDeco.enableRepeatingDigits": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable color of repeating digits"
         },
         "LineNumberDeco.activeForeground": {
           "type": "string",
@@ -137,14 +171,15 @@
     ]
   },
   "scripts": {
+    "clean": "rimraf ./out",
     "publish": "yarn run compile && vsce publish",
     "package": "yarn run compile",
     "vscode:prepublish": "yarn run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
+    "pretest": "yarn run clean && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "yarn run pretest && node ./out/test/runTest.js"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
@@ -157,6 +192,7 @@
     "eslint": "^8.34.0",
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
+    "rimraf": "^5.0.1",
     "typescript": "^4.9.5"
   },
   "license": "MIT",

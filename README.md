@@ -34,7 +34,7 @@ Show relative line numbers
 
 ## Extension Settings
 
-- `LineNumberDeco.enableRlativeLineOnDefault`: Enable display relative line on vscode startup
+- `LineNumberDeco.enabletiveLine`: Enable display relative line on vscode startup
 - `LineNumberDeco.activeForeground`: Override color of active relative line number
 - `LineNumberDeco.foreground`: Override color of inactive relative line number
 - `LineNumberDeco.centerColorOfRainbow`: Center color of rainbow
@@ -53,6 +53,18 @@ Thank you for pioneering
 
 - [Double line numbers](https://marketplace.visualstudio.com/items?itemName=slhsxcmy.vscode-double-line-numbers)
 - [Relative line numbers](https://marketplace.visualstudio.com/items?itemName=extr0py.vscode-relative-line-numbers)
+
+## VSCode Embedded Configuration
+
+If you want not to use this extension, you can use vscode embedded configuration.
+`editor.lineNumbers` to `relative` then you can use relative line numbers.
+
+```json
+"editor.lineNumbers": "on" // or "relative" or "off" or "interval", "on" is default
+```
+
+Or you can use `editor.lineNumbers` to `off`.
+Then only show line numbers in your vscode by this extension.
 
 ## License
 
