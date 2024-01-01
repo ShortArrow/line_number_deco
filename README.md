@@ -32,39 +32,6 @@ Show relative line numbers
 ![visual representation of the action](./images/Animation.gif)
 ![stative image](./images/static_image.png)
 
-## Extension Settings
-
-- `LineNumberDeco.enableRelativeLine`: Enable display relative line on vscode startup
-- `LineNumberDeco.activeForeground`: Override color of active relative line number
-- `LineNumberDeco.foreground`: Override color of inactive relative line number
-- `LineNumberDeco.foreground`: Override color of inactive relative line number
-- `LineNumberDeco.centerColorOfRainbow`: Center color of rainbow
-- `LineNumberDeco.enableRainbow`: Enable rainbow color
-- `LineNumberDeco.enableRepeatingDigits`: Enable repeating digits
-
-## Extension Commands
-
-- `line-number-deco.enableRainbow`: Enable rainbow for workspace
-- `line-number-deco.disableRainbow`: Disable rainbow for workspace
-- `line-number-deco.enableRainbowForUser`: Enable rainbow for user
-- `line-number-deco.disableRainbowForUser`: Disable rainbow for user
-- `line-number-deco.updateColorAtCenterOfRainbow`: Update color at center of rainbow for workspace
-- `line-number-deco.updateColorAtCenterOfRainbowForUser`: Update color at center of rainbow for user
-- `line-number-deco.updateColorAtActiveRowNumber`: Update color at current row number
-- `line-number-deco.updateColorAtActiveRowNumberForUser`: Update color at current row number for user
-- `line-number-deco.updateColorAtInactiveRowNumber`: Update color at inactive row number
-- `line-number-deco.updateColorAtInactiveRowNumberForUser`: Update color at inactive row number for user
-- `line-number-deco.updateColorAtRepeatingDigits`: Update color of repeating digits for workspace
-- `line-number-deco.updateColorAtRepeatingDigitsForUser`: Update color of repeating digits for user
-- `line-number-deco.enableRelativeLineNumbers`: Enable Relative Line Numbers in This workspace
-- `line-number-deco.enableRelativeLineNumbersForUser`: Enable Relative Line Numbers for user
-- `line-number-deco.disableRelativeLineNumbers`: Disable Relative Line Numbers in This workspace
-- `line-number-deco.disableRelativeLineNumbersForUser`: Disable Relative Line Numbers for user
-- `line-number-deco.enableRepeatingDigits`: Enable repeating digits in this workspace
-- `line-number-deco.disableRepeatingDigits`: Disable repeating digits color in this workspace
-- `line-number-deco.enableRepeatingDigitsForUser`: Enable repeating digits color for user
-- `line-number-deco.disableRepeatingDigitsForUser`: Disable repeating digits color for user
-
 ## Inspired
 
 Thank you for pioneering
