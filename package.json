@@ -3,7 +3,7 @@
   "displayName": "LineNumberDeco",
   "description": "VSCode extension to display relative line numbers",
   "publisher": "ShortArrow",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "engines": {
     "vscode": "^1.76.0"
   },
@@ -11,6 +11,8 @@
   "keywords": [
     "vim",
     "neovim",
+    "nvim",
+    "helix",
     "emacs",
     "rownumber",
     "relative",

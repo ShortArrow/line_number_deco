@@ -33,8 +33,14 @@ const commands = [
     }
   }),
   vscode.window.onDidChangeTextEditorSelection((e) => {
-    // Update on selection change
+    // Update decoration when selection changes
     updateRelativeLineNumbers(e.textEditor, decorationType);
+  }),
+  vscode.window.onDidChangeTextEditorVisibleRanges(event => {
+    if (event.textEditor === vscode.window.activeTextEditor) {
+      // Update decoration when visible range changes
+      updateRelativeLineNumbers(vscode.window.activeTextEditor, decorationType);
+    }
   }),
   ...[
     {name: "enableRelativeLineNumbers", func: updateEnableRelativeLine, value: true},
