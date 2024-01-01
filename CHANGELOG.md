@@ -41,3 +41,9 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
   - `line-number-deco.disableRepeatingDigitsForUser`
   - `line-number-deco.updateColorAtRepeatingDigits`
   - `line-number-deco.updateColorAtRepeatingDigitsForUser`
+
+## 0.0.7
+
+- Add 'nvim' and 'helix' to `README.md`
+- Decorated only visible parts to improve speed
+- Delete Commands list and Configuration list from `README.md`
