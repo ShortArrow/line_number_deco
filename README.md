@@ -32,21 +32,6 @@ Show relative line numbers
 ![visual representation of the action](./images/Animation.gif)
 ![stative image](./images/static_image.png)
 
-## Extension Settings
-
-- `LineNumberDeco.enabletiveLine`: Enable display relative line on vscode startup
-- `LineNumberDeco.activeForeground`: Override color of active relative line number
-- `LineNumberDeco.foreground`: Override color of inactive relative line number
-- `LineNumberDeco.centerColorOfRainbow`: Center color of rainbow
-- `LineNumberDeco.enableRainbow`: Enable rainbow color
-
-## Extension Commands
-
-- `line-number-deco.enableRelativeLineNumbers`: Enable Relative Line Numbers in This workspace
-- `line-number-deco.enableRelativeLineNumbersGlobal`: Enable Relative Line Numbers for User
-- `line-number-deco.disableRelativeLineNumbers`: Disable Relative Line Numbers in This workspace
-- `line-number-deco.disableRelativeLineNumbersGlobal`: Disable Relative Line Numbers for User
-
 ## Inspired
 
 Thank you for pioneering
@@ -60,7 +45,11 @@ If you want not to use this extension, you can use vscode embedded configuration
 `editor.lineNumbers` to `relative` then you can use relative line numbers.
 
 ```json
-"editor.lineNumbers": "on" // or "relative" or "off" or "interval", "on" is default
+{
+    // ... other settings
+    "editor.lineNumbers": "on" // or "relative" or "off" or "interval", "on" is default
+    // ... other settings
+}
 ```
 
 Or you can use `editor.lineNumbers` to `off`.
