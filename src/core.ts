@@ -1,13 +1,13 @@
 import * as vscode from "vscode";
 import { shiftHue } from "./colors";
-import { 
-    getColorAtCenterOfRainbow,
-    getEnableRainbow,
-    getEnableRelativeLine,
-    getEnableRepeatingDigits,
-    getColorAtRepeatingDigits,
-    getInactiveLineNumberColor,
-    getActiveLineNumberColor,
+import {
+  getColorAtCenterOfRainbow,
+  getEnableRainbow,
+  getEnableRelativeLine,
+  getEnableRepeatingDigits,
+  getColorAtRepeatingDigits,
+  getInactiveLineNumberColor,
+  getActiveLineNumberColor,
 } from "./config";
 
 /**
@@ -44,7 +44,7 @@ export async function updateRelativeLineNumbers(
   const centerColorOfRainbow = getColorAtCenterOfRainbow();
   const labelWidth = document.lineCount.toString().length;
 
-  for (let lineIndex = 0; lineIndex < document.lineCount; lineIndex++) {
+  for (let lineIndex = editor.visibleRanges[0].start.line ; lineIndex < editor.visibleRanges[0].end.line + 2; lineIndex++) {
     const lineRange = document.lineAt(lineIndex).range;
     const isCurrentLine = lineIndex === activeLineNumber;
 
@@ -60,10 +60,10 @@ export async function updateRelativeLineNumbers(
       color: isCurrentLine
         ? activeLineNumberColor
         : (enableRepeatingDigits && isRepeatingDigits(label))
-        ? repeatingDigitsColor
-        : enableRainbow
-        ? shiftHue(centerColorOfRainbow, Math.abs(lineIndex - activeLineNumber))
-        : inactiveLineNumberColor,
+          ? repeatingDigitsColor
+          : enableRainbow
+            ? shiftHue(centerColorOfRainbow, Math.abs(lineIndex - activeLineNumber))
+            : inactiveLineNumberColor,
       textDecoration: `
             box-sizing: border-box;
             text-align: right;
