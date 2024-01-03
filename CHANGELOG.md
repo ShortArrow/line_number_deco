@@ -47,3 +47,8 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Add 'nvim' and 'helix' to `README.md`
 - Decorated only visible parts to improve speed
 - Delete Commands list and Configuration list from `README.md`
+
+## 0.0.8
+
+- Fix bug that decoration is not updated when the cursor is moved to the end of the line
+- Fix bug that decoration is not updated when the document size is small than the editor size
