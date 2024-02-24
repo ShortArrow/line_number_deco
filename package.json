@@ -3,7 +3,7 @@
   "displayName": "LineNumberDeco",
   "description": "VSCode extension to display relative line numbers",
   "publisher": "ShortArrow",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "engines": {
     "vscode": "^1.76.0"
   },
@@ -181,7 +181,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "yarn run clean && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "yarn run pretest && node ./out/test/runTest.js"
+    "test": "yarn run pretest && node ./out/test/runTest.js",
+    "generate": "yarn dlx ts-node ./generater/fromPackageJson.ts"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",

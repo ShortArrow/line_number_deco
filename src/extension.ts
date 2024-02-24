@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { 
+import {
   getColorCodeAtActiveRowNumber,
   getColorCodeAtActiveRowNumberForUser,
   getColorCodeAtCenterOfRainbow,
@@ -16,14 +16,9 @@ import {
   updateEnableRepeatingDigitsForUser,
 } from "./ui";
 import { updateRelativeLineNumbers } from "./core";
+import { LineNumberDeco } from "./generated/generated";
 
 const decorationType = vscode.window.createTextEditorDecorationType({});
-
-function cmdAssign(command: string, callback: Function) {
-  return vscode.commands.registerCommand(`line-number-deco.${command}`, () =>
-    callback()
-  );
-}
 
 const commands = [
   vscode.workspace.onDidChangeTextDocument((e) => {
@@ -42,30 +37,26 @@ const commands = [
       updateRelativeLineNumbers(vscode.window.activeTextEditor, decorationType);
     }
   }),
-  ...[
-    {name: "enableRelativeLineNumbers", func: updateEnableRelativeLine, value: true},
-    {name: "disableRelativeLineNumbers", func: updateEnableRelativeLine, value: false},
-    {name: "enableRelativeLineNumbersForUser", func: updateEnableRelativeLineForUser, value: true},
-    {name: "disableRelativeLineNumbersForUser", func: updateEnableRelativeLineForUser, value: false},
-    {name: "enableRainbow", func: updateEnableRainbowForWorkspace, value: true},
-    {name: "disableRainbow", func: updateEnableRainbowForWorkspace, value: false},
-    {name: "enableRainbowForUser", func: updateEnableRainbowForUser, value: true},
-    {name: "disableRainbowForUser", func: updateEnableRainbowForUser, value: false},
-    {name: "enableRepeatingDigits", func: updateEnableRepeatingDigits, value: true},
-    {name: "disableRepeatingDigits", func: updateEnableRepeatingDigits, value: false},
-    {name: "enableRepeatingDigitsForUser", func: updateEnableRepeatingDigitsForUser, value: true},
-    {name: "disableRepeatingDigitsForUser", func: updateEnableRepeatingDigitsForUser, value: false},
-    {name: "updateColorAtRepeatingDigits", func: getColorCodeAtRepeatingDigits, value: undefined},
-    {name: "updateColorAtRepeatingDigitsForUser", func: getColorCodeAtRepeatingDigitsForUser, value: undefined},
-    {name: "updateColorAtCenterOfRainbow", func: getColorCodeAtCenterOfRainbow, value: undefined},
-    {name: "updateColorAtCenterOfRainbowForUser", func: getColorCodeAtCenterOfRainbowForUser, value: undefined},
-    {name: "updateColorAtInactiveRowNumberForUser", func: getColorCodeAtInactiveRowNumberForUser, value: undefined},
-    {name: "updateColorAtActiveRowNumberForUser", func: getColorCodeAtActiveRowNumberForUser, value: undefined},
-    {name: "updateColorAtAInactiveRowNumber", func: getColorCodeAtInactiveRowNumber, value: undefined},
-    {name: "updateColorAtActiveRowNumber", func: getColorCodeAtActiveRowNumber, value: undefined},
-  ].map(({name, func, value}) => {
-    return cmdAssign(name, () => value === undefined ? func() : func(value));
-  }),
+  LineNumberDeco.enableRelativeLineNumbers(() => updateEnableRelativeLine(true)),
+  LineNumberDeco.disableRelativeLineNumbers(() => updateEnableRelativeLine(false)),
+  LineNumberDeco.enableRelativeLineNumbersForUser(() => updateEnableRelativeLineForUser(true)),
+  LineNumberDeco.disableRelativeLineNumbersForUser(() => updateEnableRelativeLineForUser(false)),
+  LineNumberDeco.enableRainbow(() => updateEnableRainbowForWorkspace(true)),
+  LineNumberDeco.disableRainbow(() => updateEnableRainbowForWorkspace(false)),
+  LineNumberDeco.enableRainbowForUser(() => updateEnableRainbowForUser(true)),
+  LineNumberDeco.disableRainbowForUser(() => updateEnableRainbowForUser(false)),
+  LineNumberDeco.enableRepeatingDigits(() => updateEnableRepeatingDigits(true)),
+  LineNumberDeco.disableRepeatingDigits(() => updateEnableRepeatingDigits(false)),
+  LineNumberDeco.enableRepeatingDigitsForUser(() => updateEnableRepeatingDigitsForUser(true)),
+  LineNumberDeco.disableRepeatingDigitsForUser(() => updateEnableRepeatingDigitsForUser(false)),
+  LineNumberDeco.updateColorAtRepeatingDigits(getColorCodeAtRepeatingDigits),
+  LineNumberDeco.updateColorAtRepeatingDigitsForUser(getColorCodeAtRepeatingDigitsForUser),
+  LineNumberDeco.updateColorAtCenterOfRainbow(getColorCodeAtCenterOfRainbow),
+  LineNumberDeco.updateColorAtCenterOfRainbowForUser(getColorCodeAtCenterOfRainbowForUser),
+  LineNumberDeco.updateColorAtInactiveRowNumberForUser(getColorCodeAtInactiveRowNumberForUser),
+  LineNumberDeco.updateColorAtActiveRowNumberForUser(getColorCodeAtActiveRowNumberForUser),
+  LineNumberDeco.updateColorAtInactiveRowNumber(getColorCodeAtInactiveRowNumber),
+  LineNumberDeco.updateColorAtActiveRowNumber(getColorCodeAtActiveRowNumber),
 ];
 
 /**
@@ -79,4 +70,4 @@ export function activate(context: vscode.ExtensionContext) {
 /**
  * deactivate extension
  */
-export function deactivate() {}
+export function deactivate() { }
