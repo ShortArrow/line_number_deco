@@ -22,6 +22,10 @@
   "categories": [
     "Other"
   ],
+  "extensionKind": [
+    "ui",
+    "workspace"
+  ],
   "activationEvents": [
     "onStartupFinished"
   ],
