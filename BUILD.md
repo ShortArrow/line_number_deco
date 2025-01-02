@@ -11,8 +11,8 @@
 Generate `src/generated` directory.
 
 ```bash
-mkdir -p ./src/generated
-yarn dlx ts-node generater/fromPackageJson.ts
+mkdir -p src/generated
+yarn dlx ts-node src/generater/fromPackageJson.ts
 ```
 
 or this command.
