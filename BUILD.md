@@ -6,13 +6,13 @@
 - [Node.js](https://nodejs.org/)
 - [Yarn V4](https://yarnpkg.com/cli)
 
-## Build
+## Build ./src/generater
 
 Generate `src/generated` directory.
 
 ```bash
 mkdir -p ./src/generated
-yarn dlx generater/fromPackageJson.ts
+yarn dlx ts-node generater/fromPackageJson.ts
 ```
 
 or this command.
