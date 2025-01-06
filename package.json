@@ -123,11 +123,13 @@
         },
         "LineNumberDeco.centerColorOfRainbow": {
           "type": "string",
+          "format": "color",
           "default": "#0000ff",
           "description": "Center color of rainbow"
         },
         "LineNumberDeco.foregroundColorOfRepeatingDigits": {
           "type": "string",
+          "format": "color",
           "default": "#00ff00",
           "description": "Foreground color of Repeating digits"
         },
@@ -144,10 +146,12 @@
         "LineNumberDeco.activeForeground": {
           "type": "string",
           "default": "",
+          "format": "color",
           "description": "Override color of active relative line number"
         },
         "LineNumberDeco.foreground": {
           "type": "string",
+          "format": "color",
           "default": "",
           "description": "Override color of inactive relative line number"
         }
