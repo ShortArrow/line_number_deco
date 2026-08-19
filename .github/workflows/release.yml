@@ -5,8 +5,12 @@ name: Release
 # with generated notes → publish to the VS Code Marketplace when a VSCE_PAT
 # secret exists.
 #
-# The tag has to equal `version` in package.json (checked in the test job)
-# so a release never ships a VSIX whose manifest disagrees with its tag.
+# The X.Y.Z part of the tag has to equal `version` in package.json (checked
+# in the test job) so a release never ships a VSIX whose manifest disagrees
+# with its tag. A tag with a suffix — `v0.0.10-beta.1` — is a pre-release:
+# the same checks run, the GitHub Release is marked pre-release, and the
+# Marketplace step is skipped. The suffix never reaches the manifest,
+# because the Marketplace rejects prerelease version strings.
 # Put `[skip publish]` in the tagged commit's message to skip the
 # Marketplace step while still creating the GitHub Release.
 
@@ -44,8 +48,9 @@ jobs:
         run: |
           set -euo pipefail
           tag="${GITHUB_REF_NAME#v}"
+          base="${tag%%-*}"
           manifest="$(node -p "require('./package.json').version")"
-          if [ "$tag" != "$manifest" ]; then
+          if [ "$base" != "$manifest" ]; then
             echo "::error::tag v$tag does not match package.json version $manifest"
             exit 1
           fi
@@ -125,19 +130,25 @@ jobs:
           name: vsix
           path: artifacts
 
+      - name: Derive the manifest version from the tag
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          echo "MANIFEST_VERSION=${tag%%-*}" >> "$GITHUB_ENV"
+
       - name: Structural check
         run: |
           set -euo pipefail
           vsix="$(ls "$GITHUB_WORKSPACE"/artifacts/*.vsix)"
           unzip -q "$vsix" -d "$RUNNER_TEMP/vsix-contents"
-          node inspect-vsix.js "$RUNNER_TEMP/vsix-contents" "${GITHUB_REF_NAME#v}"
+          node inspect-vsix.js "$RUNNER_TEMP/vsix-contents" "$MANIFEST_VERSION"
 
       - run: pnpm install --frozen-lockfile
 
       - name: Negative control (must fail without the VSIX)
         run: |
           set +e
-          xvfb-run -a node run.js --expect-version "${GITHUB_REF_NAME#v}"
+          xvfb-run -a node run.js --expect-version "$MANIFEST_VERSION"
           rc=$?
           set -e
           if [ "$rc" -ne 1 ]; then
@@ -149,7 +160,7 @@ jobs:
         run: |
           set -euo pipefail
           vsix="$(ls "$GITHUB_WORKSPACE"/artifacts/*.vsix)"
-          xvfb-run -a node run.js --vsix "$vsix" --expect-version "${GITHUB_REF_NAME#v}"
+          xvfb-run -a node run.js --vsix "$vsix" --expect-version "$MANIFEST_VERSION"
 
   release:
     name: Create Release
@@ -177,16 +188,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
+          set -euo pipefail
+          prerelease=()
+          case "$TAG" in *-*) prerelease=(--prerelease) ;; esac
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --title "$TAG" \
             --generate-notes \
+            "${prerelease[@]}" \
             artifacts/*.vsix
 
   publish-marketplace:
     name: Publish to VS Code Marketplace
     needs: release
-    if: ${{ !contains(github.event.head_commit.message, '[skip publish]') }}
+    # Pre-release tags (with a suffix) never go to the Marketplace.
+    if: ${{ !contains(github.event.head_commit.message, '[skip publish]') && !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
