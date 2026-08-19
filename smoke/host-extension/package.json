@@ -1,0 +1,12 @@
+{
+  "name": "line-number-deco-smoke-host",
+  "displayName": "line-number-deco smoke host",
+  "publisher": "ShortArrow",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "vscode": "^1.76.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": []
+}

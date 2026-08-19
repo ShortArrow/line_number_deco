@@ -1,0 +1,14 @@
+{
+  "name": "line-number-deco-smoke",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Installs a packaged VSIX of line-number-deco into a fresh VS Code profile and asserts it activates",
+  "packageManager": "pnpm@11.22.0",
+  "scripts": {
+    "inspect": "node inspect-vsix.js",
+    "smoke": "node run.js"
+  },
+  "devDependencies": {
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
