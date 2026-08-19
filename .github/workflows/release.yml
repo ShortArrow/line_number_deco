@@ -1,0 +1,166 @@
+name: Release
+
+# Tag push `vX.Y.Z` → run the extension tests on three OSes → package the
+# VSIX → attach a build-provenance attestation → publish a GitHub Release
+# with generated notes → publish to the VS Code Marketplace when a VSCE_PAT
+# secret exists.
+#
+# The tag has to equal `version` in package.json (checked in the test job)
+# so a release never ships a VSIX whose manifest disagrees with its tag.
+# Put `[skip publish]` in the tagged commit's message to skip the
+# Marketplace step while still creating the GitHub Release.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Check tag matches package.json version
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          manifest="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$manifest" ]; then
+            echo "::error::tag v$tag does not match package.json version $manifest"
+            exit 1
+          fi
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Test (Linux, under Xvfb)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a pnpm test
+
+      - name: Test
+        if: runner.os != 'Linux'
+        run: pnpm test
+
+  build:
+    name: Package VSIX
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Package
+        # All dependencies are devDependencies, so nothing from node_modules
+        # belongs in the VSIX; --no-dependencies also keeps vsce away from
+        # pnpm's non-hoisted node_modules layout.
+        run: pnpm exec vsce package --no-dependencies
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: vsix
+          path: "*.vsix"
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # Required for actions/attest-build-provenance to mint a Sigstore
+      # signing certificate via the GitHub OIDC provider.
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: vsix
+          path: artifacts
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: artifacts/*.vsix
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --generate-notes \
+            artifacts/*.vsix
+
+  publish-marketplace:
+    name: Publish to VS Code Marketplace
+    needs: release
+    if: ${{ !contains(github.event.head_commit.message, '[skip publish]') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+    steps:
+      - name: Skip when VSCE_PAT is not configured
+        if: env.VSCE_PAT == ''
+        run: echo "VSCE_PAT secret is not set; skipping Marketplace publish." >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        if: env.VSCE_PAT != ''
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        if: env.VSCE_PAT != ''
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: env.VSCE_PAT != ''
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        if: env.VSCE_PAT != ''
+        with:
+          name: vsix
+          path: artifacts
+
+      - run: pnpm install --frozen-lockfile
+        if: env.VSCE_PAT != ''
+
+      - name: Publish
+        if: env.VSCE_PAT != ''
+        run: pnpm exec vsce publish --packagePath artifacts/*.vsix
