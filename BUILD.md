@@ -4,7 +4,7 @@
 
 - [Visual Studio Code](https://code.visualstudio.com/)
 - [Node.js](https://nodejs.org/)
-- [Yarn V4](https://yarnpkg.com/cli)
+- [pnpm](https://pnpm.io/)
 
 ## Build ./src/generater
 
@@ -12,23 +12,23 @@ Generate `src/generated` directory.
 
 ```bash
 mkdir -p src/generated
-yarn dlx ts-node src/generater/fromPackageJson.ts
+pnpm dlx ts-node src/generater/fromPackageJson.ts
 ```
 
 or this command.
 
 ```bash
-yarn generate
+pnpm generate
 ```
 
 Compile the TypeScript code.
 
 ```bash
-yarn compile
+pnpm compile
 ```
 
 ## Deploy
 
 ```bash
-yarn package
+pnpm package
 ```

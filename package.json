@@ -7,6 +7,7 @@
   "engines": {
     "vscode": "^1.76.0"
   },
+  "packageManager": "pnpm@11.22.0",
   "icon": "images/icon.png",
   "keywords": [
     "vim",
@@ -182,15 +183,15 @@
   },
   "scripts": {
     "clean": "rimraf ./out",
-    "publish": "yarn run compile && vsce publish",
-    "package": "yarn run compile",
-    "vscode:prepublish": "yarn run compile",
+    "publish": "pnpm run compile && vsce publish",
+    "package": "pnpm run compile",
+    "vscode:prepublish": "pnpm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run clean && yarn run compile && yarn run lint",
+    "pretest": "pnpm run clean && pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
-    "test": "yarn run pretest && node ./out/test/runTest.js",
-    "generate": "yarn dlx ts-node ./generater/fromPackageJson.ts"
+    "test": "pnpm run pretest && node ./out/test/runTest.js",
+    "generate": "pnpm dlx ts-node ./generater/fromPackageJson.ts"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
