@@ -17,12 +17,11 @@ suite('Extension Test Suite', () => {
 		assert.strictEqual(-1, [1, 2, 3].indexOf(5));
 		assert.strictEqual(-1, [1, 2, 3].indexOf(0));
 	});
-	test("Can write enableRainbow true",() => {
-		const targetCofig = "enableRainbow";
-		const config = vscode.workspace.getConfiguration(extensionName);
-		config.update(targetCofig, true, vsCodeGlobal);
-		const actual = config.get<boolean>(targetCofig);
-		assert.equal(actual, true);	
+	test("Can write enableRainbow true", async () => {
+		const targetConfig = "enableRainbow";
+		await vscode.workspace.getConfiguration(extensionName).update(targetConfig, true, vsCodeGlobal);
+		const actual = vscode.workspace.getConfiguration(extensionName).get<boolean>(targetConfig);
+		assert.strictEqual(actual, true);
 	});
 	// test("Can write enableRainbow false",async () => {
 	// 	const targetCofig = "enableRainbow";
