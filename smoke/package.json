@@ -9,6 +9,6 @@
     "smoke": "node run.js"
   },
   "devDependencies": {
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^3.1.0"
   }
 }
