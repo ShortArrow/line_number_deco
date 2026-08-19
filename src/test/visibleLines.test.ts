@@ -73,6 +73,11 @@ describe('Test visible line indexes', () => {
       input: { ranges: [{ startLine: 0, endLine: 0 }], lineCount: 0 },
       expected: [],
     },
+    {
+      name: 'negative start is clamped to the first line',
+      input: { ranges: [{ startLine: -2, endLine: 3 }], lineCount: 100 },
+      expected: range(0, 4),
+    },
   ].forEach(({ name, input, expected }) => {
     it(`Must become ${name} to ${JSON.stringify(expected)}`, () => {
       assert.deepStrictEqual(visibleLineIndexes(input.ranges, input.lineCount), expected);
