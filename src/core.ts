@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { shiftHue } from "./colors";
+import { visibleLineIndexes } from "./visibleLines";
 import {
   getColorAtCenterOfRainbow,
   getEnableRainbow,
@@ -43,9 +44,11 @@ export async function updateRelativeLineNumbers(
   const repeatingDigitsColor = getColorAtRepeatingDigits();
   const centerColorOfRainbow = getColorAtCenterOfRainbow();
   const labelWidth = document.lineCount.toString().length;
-  const endLine = document.lineCount < editor.visibleRanges[0].end.line + 2 ? document.lineCount : editor.visibleRanges[0].end.line + 2;
-  const startLine = editor.visibleRanges[0].start.line - 1 < 0 ? 0 : editor.visibleRanges[0].start.line;
-  for (let lineIndex = startLine; lineIndex < endLine; lineIndex++) {
+  const lineIndexes = visibleLineIndexes(
+    editor.visibleRanges.map((r) => ({ startLine: r.start.line, endLine: r.end.line })),
+    document.lineCount
+  );
+  for (const lineIndex of lineIndexes) {
     try {
       const lineRange = document.lineAt(lineIndex).range;
       const isCurrentLine = lineIndex === activeLineNumber;
