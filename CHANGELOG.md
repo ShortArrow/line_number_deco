@@ -52,3 +52,13 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 
 - Fix bug that decoration is not updated when the cursor is moved to the end of the line
 - Fix bug that decoration is not updated when the document size is small than the editor size
+## 0.0.10
+
+- Color settings show a color picker in `settings.json` (#34)
+- Fix relative numbers disappearing below a folded region (#32)
+- Fix numbers not updating when mouse-scrolling an editor that does not have the cursor (#30)
+- Decorate visible editors on startup and when editors become visible, instead of waiting for the first cursor move or scroll
+- Releases are built by GitHub Actions on tag push: tests on three OSes, a packaged VSIX with build provenance, and an installation smoke test (#29)
+- The VSIX no longer ships tests, the generator, or CI files
+- Package manager is pnpm instead of Yarn
+- List settings and commands in `README.md` (#20), add an `init.lua` example (#31), and trim the recommended plugin list to maintained extensions (#26)
