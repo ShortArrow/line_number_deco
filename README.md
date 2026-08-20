@@ -18,19 +18,76 @@ Because, it does not block the display of breakpoint icons, test start icons, te
 Use with these recomended plugins.
 
 - [VSCode Neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim)
-- [Spacemacs](https://marketplace.visualstudio.com/items?itemName=cometeer.spacemacs)
-- [Emacs](https://marketplace.visualstudio.com/items?itemName=vscodeemacs.emacs)
 - [VSCode Vim](https://marketplace.visualstudio.com/items?itemName=vscodevim.vim)
+- [Helix For VS Code](https://marketplace.visualstudio.com/items?itemName=jasew.vscode-helix-emulation)
+- [Awesome Emacs Keymap](https://marketplace.visualstudio.com/items?itemName=tuttieee.emacs-mcx)
 - [VSpaceCode](https://marketplace.visualstudio.com/items?itemName=VSpaceCode.vspacecode)
 - [Neovim UI Modifier](https://marketplace.visualstudio.com/items?itemName=JulianIaquinandi.nvim-ui-modifier)
-- [Emacs Friendly Keymap](https://marketplace.visualstudio.com/items?itemName=lfs.vscode-emacs-friendly)
-- [Vimacs](https://marketplace.visualstudio.com/items?itemName=migrs.vimacs)
 
 ## Features
 
 Show relative line numbers
 ![visual representation of the action](./images/Animation.gif)
 ![stative image](./images/static_image.png)
+
+## Settings
+
+Relative line numbers are on by default and use your theme's colors. Two decorations can be layered on top: `enableRainbow` colors each number by its distance from the cursor, and `enableRepeatingDigits` gives numbers whose digits all repeat (11, 22, 333) their own color.
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+| `LineNumberDeco.enableRelativeLine` | boolean | `true` | Enable display relative line |
+| `LineNumberDeco.enableRainbow` | boolean | `false` | Enable rainbow color |
+| `LineNumberDeco.centerColorOfRainbow` | color | `#0000ff` | Center color of rainbow |
+| `LineNumberDeco.enableRepeatingDigits` | boolean | `false` | Enable color of repeating digits |
+| `LineNumberDeco.foregroundColorOfRepeatingDigits` | color | `#00ff00` | Foreground color of Repeating digits |
+| `LineNumberDeco.activeForeground` | color | (theme color) | Override color of active relative line number |
+| `LineNumberDeco.foreground` | color | (theme color) | Override color of inactive relative line number |
+
+The color settings show a color picker when edited in `settings.json`.
+
+## Commands
+
+The `ForUser` variants write to your user settings; the others write to the current workspace.
+
+| Command | Title |
+| --- | --- |
+| `line-number-deco.enableRelativeLineNumbers` | LineNumberDeco: Enable Relative Line Numbers in This workspace |
+| `line-number-deco.disableRelativeLineNumbers` | LineNumberDeco: Disable Relative Line Numbers in This workspace |
+| `line-number-deco.enableRelativeLineNumbersForUser` | LineNumberDeco: Enable Relative Line Numbers for user |
+| `line-number-deco.disableRelativeLineNumbersForUser` | LineNumberDeco: Disable Relative Line Numbers for user |
+| `line-number-deco.enableRainbow` | LineNumberDeco: Enable rainbow for workspace |
+| `line-number-deco.disableRainbow` | LineNumberDeco: Disable rainbow for workspace |
+| `line-number-deco.enableRainbowForUser` | LineNumberDeco: Enable rainbow for user |
+| `line-number-deco.disableRainbowForUser` | LineNumberDeco: Disable rainbow for user |
+| `line-number-deco.updateColorAtCenterOfRainbow` | LineNumberDeco: Update color at center of rainbow for workspace |
+| `line-number-deco.updateColorAtCenterOfRainbowForUser` | LineNumberDeco: Update color at center of rainbow for user |
+| `line-number-deco.updateColorAtActiveRowNumber` | LineNumberDeco: Update color at current row number |
+| `line-number-deco.updateColorAtActiveRowNumberForUser` | LineNumberDeco: Update color at current row number for user |
+| `line-number-deco.updateColorAtInactiveRowNumber` | LineNumberDeco: Update color at inactive row number |
+| `line-number-deco.updateColorAtInactiveRowNumberForUser` | LineNumberDeco: Update color at inactive row number for user |
+| `line-number-deco.enableRepeatingDigits` | LineNumberDeco: Enable repeating digits in this workspace |
+| `line-number-deco.disableRepeatingDigits` | LineNumberDeco: Disable repeating digits color in this workspace |
+| `line-number-deco.enableRepeatingDigitsForUser` | LineNumberDeco: Enable repeating digits color for user |
+| `line-number-deco.disableRepeatingDigitsForUser` | LineNumberDeco: Disable repeating digits color for user |
+| `line-number-deco.updateColorAtRepeatingDigits` | LineNumberDeco: Update color of repeating digits for workspace |
+| `line-number-deco.updateColorAtRepeatingDigitsForUser` | LineNumberDeco: Update color of repeating digits for user |
+
+## Calling commands from init.lua
+
+With [VSCode Neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim), any of the commands above can be called from Lua:
+
+```lua
+vim.fn.VSCodeNotify('line-number-deco.enableRainbow')
+```
+
+For example, bound to a key:
+
+```lua
+vim.keymap.set('n', '<leader>lr', function()
+  vim.fn.VSCodeNotify('line-number-deco.enableRainbow')
+end)
+```
 
 ## Inspired
 
