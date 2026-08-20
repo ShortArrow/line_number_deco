@@ -32,9 +32,13 @@ const commands = [
     updateRelativeLineNumbers(e.textEditor, decorationType);
   }),
   vscode.window.onDidChangeTextEditorVisibleRanges(event => {
-    if (event.textEditor === vscode.window.activeTextEditor) {
-      // Update decoration when visible range changes
-      updateRelativeLineNumbers(vscode.window.activeTextEditor, decorationType);
+    // Update the editor that scrolled, not just the active one: mouse-scrolling
+    // an inactive pane must refresh that pane (issue #30)
+    updateRelativeLineNumbers(event.textEditor, decorationType);
+  }),
+  vscode.window.onDidChangeVisibleTextEditors((editors) => {
+    for (const editor of editors) {
+      updateRelativeLineNumbers(editor, decorationType);
     }
   }),
   LineNumberDeco.enableRelativeLineNumbers(() => updateEnableRelativeLine(true)),
@@ -65,6 +69,9 @@ const commands = [
  */
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(...commands);
+  for (const editor of vscode.window.visibleTextEditors) {
+    updateRelativeLineNumbers(editor, decorationType);
+  }
 }
 
 /**
