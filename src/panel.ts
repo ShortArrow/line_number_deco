@@ -2,7 +2,13 @@ import * as crypto from "crypto";
 import * as vscode from "vscode";
 import { getConfig, nameOfExtension } from "./config";
 import { PanelRow, PanelToggle, renderPanelHtml } from "./panelHtml";
-import { clearAllPreviews, clearPreviewColor, setPreviewColor } from "./preview";
+import {
+  clearAllPreviews,
+  clearPreview,
+  getPendingPreviews,
+  setPreviewColor,
+  setPreviewToggle,
+} from "./preview";
 import { updateUserConfig, updateWorkspaceConfig } from "./ui";
 
 const viewId = "lineNumberDeco.settings";
@@ -48,7 +54,9 @@ function currentRows(): PanelRow[] {
 type PanelMessage =
   | { type: "preview"; key: string; value: string }
   | { type: "apply"; key: string; value: string; scope: string }
-  | { type: "toggle"; key: string; value: boolean; scope: string };
+  | { type: "previewToggle"; key: string; value: boolean }
+  | { type: "applyToggle"; key: string; value: boolean; scope: string }
+  | { type: "applyAll"; scope: string };
 
 function isKnownKey(key: string) {
   return labels.some((entry) => entry.key === key);
@@ -109,21 +117,44 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
     });
   }
 
+  /** Save one setting where the scope radio points. */
+  private async save(key: string, value: string | boolean, scope: string) {
+    if (scope === "user") {
+      await updateUserConfig(key, value);
+    } else {
+      await updateWorkspaceConfig(key, value);
+    }
+  }
+
   private async handle(message: PanelMessage) {
     if (!message) {
       return;
     }
-    if (message.type === "toggle") {
+    if (message.type === "applyAll") {
+      for (const { key, value } of getPendingPreviews()) {
+        if (isKnownKey(key) || isKnownToggle(key)) {
+          await this.save(key, value, message.scope);
+        }
+      }
+      clearAllPreviews();
+      this.refresh();
+      this.postState();
+      return;
+    }
+    if (message.type === "previewToggle" || message.type === "applyToggle") {
       if (!isKnownToggle(message.key)) {
         return;
       }
       const value = message.value === true;
-      if (message.scope === "user") {
-        await updateUserConfig(message.key, value);
-      } else {
-        await updateWorkspaceConfig(message.key, value);
+      if (message.type === "previewToggle") {
+        setPreviewToggle(message.key, value);
+        this.refresh();
+        return;
       }
+      clearPreview(message.key);
+      await this.save(message.key, value, message.scope);
       this.refresh();
+      this.postState();
       return;
     }
     if (!isKnownKey(message.key)) {
@@ -135,12 +166,8 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
       return;
     }
     if (message.type === "apply") {
-      clearPreviewColor(message.key);
-      if (message.scope === "user") {
-        await updateUserConfig(message.key, message.value);
-      } else {
-        await updateWorkspaceConfig(message.key, message.value);
-      }
+      clearPreview(message.key);
+      await this.save(message.key, message.value, message.scope);
       this.refresh();
       this.postState();
     }

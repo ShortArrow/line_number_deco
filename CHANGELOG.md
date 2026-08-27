@@ -62,5 +62,5 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Releases are built by GitHub Actions on tag push: tests on three OSes, a packaged VSIX with build provenance, and an installation smoke test (#29)
 - The VSIX no longer ships tests, the generator, or CI files
 - Package manager is pnpm instead of Yarn
-- A settings panel in the activity bar toggles each decoration and previews colors live, saving per workspace or user (#21)
+- A settings panel in the activity bar previews toggles and colors live, with per-row Apply and Apply all per workspace or user (#21)
 - List settings and commands in `README.md` (#20), add an `init.lua` example (#31), and trim the recommended plugin list to maintained extensions (#26)

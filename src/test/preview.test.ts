@@ -5,8 +5,15 @@ import {
   clearPreviewColor,
   clearAllPreviews,
   getPreviewColor,
+  setPreviewToggle,
+  getPreviewToggle,
+  getPendingPreviews,
 } from '../preview';
-import { getColorAtCenterOfRainbow, getActiveLineNumberColor } from '../config';
+import {
+  getColorAtCenterOfRainbow,
+  getActiveLineNumberColor,
+  getEnableRainbow,
+} from '../config';
 
 describe('Test preview color overrides', () => {
   it('Must become an unset key to undefined', () => {
@@ -63,5 +70,51 @@ describe('Test config getters read previews first', () => {
     assert.strictEqual(getActiveLineNumberColor(), '#0fa1b2');
     clearAllPreviews();
     assert.deepStrictEqual(getActiveLineNumberColor(), before);
+  });
+});
+
+describe('Test preview toggle overrides', () => {
+  it('Must become an unset toggle to undefined', () => {
+    clearAllPreviews();
+    assert.strictEqual(getPreviewToggle('enableRainbow'), undefined);
+  });
+
+  it('Must keep false apart from an unset toggle', () => {
+    clearAllPreviews();
+    setPreviewToggle('enableRainbow', true);
+    assert.strictEqual(getPreviewToggle('enableRainbow'), true);
+    setPreviewToggle('enableRainbow', false);
+    assert.strictEqual(getPreviewToggle('enableRainbow'), false);
+  });
+
+  it('Must clear a previewed toggle with every other preview', () => {
+    clearAllPreviews();
+    setPreviewToggle('enableRainbow', false);
+    clearAllPreviews();
+    assert.strictEqual(getPreviewToggle('enableRainbow'), undefined);
+  });
+
+  it('Must enumerate every pending preview, colors and toggles alike', () => {
+    clearAllPreviews();
+    assert.deepStrictEqual(getPendingPreviews(), []);
+    setPreviewColor('foreground', '#111111');
+    setPreviewToggle('enableRainbow', true);
+    const pending = getPendingPreviews().sort((a, b) => a.key.localeCompare(b.key));
+    assert.deepStrictEqual(pending, [
+      { key: 'enableRainbow', value: true },
+      { key: 'foreground', value: '#111111' },
+    ]);
+  });
+});
+
+describe('Test enable getters read previews first', () => {
+  it('Must become the previewed rainbow switch, then the configured value again', () => {
+    clearAllPreviews();
+    const before = getEnableRainbow();
+    assert.strictEqual(before, false);
+    setPreviewToggle('enableRainbow', true);
+    assert.strictEqual(getEnableRainbow(), true);
+    clearAllPreviews();
+    assert.strictEqual(getEnableRainbow(), before);
   });
 });

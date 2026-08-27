@@ -97,4 +97,23 @@ describe('Test render the color panel html', () => {
     );
     assert.ok(!html.includes('<b>'));
   });
+
+  it('Must offer an apply button per toggle row', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    assert.ok(html.includes('data-apply-toggle="enableRainbow"'));
+  });
+
+  it('Must offer exactly one apply all control', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const occurrences = html.split('data-apply-all=').length - 1;
+    assert.strictEqual(occurrences, 1);
+  });
+
+  it('Must draw the apply all control below the color rows', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const lastApply = html.lastIndexOf('data-apply=');
+    const applyAll = html.indexOf('data-apply-all=');
+    assert.ok(lastApply >= 0, 'no color row apply button');
+    assert.ok(applyAll > lastApply, 'the apply all control is not below the colors');
+  });
 });
