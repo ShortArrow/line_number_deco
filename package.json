@@ -45,8 +45,8 @@
       "lineNumberDeco": [
         {
           "type": "webview",
-          "id": "lineNumberDeco.colors",
-          "name": "Colors"
+          "id": "lineNumberDeco.settings",
+          "name": "Settings"
         }
       ]
     },
