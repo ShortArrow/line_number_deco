@@ -84,6 +84,10 @@ The `ForUser` variants write to your user settings; the others write to the curr
 | `line-number-deco.updateColorAtSequentialDigits` | LineNumberDeco: Update color of sequential digits for workspace |
 | `line-number-deco.updateColorAtSequentialDigitsForUser` | LineNumberDeco: Update color of sequential digits for user |
 
+## Color panel
+
+The LineNumberDeco entry in the activity bar opens a panel that lists every color setting with its saved value and a color picker. Dragging a picker previews that color in the open editors without saving it; Apply writes it to the workspace or to your user settings, whichever the radio at the top selects. Closing the panel discards any preview that was not applied.
+
 ## Calling commands from init.lua
 
 With [VSCode Neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim), any of the commands above can be called from Lua:

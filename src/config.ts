@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { getPreviewColor } from "./preview";
 
 export const nameOfExtension = "LineNumberDeco";
 export const defaultCenterColorOfRainbow = "#8888ff";
@@ -17,6 +18,10 @@ export function getConfig<T>(key: string, defaultValue: T) {
 }
 
 export function getInactiveLineNumberColor() {
+  const preview = getPreviewColor("foreground");
+  if (preview !== undefined) {
+    return preview;
+  }
   const config = getConfig<string>("foreground", "");
   return config !== ""
     ? config
@@ -24,6 +29,10 @@ export function getInactiveLineNumberColor() {
 }
 
 export function getActiveLineNumberColor() {
+  const preview = getPreviewColor("activeForeground");
+  if (preview !== undefined) {
+    return preview;
+  }
   const config = getConfig<string>("activeForeground", "");
 
   return config !== ""
@@ -32,7 +41,10 @@ export function getActiveLineNumberColor() {
 }
 
 export function getColorAtCenterOfRainbow() {
-  return getConfig<string>("centerColorOfRainbow", defaultCenterColorOfRainbow);
+  return (
+    getPreviewColor("centerColorOfRainbow") ??
+    getConfig<string>("centerColorOfRainbow", defaultCenterColorOfRainbow)
+  );
 }
 
 export function getColorAtActiveRowNumber() {
@@ -52,7 +64,10 @@ export function getEnableRepeatingDigits() {
 }
 
 export function getColorAtRepeatingDigits() {
-  return getConfig<string>("foregroundColorOfRepeatingDigits", "");
+  return (
+    getPreviewColor("foregroundColorOfRepeatingDigits") ??
+    getConfig<string>("foregroundColorOfRepeatingDigits", "")
+  );
 }
 
 export function getEnableSequentialDigits() {
@@ -60,7 +75,10 @@ export function getEnableSequentialDigits() {
 }
 
 export function getColorAtSequentialDigits() {
-  return getConfig<string>("foregroundColorOfSequentialDigits", "");
+  return (
+    getPreviewColor("foregroundColorOfSequentialDigits") ??
+    getConfig<string>("foregroundColorOfSequentialDigits", "")
+  );
 }
 
 export function getEnableRelativeLine() {

@@ -32,6 +32,24 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "lineNumberDeco",
+          "title": "LineNumberDeco",
+          "icon": "images/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "lineNumberDeco": [
+        {
+          "type": "webview",
+          "id": "lineNumberDeco.colors",
+          "name": "Colors"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "line-number-deco.enableRainbow",
