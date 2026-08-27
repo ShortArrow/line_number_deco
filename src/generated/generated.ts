@@ -113,6 +113,24 @@ export class LineNumberDeco {
   }
 
   /**
+   * LineNumberDeco: Update color of sequential digits for workspace
+   */   
+  static updateColorAtSequentialDigits(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.updateColorAtSequentialDigits', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Update color of sequential digits for user
+   */   
+  static updateColorAtSequentialDigitsForUser(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.updateColorAtSequentialDigitsForUser', () =>
+      callback()
+    );
+  }
+
+  /**
    * LineNumberDeco: Enable Relative Line Numbers in This workspace
    */   
   static enableRelativeLineNumbers(callback: Function) {
@@ -180,6 +198,42 @@ export class LineNumberDeco {
    */   
   static disableRepeatingDigitsForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.disableRepeatingDigitsForUser', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Enable sequential digits in this workspace
+   */   
+  static enableSequentialDigits(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.enableSequentialDigits', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Disable sequential digits color in this workspace
+   */   
+  static disableSequentialDigits(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.disableSequentialDigits', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Enable sequential digits color for user
+   */   
+  static enableSequentialDigitsForUser(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.enableSequentialDigitsForUser', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Disable sequential digits color for user
+   */   
+  static disableSequentialDigitsForUser(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.disableSequentialDigitsForUser', () =>
       callback()
     );
   }

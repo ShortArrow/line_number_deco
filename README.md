@@ -35,7 +35,7 @@ Show relative line numbers
 
 ## Settings
 
-Relative line numbers are on by default and use your theme's colors. Two decorations can be layered on top: `enableRainbow` colors each number by its distance from the cursor, and `enableRepeatingDigits` gives numbers whose digits all repeat (11, 22, 333) their own color.
+Relative line numbers are on by default and use your theme's colors. Two decorations can be layered on top: `enableRainbow` colors each number by its distance from the cursor, and `enableRepeatingDigits` gives numbers whose digits all repeat (11, 22, 333) their own color. `enableSequentialDigits` does the same for runs of consecutive digits (123, 543, 10).
 
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -44,6 +44,8 @@ Relative line numbers are on by default and use your theme's colors. Two decorat
 | `LineNumberDeco.centerColorOfRainbow` | color | `#0000ff` | Center color of rainbow |
 | `LineNumberDeco.enableRepeatingDigits` | boolean | `false` | Enable color of repeating digits |
 | `LineNumberDeco.foregroundColorOfRepeatingDigits` | color | `#00ff00` | Foreground color of Repeating digits |
+| `LineNumberDeco.enableSequentialDigits` | boolean | `false` | Enable color of sequential digits (poker straights like 123 or 543) |
+| `LineNumberDeco.foregroundColorOfSequentialDigits` | color | `#ffa500` | Foreground color of sequential digits |
 | `LineNumberDeco.activeForeground` | color | (theme color) | Override color of active relative line number |
 | `LineNumberDeco.foreground` | color | (theme color) | Override color of inactive relative line number |
 
@@ -75,6 +77,12 @@ The `ForUser` variants write to your user settings; the others write to the curr
 | `line-number-deco.disableRepeatingDigitsForUser` | LineNumberDeco: Disable repeating digits color for user |
 | `line-number-deco.updateColorAtRepeatingDigits` | LineNumberDeco: Update color of repeating digits for workspace |
 | `line-number-deco.updateColorAtRepeatingDigitsForUser` | LineNumberDeco: Update color of repeating digits for user |
+| `line-number-deco.enableSequentialDigits` | LineNumberDeco: Enable sequential digits in this workspace |
+| `line-number-deco.disableSequentialDigits` | LineNumberDeco: Disable sequential digits color in this workspace |
+| `line-number-deco.enableSequentialDigitsForUser` | LineNumberDeco: Enable sequential digits color for user |
+| `line-number-deco.disableSequentialDigitsForUser` | LineNumberDeco: Disable sequential digits color for user |
+| `line-number-deco.updateColorAtSequentialDigits` | LineNumberDeco: Update color of sequential digits for workspace |
+| `line-number-deco.updateColorAtSequentialDigitsForUser` | LineNumberDeco: Update color of sequential digits for user |
 
 ## Calling commands from init.lua
 
