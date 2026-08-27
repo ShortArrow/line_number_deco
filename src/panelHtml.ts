@@ -30,19 +30,22 @@ function pickerValue(savedColor: string) {
 
 function renderToggle(toggle: PanelToggle) {
   const key = escapeHtml(toggle.key);
-  return `      <label class="toggle">
-        <span class="label">${escapeHtml(toggle.label)}</span>
-        <span class="switch">
-          <input type="checkbox" data-toggle="${key}"${toggle.value ? " checked" : ""} />
-          <span class="slider"></span>
-        </span>
-      </label>`;
+  return `      <div class="row toggle-row" data-row="${key}">
+        <label class="toggle">
+          <span class="label">${escapeHtml(toggle.label)}</span>
+          <span class="switch">
+            <input type="checkbox" data-toggle="${key}"${toggle.value ? " checked" : ""} />
+            <span class="slider"></span>
+          </span>
+        </label>
+        <button data-apply-toggle="${key}">Apply</button>
+      </div>`;
 }
 
 function renderRow(row: PanelRow) {
   const key = escapeHtml(row.key);
   const saved = escapeHtml(row.savedColor);
-  return `      <div class="row">
+  return `      <div class="row" data-row="${key}">
         <div class="label">${escapeHtml(row.label)}</div>
         <div class="controls">
           <span class="swatch" data-swatch="${key}" style="background:${saved}" title="${saved}"></span>
@@ -57,18 +60,25 @@ const script = `      const vscode = acquireVsCodeApi();
         const checked = document.querySelector('input[name="scope"]:checked');
         return checked ? checked.value : 'workspace';
       }
+      function markPending(key, pending) {
+        const row = document.querySelector('[data-row="' + key + '"]');
+        if (row) {
+          row.classList.toggle('pending', pending);
+        }
+      }
       document.querySelectorAll('input[type="checkbox"][data-toggle]').forEach((input) => {
         input.addEventListener('change', () => {
+          markPending(input.dataset.toggle, true);
           vscode.postMessage({
-            type: 'toggle',
+            type: 'previewToggle',
             key: input.dataset.toggle,
             value: input.checked,
-            scope: scope(),
           });
         });
       });
       document.querySelectorAll('input[type="color"]').forEach((input) => {
         input.addEventListener('input', () => {
+          markPending(input.dataset.key, true);
           vscode.postMessage({ type: 'preview', key: input.dataset.key, value: input.value });
         });
       });
@@ -77,6 +87,23 @@ const script = `      const vscode = acquireVsCodeApi();
           const key = button.dataset.apply;
           const input = document.querySelector('input[type="color"][data-key="' + key + '"]');
           vscode.postMessage({ type: 'apply', key: key, value: input.value, scope: scope() });
+        });
+      });
+      document.querySelectorAll('button[data-apply-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const key = button.dataset.applyToggle;
+          const box = document.querySelector('input[data-toggle="' + key + '"]');
+          vscode.postMessage({
+            type: 'applyToggle',
+            key: key,
+            value: box.checked,
+            scope: scope(),
+          });
+        });
+      });
+      document.querySelectorAll('button[data-apply-all]').forEach((button) => {
+        button.addEventListener('click', () => {
+          vscode.postMessage({ type: 'applyAll', scope: scope() });
         });
       });
       window.addEventListener('message', (event) => {
@@ -89,8 +116,10 @@ const script = `      const vscode = acquireVsCodeApi();
           if (box) {
             box.checked = toggle.value;
           }
+          markPending(toggle.key, false);
         });
         message.rows.forEach((row) => {
+          markPending(row.key, false);
           const swatch = document.querySelector('[data-swatch="' + row.key + '"]');
           if (swatch) {
             swatch.style.background = row.savedColor;
@@ -107,6 +136,10 @@ const style = `      body { font-family: var(--vscode-font-family); font-size: v
       .scope { display: flex; gap: 12px; margin-bottom: 12px; }
       .scope label { display: flex; align-items: center; gap: 4px; }
       .row { margin-bottom: 10px; }
+      .row.pending .label::after { content: " ●"; color: var(--vscode-charts-orange, var(--vscode-button-background)); }
+      .footer { border-top: 1px solid var(--vscode-panel-border); padding-top: 10px; }
+      .toggle-row { display: flex; align-items: center; gap: 8px; }
+      .toggle-row .toggle { flex: 1; margin-bottom: 0; }
       .label { margin-bottom: 4px; }
       .controls { display: flex; align-items: center; gap: 6px; }
       .swatch { width: 18px; height: 18px; border: 1px solid var(--vscode-panel-border); display: inline-block; }
@@ -131,6 +164,10 @@ const style = `      body { font-family: var(--vscode-font-family); font-size: v
  * carrying this nonce, and each toggle and row keeps its configuration key in a
  * data attribute so the messages back to the extension need no other lookup
  * table. The switches come first: they decide whether a color is drawn at all.
+ *
+ * Flipping a switch or dragging a picker only previews; a row marks itself
+ * pending until a state message says its value was saved. The footer button
+ * commits every pending row at once.
  */
 export function renderPanelHtml(
   toggles: PanelToggle[],
@@ -162,6 +199,9 @@ ${toggles.map(renderToggle).join("\n")}
     <div class="section">
       <h2>Colors</h2>
 ${rows.map(renderRow).join("\n")}
+    </div>
+    <div class="footer">
+      <button data-apply-all="1">Apply all</button>
     </div>
     <script nonce="${safeNonce}">
 ${script}

@@ -86,7 +86,7 @@ The `ForUser` variants write to your user settings; the others write to the curr
 
 ## Settings panel
 
-The LineNumberDeco entry in the activity bar opens a panel with a switch for each decoration above every color setting with its saved value and a color picker. Flipping a switch turns that decoration on or off straight away, writing to the scope the radio at the top selects. Dragging a picker previews that color in the open editors without saving it; Apply writes it to the workspace or to your user settings, whichever the radio at the top selects. Closing the panel discards any preview that was not applied.
+The LineNumberDeco entry in the activity bar opens a panel with a switch for each decoration above every color setting with its saved value and a color picker. Flipping a switch and dragging a picker both preview in the open editors without saving anything, and the row is marked until it is saved. The Apply beside a row saves that one setting; Apply all at the bottom saves everything still pending. Either writes to the workspace or to your user settings, whichever the radio at the top selects. Closing the panel discards every preview that was not applied.
 
 ## Calling commands from init.lua
 

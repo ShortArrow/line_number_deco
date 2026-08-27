@@ -39,5 +39,9 @@ describe('Test color panel view', () => {
         `resolved panel html has no switch for ${key}`
       );
     }
+    assert.ok(
+      (html as string).includes('data-apply-all='),
+      'resolved panel html has no apply all control'
+    );
   });
 });
