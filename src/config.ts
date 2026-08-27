@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { getPreviewColor } from "./preview";
+import { getPreviewColor, getPreviewToggle } from "./preview";
 
 export const nameOfExtension = "LineNumberDeco";
 export const defaultCenterColorOfRainbow = "#8888ff";
@@ -56,11 +56,17 @@ export function getColorAtInactiveRowNumber() {
 }
 
 export function getEnableRainbow() {
-  return getConfig<boolean>("enableRainbow", false);
+  return (
+    getPreviewToggle("enableRainbow") ??
+    getConfig<boolean>("enableRainbow", false)
+  );
 }
 
 export function getEnableRepeatingDigits() {
-  return getConfig<boolean>("enableRepeatingDigits", false);
+  return (
+    getPreviewToggle("enableRepeatingDigits") ??
+    getConfig<boolean>("enableRepeatingDigits", false)
+  );
 }
 
 export function getColorAtRepeatingDigits() {
@@ -71,7 +77,10 @@ export function getColorAtRepeatingDigits() {
 }
 
 export function getEnableSequentialDigits() {
-  return getConfig<boolean>("enableSequentialDigits", false);
+  return (
+    getPreviewToggle("enableSequentialDigits") ??
+    getConfig<boolean>("enableSequentialDigits", false)
+  );
 }
 
 export function getColorAtSequentialDigits() {
@@ -82,5 +91,8 @@ export function getColorAtSequentialDigits() {
 }
 
 export function getEnableRelativeLine() {
-  return getConfig<boolean>("enableRelativeLine", true);
+  return (
+    getPreviewToggle("enableRelativeLine") ??
+    getConfig<boolean>("enableRelativeLine", true)
+  );
 }
