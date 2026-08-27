@@ -37,6 +37,17 @@ function isKnownKey(key: string) {
   return labels.some((entry) => entry.key === key);
 }
 
+let resolvedHtml: string | undefined;
+
+/**
+ * The html set at the most recent resolveWebviewView, or undefined when the
+ * view has never resolved. A test hook: the integration suite focuses the
+ * view and asserts the panel really rendered inside VS Code.
+ */
+export function getResolvedPanelHtml(): string | undefined {
+  return resolvedHtml;
+}
+
 class ColorPanelProvider implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | undefined;
 
@@ -51,6 +62,7 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
       nonce,
       webviewView.webview.cspSource
     );
+    resolvedHtml = webviewView.webview.html;
     webviewView.webview.onDidReceiveMessage((message: PanelMessage) =>
       this.handle(message)
     );
