@@ -21,6 +21,27 @@ export function isRepeatingDigits(lineNumber: string) {
 }
 
 /**
+ * check sequential digits (poker straights: 123, 543, 10)
+ * @param lineNumber line number
+ * @returns true when every adjacent digit steps by +1 or -1 in one direction
+ */
+export function isSequentialDigits(lineNumber: string): boolean {
+  if (lineNumber.length < 2) {
+    return false;
+  }
+  const step = Number(lineNumber[1]) - Number(lineNumber[0]);
+  if (step !== 1 && step !== -1) {
+    return false;
+  }
+  for (let i = 1; i < lineNumber.length; i++) {
+    if (Number(lineNumber[i]) - Number(lineNumber[i - 1]) !== step) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * update relative line numbers
  * @param editor
  * @param decorationType
