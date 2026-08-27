@@ -1,11 +1,11 @@
 import * as crypto from "crypto";
 import * as vscode from "vscode";
 import { getConfig, nameOfExtension } from "./config";
-import { PanelRow, renderPanelHtml } from "./panelHtml";
+import { PanelRow, PanelToggle, renderPanelHtml } from "./panelHtml";
 import { clearAllPreviews, clearPreviewColor, setPreviewColor } from "./preview";
 import { updateUserConfig, updateWorkspaceConfig } from "./ui";
 
-const viewId = "lineNumberDeco.colors";
+const viewId = "lineNumberDeco.settings";
 
 const labels: { key: string; label: string }[] = [
   { key: "centerColorOfRainbow", label: "Rainbow center" },
@@ -14,6 +14,22 @@ const labels: { key: string; label: string }[] = [
   { key: "activeForeground", label: "Active line number" },
   { key: "foreground", label: "Inactive line number" },
 ];
+
+const toggles: { key: string; label: string; fallback: boolean }[] = [
+  { key: "enableRelativeLine", label: "Relative line numbers", fallback: true },
+  { key: "enableRainbow", label: "Rainbow", fallback: false },
+  { key: "enableRepeatingDigits", label: "Repeating digits", fallback: false },
+  { key: "enableSequentialDigits", label: "Sequential digits", fallback: false },
+];
+
+/** The saved state of every mode, each with its package.json default. */
+function currentToggles(): PanelToggle[] {
+  return toggles.map(({ key, label, fallback }) => ({
+    key,
+    label,
+    value: getConfig<boolean>(key, fallback),
+  }));
+}
 
 /**
  * The saved colors, read straight from the configuration.
@@ -31,10 +47,15 @@ function currentRows(): PanelRow[] {
 
 type PanelMessage =
   | { type: "preview"; key: string; value: string }
-  | { type: "apply"; key: string; value: string; scope: string };
+  | { type: "apply"; key: string; value: string; scope: string }
+  | { type: "toggle"; key: string; value: boolean; scope: string };
 
 function isKnownKey(key: string) {
   return labels.some((entry) => entry.key === key);
+}
+
+function isKnownToggle(key: string) {
+  return toggles.some((entry) => entry.key === key);
 }
 
 let resolvedHtml: string | undefined;
@@ -58,6 +79,7 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
     webviewView.webview.options = { enableScripts: true };
     const nonce = crypto.randomBytes(16).toString("base64");
     webviewView.webview.html = renderPanelHtml(
+      currentToggles(),
       currentRows(),
       nonce,
       webviewView.webview.cspSource
@@ -80,11 +102,31 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
   }
 
   postState() {
-    this.view?.webview.postMessage({ type: "state", rows: currentRows() });
+    this.view?.webview.postMessage({
+      type: "state",
+      toggles: currentToggles(),
+      rows: currentRows(),
+    });
   }
 
   private async handle(message: PanelMessage) {
-    if (!message || !isKnownKey(message.key)) {
+    if (!message) {
+      return;
+    }
+    if (message.type === "toggle") {
+      if (!isKnownToggle(message.key)) {
+        return;
+      }
+      const value = message.value === true;
+      if (message.scope === "user") {
+        await updateUserConfig(message.key, value);
+      } else {
+        await updateWorkspaceConfig(message.key, value);
+      }
+      this.refresh();
+      return;
+    }
+    if (!isKnownKey(message.key)) {
       return;
     }
     if (message.type === "preview") {

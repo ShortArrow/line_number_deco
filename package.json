@@ -37,7 +37,7 @@
         {
           "id": "lineNumberDeco",
           "title": "LineNumberDeco",
-          "icon": "images/icon.svg"
+          "icon": "images/icon-activity.svg"
         }
       ]
     },
@@ -45,8 +45,8 @@
       "lineNumberDeco": [
         {
           "type": "webview",
-          "id": "lineNumberDeco.colors",
-          "name": "Colors"
+          "id": "lineNumberDeco.settings",
+          "name": "Settings"
         }
       ]
     },
