@@ -20,6 +20,7 @@ import {
   updateEnableSequentialDigitsForUser,
 } from "./ui";
 import { updateRelativeLineNumbers } from "./core";
+import { registerColorPanel } from "./panel";
 import { throttleTrailing } from "./throttle";
 import { LineNumberDeco } from "./generated/generated";
 
@@ -42,6 +43,13 @@ function scheduleUpdate(editor: vscode.TextEditor | undefined) {
     editorThrottles.set(editor, throttled);
   }
   throttled(editor);
+}
+
+/** Redraw every visible editor at once, bypassing the per-editor throttle. */
+function refreshVisibleEditors() {
+  for (const editor of vscode.window.visibleTextEditors) {
+    updateRelativeLineNumbers(editor, decorationType);
+  }
 }
 
 const commands = [
@@ -99,9 +107,8 @@ const commands = [
  */
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(...commands);
-  for (const editor of vscode.window.visibleTextEditors) {
-    updateRelativeLineNumbers(editor, decorationType);
-  }
+  registerColorPanel(context, refreshVisibleEditors);
+  refreshVisibleEditors();
 }
 
 /**
