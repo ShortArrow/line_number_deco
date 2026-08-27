@@ -82,6 +82,14 @@
         "title": "LineNumberDeco: Update color of repeating digits for user"
       },
       {
+        "command": "line-number-deco.updateColorAtSequentialDigits",
+        "title": "LineNumberDeco: Update color of sequential digits for workspace"
+      },
+      {
+        "command": "line-number-deco.updateColorAtSequentialDigitsForUser",
+        "title": "LineNumberDeco: Update color of sequential digits for user"
+      },
+      {
         "command": "line-number-deco.enableRelativeLineNumbers",
         "title": "LineNumberDeco: Enable Relative Line Numbers in This workspace"
       },
@@ -112,6 +120,22 @@
       {
         "command": "line-number-deco.disableRepeatingDigitsForUser",
         "title": "LineNumberDeco: Disable repeating digits color for user"
+      },
+      {
+        "command": "line-number-deco.enableSequentialDigits",
+        "title": "LineNumberDeco: Enable sequential digits in this workspace"
+      },
+      {
+        "command": "line-number-deco.disableSequentialDigits",
+        "title": "LineNumberDeco: Disable sequential digits color in this workspace"
+      },
+      {
+        "command": "line-number-deco.enableSequentialDigitsForUser",
+        "title": "LineNumberDeco: Enable sequential digits color for user"
+      },
+      {
+        "command": "line-number-deco.disableSequentialDigitsForUser",
+        "title": "LineNumberDeco: Disable sequential digits color for user"
       }
     ],
     "configuration": {
@@ -134,6 +158,12 @@
           "default": "#00ff00",
           "description": "Foreground color of Repeating digits"
         },
+        "LineNumberDeco.foregroundColorOfSequentialDigits": {
+          "type": "string",
+          "format": "color",
+          "default": "#ffa500",
+          "description": "Foreground color of sequential digits"
+        },
         "LineNumberDeco.enableRainbow": {
           "type": "boolean",
           "default": false,
@@ -143,6 +173,11 @@
           "type": "boolean",
           "default": false,
           "description": "Enable color of repeating digits"
+        },
+        "LineNumberDeco.enableSequentialDigits": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable color of sequential digits (poker straights like 123 or 543)"
         },
         "LineNumberDeco.activeForeground": {
           "type": "string",

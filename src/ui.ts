@@ -5,8 +5,9 @@ import {
     getColorAtActiveRowNumber,
     getColorAtInactiveRowNumber,
     getColorAtRepeatingDigits,
+    getColorAtSequentialDigits,
     defaultCenterColorOfRainbow,
-} from "./config"; 
+} from "./config";
     
 const vsCodeGlobal = vscode.ConfigurationTarget
   .Global as vscode.ConfigurationTarget;
@@ -61,6 +62,14 @@ export async function updateColorAtRepeatingDigitsForUser(set: string) {
   updateUserConfig("foregroundColorOfRepeatingDigits", set);
 }
 
+export async function updateColorAtSequentialDigits(set: string) {
+  updateWorkspaceConfig("foregroundColorOfSequentialDigits", set);
+}
+
+export async function updateColorAtSequentialDigitsForUser(set: string) {
+  updateUserConfig("foregroundColorOfSequentialDigits", set);
+}
+
 async function getColorCode(
   prompt: string,
   defaultValue: string,
@@ -95,6 +104,24 @@ export async function getColorCodeAtRepeatingDigitsForUser() {
     "",
     getColorAtRepeatingDigits,
     updateColorAtRepeatingDigitsForUser
+  );
+}
+
+export async function getColorCodeAtSequentialDigits() {
+  await getColorCode(
+    "Please input color code at sequential digits",
+    "",
+    getColorAtSequentialDigits,
+    updateColorAtSequentialDigits
+  );
+}
+
+export async function getColorCodeAtSequentialDigitsForUser() {
+  await getColorCode(
+    "Please input color code at sequential digits",
+    "",
+    getColorAtSequentialDigits,
+    updateColorAtSequentialDigitsForUser
   );
 }
 
@@ -166,4 +193,12 @@ export async function updateEnableRepeatingDigits(set: boolean) {
 
 export async function updateEnableRepeatingDigitsForUser(set: boolean) {
   updateUserConfig("enableRepeatingDigits", set);
+}
+
+export async function updateEnableSequentialDigits(set: boolean) {
+  updateWorkspaceConfig("enableSequentialDigits", set);
+}
+
+export async function updateEnableSequentialDigitsForUser(set: boolean) {
+  updateUserConfig("enableSequentialDigits", set);
 }

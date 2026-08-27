@@ -58,6 +58,7 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Fix relative numbers disappearing below a folded region (#32)
 - Fix numbers not updating when mouse-scrolling an editor that does not have the cursor (#30)
 - Decorate visible editors on startup and when editors become visible, instead of waiting for the first cursor move or scroll
+- Sequential-digit line numbers (123, 543, 10) can get their own color — poker mode (#12)
 - Releases are built by GitHub Actions on tag push: tests on three OSes, a packaged VSIX with build provenance, and an installation smoke test (#29)
 - The VSIX no longer ships tests, the generator, or CI files
 - Package manager is pnpm instead of Yarn

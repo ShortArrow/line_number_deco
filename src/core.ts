@@ -7,6 +7,8 @@ import {
   getEnableRelativeLine,
   getEnableRepeatingDigits,
   getColorAtRepeatingDigits,
+  getEnableSequentialDigits,
+  getColorAtSequentialDigits,
   getInactiveLineNumberColor,
   getActiveLineNumberColor,
 } from "./config";
@@ -63,6 +65,8 @@ export async function updateRelativeLineNumbers(
   const enableRainbow = getEnableRainbow();
   const enableRepeatingDigits = getEnableRepeatingDigits();
   const repeatingDigitsColor = getColorAtRepeatingDigits();
+  const enableSequentialDigits = getEnableSequentialDigits();
+  const sequentialDigitsColor = getColorAtSequentialDigits();
   const centerColorOfRainbow = getColorAtCenterOfRainbow();
   const labelWidth = document.lineCount.toString().length;
   const lineIndexes = visibleLineIndexes(
@@ -87,9 +91,11 @@ export async function updateRelativeLineNumbers(
           ? activeLineNumberColor
           : (enableRepeatingDigits && isRepeatingDigits(label))
             ? repeatingDigitsColor
-            : enableRainbow
-              ? shiftHue(centerColorOfRainbow, Math.abs(lineIndex - activeLineNumber))
-              : inactiveLineNumberColor,
+            : (enableSequentialDigits && isSequentialDigits(label))
+              ? sequentialDigitsColor
+              : enableRainbow
+                ? shiftHue(centerColorOfRainbow, Math.abs(lineIndex - activeLineNumber))
+                : inactiveLineNumberColor,
         textDecoration: `
             box-sizing: border-box;
             text-align: right;

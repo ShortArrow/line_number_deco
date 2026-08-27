@@ -55,6 +55,14 @@ export function getColorAtRepeatingDigits() {
   return getConfig<string>("foregroundColorOfRepeatingDigits", "");
 }
 
+export function getEnableSequentialDigits() {
+  return getConfig<boolean>("enableSequentialDigits", false);
+}
+
+export function getColorAtSequentialDigits() {
+  return getConfig<string>("foregroundColorOfSequentialDigits", "");
+}
+
 export function getEnableRelativeLine() {
   return getConfig<boolean>("enableRelativeLine", true);
 }
