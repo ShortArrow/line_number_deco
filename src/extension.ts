@@ -20,7 +20,12 @@ import {
   updateEnableSequentialDigitsForUser,
 } from "./ui";
 import { updateRelativeLineNumbers } from "./core";
-import { registerColorPanel } from "./panel";
+import {
+  hideSettingsPanel,
+  registerColorPanel,
+  showSettingsPanel,
+  toggleSettingsPanel,
+} from "./panel";
 import { throttleTrailing } from "./throttle";
 import { LineNumberDeco } from "./generated/generated";
 
@@ -99,6 +104,9 @@ const commands = [
   LineNumberDeco.updateColorAtActiveRowNumberForUser(getColorCodeAtActiveRowNumberForUser),
   LineNumberDeco.updateColorAtInactiveRowNumber(getColorCodeAtInactiveRowNumber),
   LineNumberDeco.updateColorAtActiveRowNumber(getColorCodeAtActiveRowNumber),
+  LineNumberDeco.showSettingsPanel(showSettingsPanel),
+  LineNumberDeco.hideSettingsPanel(hideSettingsPanel),
+  LineNumberDeco.toggleSettingsPanel(toggleSettingsPanel),
 ];
 
 /**

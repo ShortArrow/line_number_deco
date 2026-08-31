@@ -237,4 +237,31 @@ export class LineNumberDeco {
       callback()
     );
   }
+
+  /**
+   * LineNumberDeco: Show settings panel
+   */   
+  static showSettingsPanel(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.showSettingsPanel', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Hide settings panel
+   */   
+  static hideSettingsPanel(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.hideSettingsPanel', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Toggle settings panel
+   */   
+  static toggleSettingsPanel(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.toggleSettingsPanel', () =>
+      callback()
+    );
+  }
 }
