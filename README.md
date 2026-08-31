@@ -83,6 +83,9 @@ The `ForUser` variants write to your user settings; the others write to the curr
 | `line-number-deco.disableSequentialDigitsForUser` | LineNumberDeco: Disable sequential digits color for user |
 | `line-number-deco.updateColorAtSequentialDigits` | LineNumberDeco: Update color of sequential digits for workspace |
 | `line-number-deco.updateColorAtSequentialDigitsForUser` | LineNumberDeco: Update color of sequential digits for user |
+| `line-number-deco.showSettingsPanel` | LineNumberDeco: Show settings panel |
+| `line-number-deco.hideSettingsPanel` | LineNumberDeco: Hide settings panel |
+| `line-number-deco.toggleSettingsPanel` | LineNumberDeco: Toggle settings panel |
 
 ## Settings panel
 

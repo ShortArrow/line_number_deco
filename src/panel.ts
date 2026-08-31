@@ -67,6 +67,7 @@ function isKnownToggle(key: string) {
 }
 
 let resolvedHtml: string | undefined;
+let resolvedView: vscode.WebviewView | undefined;
 
 /**
  * The html set at the most recent resolveWebviewView, or undefined when the
@@ -77,6 +78,36 @@ export function getResolvedPanelHtml(): string | undefined {
   return resolvedHtml;
 }
 
+/** Whether the settings view exists and is currently showing. */
+export function isSettingsPanelVisible(): boolean {
+  return resolvedView?.visible === true;
+}
+
+/** Reveal the settings panel, opening its activity bar container. */
+export async function showSettingsPanel(): Promise<void> {
+  await vscode.commands.executeCommand(`${viewId}.focus`);
+}
+
+/**
+ * Close the sidebar, but only while the settings panel is the view it holds:
+ * hiding what is already hidden must never take somebody else's view with it.
+ */
+export async function hideSettingsPanel(): Promise<void> {
+  if (!isSettingsPanelVisible()) {
+    return;
+  }
+  await vscode.commands.executeCommand("workbench.action.closeSidebar");
+}
+
+/** Show the settings panel when it is hidden, hide it when it is showing. */
+export async function toggleSettingsPanel(): Promise<void> {
+  if (isSettingsPanelVisible()) {
+    await hideSettingsPanel();
+    return;
+  }
+  await showSettingsPanel();
+}
+
 class ColorPanelProvider implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | undefined;
 
@@ -84,6 +115,7 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
 
   resolveWebviewView(webviewView: vscode.WebviewView) {
     this.view = webviewView;
+    resolvedView = webviewView;
     webviewView.webview.options = { enableScripts: true };
     const nonce = crypto.randomBytes(16).toString("base64");
     webviewView.webview.html = renderPanelHtml(
@@ -104,6 +136,7 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
     });
     webviewView.onDidDispose(() => {
       this.view = undefined;
+      resolvedView = undefined;
       clearAllPreviews();
       this.refresh();
     });

@@ -154,6 +154,18 @@
       {
         "command": "line-number-deco.disableSequentialDigitsForUser",
         "title": "LineNumberDeco: Disable sequential digits color for user"
+      },
+      {
+        "command": "line-number-deco.showSettingsPanel",
+        "title": "LineNumberDeco: Show settings panel"
+      },
+      {
+        "command": "line-number-deco.hideSettingsPanel",
+        "title": "LineNumberDeco: Hide settings panel"
+      },
+      {
+        "command": "line-number-deco.toggleSettingsPanel",
+        "title": "LineNumberDeco: Toggle settings panel"
       }
     ],
     "configuration": {
