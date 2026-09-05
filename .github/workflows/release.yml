@@ -57,6 +57,27 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Refuse a version the Marketplace already has
+        # The 0.0.10 GitHub release silently shared its number with a build
+        # published to the Marketplace long before this pipeline existed, so
+        # installing from the store served the old build. A burned version
+        # number must fail here, before anything ships. Suffixed pre-release
+        # tags reuse the base version by design and are exempt; a Marketplace
+        # outage only warns, because it must not block a GitHub release.
+        if: ${{ !contains(github.ref_name, '-') }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="$(node -p "require('./package.json').version")"
+          if listing="$(pnpm exec vsce show ShortArrow.line-number-deco --json 2>/dev/null)"; then
+            if node -e 'const l=JSON.parse(process.argv[1]); process.exit(l.versions.some(v=>v.version===process.argv[2])?0:1)' "$listing" "$manifest"; then
+              echo "::error::version $manifest already exists on the Marketplace; bump the version instead of reusing it"
+              exit 1
+            fi
+          else
+            echo "::warning::could not query the Marketplace; skipping the burned-version check"
+          fi
+
       - name: Test (Linux, under Xvfb)
         if: runner.os == 'Linux'
         run: xvfb-run -a pnpm test
