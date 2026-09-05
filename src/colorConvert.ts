@@ -21,6 +21,18 @@ export interface Hsl {
   l: number;
 }
 
+/**
+ * One color as the picking surface names it: h 0–360, s and v 0–100, integers.
+ *
+ * The plane spends saturation across its width and value down its height, so
+ * this is the model the marker's position reads and writes directly.
+ */
+export interface Hsv {
+  h: number;
+  s: number;
+  v: number;
+}
+
 const hexPattern = /^#[0-9a-fA-F]{6}$/;
 
 function clampChannel(value: number) {
@@ -108,6 +120,80 @@ export function hslToHex(hsl: Hsl): string {
   const chroma = (1 - Math.abs(2 * l - 1)) * s;
   const second = chroma * (1 - Math.abs(((h / 60) % 2) - 1));
   const lift = l - chroma / 2;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (h < 60) {
+    r = chroma;
+    g = second;
+  } else if (h < 120) {
+    r = second;
+    g = chroma;
+  } else if (h < 180) {
+    g = chroma;
+    b = second;
+  } else if (h < 240) {
+    g = second;
+    b = chroma;
+  } else if (h < 300) {
+    r = second;
+    b = chroma;
+  } else {
+    r = chroma;
+    b = second;
+  }
+  return rgbToHex({
+    r: (r + lift) * 255,
+    g: (g + lift) * 255,
+    b: (b + lift) * 255,
+  });
+}
+
+/** The hue, saturation and value of a '#rrggbb' string, or null. */
+export function hexToHsv(hex: string): Hsv | null {
+  const rgb = hexToRgb(hex);
+  if (!rgb) {
+    return null;
+  }
+  const r = rgb.r / 255;
+  const g = rgb.g / 255;
+  const b = rgb.b / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const span = max - min;
+  let h = 0;
+  if (span !== 0) {
+    if (max === r) {
+      h = 60 * (((g - b) / span) % 6);
+    } else if (max === g) {
+      h = 60 * ((b - r) / span + 2);
+    } else {
+      h = 60 * ((r - g) / span + 4);
+    }
+  }
+  if (h < 0) {
+    h += 360;
+  }
+  return {
+    h: Math.round(h) % 360,
+    s: Math.round((max === 0 ? 0 : span / max) * 100),
+    v: Math.round(max * 100),
+  };
+}
+
+/**
+ * Hue, saturation and value as lowercase '#rrggbb'.
+ *
+ * The hue wraps like the hsl one, so the plane's top-right corner at h 360 is
+ * the same red as at h 0.
+ */
+export function hsvToHex(hsv: Hsv): string {
+  const h = ((hsv.h % 360) + 360) % 360;
+  const s = Math.min(100, Math.max(0, hsv.s)) / 100;
+  const v = Math.min(100, Math.max(0, hsv.v)) / 100;
+  const chroma = v * s;
+  const second = chroma * (1 - Math.abs(((h / 60) % 2) - 1));
+  const lift = v - chroma;
   let r = 0;
   let g = 0;
   let b = 0;

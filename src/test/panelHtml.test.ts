@@ -164,4 +164,64 @@ describe('Test render the color panel html', () => {
     const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', 'INLINE<LIB');
     assert.ok(html.includes('INLINE<LIB'), 'the inlined library was html-escaped');
   });
+
+  it('Must offer a hex text field carrying the saved color of a row', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
+    const field = /<input[^>]*data-hex-for="centerColorOfRainbow"[^>]*>/.exec(html);
+    assert.ok(field, 'no hex field for centerColorOfRainbow');
+    assert.ok(
+      (field as RegExpExecArray)[0].includes('value="#8888ff"'),
+      'the hex field does not carry the saved color'
+    );
+  });
+
+  it('Must offer a picking plane with a marker per color row', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
+    assert.ok(
+      html.includes('data-plane-for="centerColorOfRainbow"'),
+      'no picking plane for centerColorOfRainbow'
+    );
+    assert.ok(
+      html.includes('data-plane-marker="centerColorOfRainbow"'),
+      'the picking plane has no marker'
+    );
+  });
+
+  it('Must draw the picking plane inside the details above the mode tabs', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
+    const details = html.indexOf('<details');
+    const plane = html.indexOf('data-plane-for="centerColorOfRainbow"');
+    const tabs = html.indexOf('data-mode-tab="hsl"');
+    assert.ok(details >= 0, 'no details element');
+    assert.ok(details < plane, 'the picking plane is not inside the details element');
+    assert.ok(plane < tabs, 'the picking plane is not above the mode tabs');
+  });
+
+  it('Must offer a reset control drawn as an inline svg per color row', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
+    const reset = /data-reset="centerColorOfRainbow"[\s\S]*?<\/button>/.exec(html);
+    assert.ok(reset, 'no reset control for centerColorOfRainbow');
+    assert.ok(
+      (reset as RegExpExecArray)[0].includes('<svg'),
+      'the reset control carries no inline svg glyph'
+    );
+  });
+
+  it('Must offer exactly one reset all control beside apply all', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
+    assert.ok(html.includes('data-reset-all='), 'no reset all control');
+    assert.ok(html.includes('data-apply-all='), 'no apply all control');
+    assert.strictEqual(html.split('data-reset-all=').length - 1, 1);
+  });
+
+  it('Must escape a saved color that looks like markup in the hex field', () => {
+    const html = renderPanelHtml(
+      toggles,
+      [{ key: 'foreground', label: 'Inactive line number', savedColor: '"><svg onload=x>' }],
+      'n0nce',
+      'vscode-resource:',
+      ''
+    );
+    assert.ok(!html.includes('<svg onload'), 'the saved color escaped the hex field');
+  });
 });
