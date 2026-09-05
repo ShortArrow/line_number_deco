@@ -58,7 +58,9 @@ type PanelMessage =
   | { type: "apply"; key: string; value: string; scope: string }
   | { type: "previewToggle"; key: string; value: boolean }
   | { type: "applyToggle"; key: string; value: boolean; scope: string }
-  | { type: "applyAll"; scope: string };
+  | { type: "applyAll"; scope: string }
+  | { type: "resetRow"; key: string }
+  | { type: "resetAll" };
 
 function isKnownKey(key: string) {
   return labels.some((entry) => entry.key === key);
@@ -193,6 +195,23 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
         }
       }
       clearAllPreviews();
+      this.refresh();
+      this.postState();
+      return;
+    }
+    if (message.type === "resetAll") {
+      // Toggles go too: a pending switch is a preview like any other, and
+      // "reset all" that left one standing would not have reset the panel.
+      clearAllPreviews();
+      this.refresh();
+      this.postState();
+      return;
+    }
+    if (message.type === "resetRow") {
+      if (!isKnownKey(message.key)) {
+        return;
+      }
+      clearPreview(message.key);
       this.refresh();
       this.postState();
       return;

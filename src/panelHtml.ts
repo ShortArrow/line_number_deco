@@ -48,14 +48,30 @@ function renderSlider(key: string, component: string, max: number) {
 }
 
 /**
+ * The saturation and value surface of a row, with the marker that reads it.
+ *
+ * The gradients are painted in css and only the hue underneath is set from
+ * script, so dragging the marker repaints nothing but one background color.
+ */
+function renderPlane(key: string) {
+  return `          <div class="plane" data-plane-for="${key}">
+            <div class="plane-marker" data-plane-marker="${key}"></div>
+          </div>`;
+}
+
+/**
  * The two slider triples of a row, folded away until the reader asks for them.
  *
- * Both models stay in the document and the mode tabs only choose which one is
- * shown, so a value typed into either is already converted when it reappears.
+ * The plane comes first because it is the coarse control: the sliders and the
+ * mode tabs below it are for correcting one component once the color is close.
+ * Both slider models stay in the document and the mode tabs only choose which
+ * one is shown, so a value typed into either is already converted when it
+ * reappears.
  */
 function renderSliders(key: string) {
   return `        <details class="editor">
           <summary>Sliders</summary>
+${renderPlane(key)}
           <div class="modes">
             <button class="mode active" data-mode-tab="hsl" data-mode-for="${key}">HSL</button>
             <button class="mode" data-mode-tab="rgb" data-mode-for="${key}">RGB</button>
@@ -73,6 +89,19 @@ ${renderSlider(key, "b", 255)}
         </details>`;
 }
 
+/**
+ * The discard arrow, drawn rather than loaded.
+ *
+ * A codicon would mean a font file and a second source rule in the policy, so
+ * the one glyph the panel needs is a path: a ring open at the top left with an
+ * arrowhead turning back counter-clockwise onto it.
+ */
+const discardGlyph =
+  '<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
+  '<path fill="currentColor" d="M8 3a5 5 0 1 1-4.546 2.914l1.09.502A3.8 3.8 0 1 0 8 4.2V3z"/>' +
+  '<path fill="currentColor" d="M8.75 1.4v3.2L5.6 3z"/>' +
+  "</svg>";
+
 function renderRow(row: PanelRow) {
   const key = escapeHtml(row.key);
   const saved = escapeHtml(row.savedColor);
@@ -81,7 +110,9 @@ function renderRow(row: PanelRow) {
         <div class="controls">
           <span class="swatch" data-swatch="${key}" style="background:${saved}" title="${saved}"></span>
           <input type="color" data-key="${key}" value="${escapeHtml(pickerValue(row.savedColor))}" />
+          <input type="text" class="hex" spellcheck="false" data-hex-for="${key}" value="${saved}" />
           <button data-apply="${key}">Apply</button>
+          <button class="icon" title="Reset" aria-label="Reset" data-reset="${key}">${discardGlyph}</button>
         </div>
 ${renderSliders(key)}
       </div>`;
@@ -155,6 +186,8 @@ const script = `      const vscode = acquireVsCodeApi();
             readout.textContent = parts[readout.dataset.readout];
           });
         paintSliders(key, hsl);
+        showOnPlane(key, hex);
+        showInHexField(key, hex);
       }
       /** Repaint the saturation and lightness tracks against the current hue. */
       function paintSliders(key, hsl) {
@@ -173,6 +206,37 @@ const script = `      const vscode = acquireVsCodeApi();
             'linear-gradient(to right, #000000, ' +
             convert('hsl', 'hex')({ h: hsl.h, s: hsl.s, l: 50 }) +
             ', #ffffff)';
+        }
+      }
+      /** Put the marker where one hex sits on the plane and set the hue behind it. */
+      function showOnPlane(key, hex) {
+        const plane = document.querySelector('[data-plane-for="' + key + '"]');
+        const marker = document.querySelector('[data-plane-marker="' + key + '"]');
+        if (!plane || !marker || !convert('hex', 'hsv')) {
+          return;
+        }
+        const hsv = convert('hex', 'hsv')(hex);
+        if (!hsv) {
+          return;
+        }
+        plane.style.background = convert('hsv', 'hex')({ h: hsv.h, s: 100, v: 100 });
+        marker.style.left = hsv.s + '%';
+        marker.style.top = 100 - hsv.v + '%';
+        marker.style.background = hex;
+      }
+      /** The hue the plane is currently spending, read back off the row's color. */
+      function hueOf(key) {
+        const input = document.querySelector('input[type="color"][data-key="' + key + '"]');
+        const hsv = input && convert('hex', 'hsv') ? convert('hex', 'hsv')(input.value) : null;
+        return hsv ? hsv.h : 0;
+      }
+      function showInHexField(key, hex) {
+        const field = document.querySelector('[data-hex-for="' + key + '"]');
+        if (field && field !== document.activeElement) {
+          field.value = hex;
+        }
+        if (field) {
+          field.classList.remove('invalid');
         }
       }
       function showEverywhere(key, hex) {
@@ -243,9 +307,66 @@ const script = `      const vscode = acquireVsCodeApi();
           });
         });
       });
+      document.querySelectorAll('[data-plane-for]').forEach((plane) => {
+        const key = plane.dataset.planeFor;
+        /** One pointer position as a color: x spends saturation, y spends value downward. */
+        function pickAt(event) {
+          if (!convert('hsv', 'hex')) {
+            return;
+          }
+          const box = plane.getBoundingClientRect();
+          const s = Math.round(
+            Math.min(100, Math.max(0, ((event.clientX - box.left) / box.width) * 100))
+          );
+          const v = Math.round(
+            100 - Math.min(100, Math.max(0, ((event.clientY - box.top) / box.height) * 100))
+          );
+          const hex = convert('hsv', 'hex')({ h: hueOf(key), s: s, v: v });
+          markPending(key, true);
+          showEverywhere(key, hex);
+          vscode.postMessage({ type: 'preview', key: key, value: hex });
+        }
+        plane.addEventListener('pointerdown', (event) => {
+          // Capture so a drag that leaves the box keeps painting until the button is released.
+          plane.setPointerCapture(event.pointerId);
+          pickAt(event);
+        });
+        plane.addEventListener('pointermove', (event) => {
+          if (plane.hasPointerCapture(event.pointerId)) {
+            pickAt(event);
+          }
+        });
+        plane.addEventListener('pointerup', (event) => {
+          plane.releasePointerCapture(event.pointerId);
+        });
+      });
+      document.querySelectorAll('[data-hex-for]').forEach((field) => {
+        field.addEventListener('input', () => {
+          const key = field.dataset.hexFor;
+          const hex = field.value.trim();
+          if (!convert('hex', 'rgb') || !convert('hex', 'rgb')(hex)) {
+            field.classList.add('invalid');
+            return;
+          }
+          field.classList.remove('invalid');
+          markPending(key, true);
+          showEverywhere(key, hex);
+          vscode.postMessage({ type: 'preview', key: key, value: hex });
+        });
+      });
+      document.querySelectorAll('button[data-reset]').forEach((button) => {
+        button.addEventListener('click', () => {
+          vscode.postMessage({ type: 'resetRow', key: button.dataset.reset });
+        });
+      });
       document.querySelectorAll('button[data-apply-all]').forEach((button) => {
         button.addEventListener('click', () => {
           vscode.postMessage({ type: 'applyAll', scope: scope() });
+        });
+      });
+      document.querySelectorAll('button[data-reset-all]').forEach((button) => {
+        button.addEventListener('click', () => {
+          vscode.postMessage({ type: 'resetAll' });
         });
       });
       window.addEventListener('message', (event) => {
@@ -272,6 +393,13 @@ const script = `      const vscode = acquireVsCodeApi();
             input.value = row.savedColor;
           }
           showOnSliders(row.key, /^#[0-9a-fA-F]{6}$/.test(row.savedColor) ? row.savedColor : '#000000');
+          // The saved value wins over whatever is being typed: a reset has to
+          // reach a field the reader still has the caret in.
+          const field = document.querySelector('[data-hex-for="' + row.key + '"]');
+          if (field) {
+            field.value = row.savedColor;
+            field.classList.remove('invalid');
+          }
         });
       });
       document.querySelectorAll('input[type="color"][data-key]').forEach((input) => {
@@ -302,8 +430,16 @@ const style = `      body { font-family: var(--vscode-font-family); font-size: v
       .switch input:checked + .slider { background: var(--vscode-button-background); }
       .switch input:checked + .slider::before { transform: translateX(14px); }
       .switch input:focus-visible + .slider { outline: 1px solid var(--vscode-focusBorder); }
+      .hex { width: 72px; font-family: var(--vscode-editor-font-family, monospace); color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-panel-border); padding: 1px 4px; }
+      .hex.invalid { border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground)); }
+      button.icon { display: inline-flex; align-items: center; padding: 2px 4px; }
       .editor { margin-top: 6px; }
       .editor summary { cursor: pointer; opacity: 0.7; font-size: 0.9em; }
+      .plane { position: relative; width: 100%; height: 96px; margin: 6px 0; background: #ff0000; touch-action: none; cursor: crosshair; }
+      .plane::before, .plane::after { content: ""; position: absolute; inset: 0; }
+      .plane::before { background: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 0)); }
+      .plane::after { background: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000000); }
+      .plane-marker { position: absolute; z-index: 1; width: 10px; height: 10px; margin: -5px 0 0 -5px; border: 1px solid #ffffff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6); pointer-events: none; }
       .modes { display: flex; gap: 4px; margin: 6px 0; }
       .mode { opacity: 0.5; padding: 1px 8px; }
       .mode.active { opacity: 1; }
@@ -368,6 +504,7 @@ ${rows.map(renderRow).join("\n")}
     </div>
     <div class="footer">
       <button data-apply-all="1">Apply all</button>
+      <button data-reset-all="1">Reset all</button>
     </div>
     <script nonce="${safeNonce}">
       const exports = {};

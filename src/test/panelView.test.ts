@@ -51,5 +51,17 @@ describe('Test color panel view', () => {
       (html as string).includes('hexToHsl'),
       'resolved panel html does not inline the color conversions'
     );
+    assert.ok(
+      (html as string).includes('data-plane-for="foreground"'),
+      'resolved panel html has no picking plane for foreground'
+    );
+    assert.ok(
+      (html as string).includes('data-hex-for="foreground"'),
+      'resolved panel html has no hex field for foreground'
+    );
+    assert.ok(
+      (html as string).includes('data-reset-all='),
+      'resolved panel html has no reset all control'
+    );
   });
 });
