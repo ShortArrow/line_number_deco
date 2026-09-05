@@ -70,6 +70,101 @@ function isKnownToggle(key: string) {
   return toggles.some((entry) => entry.key === key);
 }
 
+/**
+ * The effects {@link handlePanelMessage} is allowed to have.
+ *
+ * Injecting them is what separates deciding from doing: the webview supplies
+ * the real configuration writes, a test supplies recorders.
+ */
+export interface PanelMessageDeps {
+  isColorKey(key: string): boolean;
+  isToggleKey(key: string): boolean;
+  save(key: string, value: string | boolean, scope: string): Promise<void>;
+  refresh(): void;
+  postState(): void;
+}
+
+/**
+ * Act on one message from the settings webview.
+ *
+ * Unknown keys and malformed messages are dropped without any effect at all,
+ * so a webview that has drifted from the extension cannot write a setting the
+ * panel does not offer.
+ *
+ * @param message whatever the webview posted, which is not to be trusted
+ * @param deps the key vocabulary and the effects to perform
+ */
+export async function handlePanelMessage(
+  message: unknown,
+  deps: PanelMessageDeps
+): Promise<void> {
+  if (!message || typeof message !== "object") {
+    return;
+  }
+  const panelMessage = message as PanelMessage;
+  if (panelMessage.type === "applyAll") {
+    for (const { key, value } of getPendingPreviews()) {
+      if (deps.isColorKey(key) || deps.isToggleKey(key)) {
+        await deps.save(key, value, panelMessage.scope);
+      }
+    }
+    clearAllPreviews();
+    deps.refresh();
+    deps.postState();
+    return;
+  }
+  if (panelMessage.type === "resetAll") {
+    // Toggles go too: a pending switch is a preview like any other, and
+    // "reset all" that left one standing would not have reset the panel.
+    clearAllPreviews();
+    deps.refresh();
+    deps.postState();
+    return;
+  }
+  if (panelMessage.type === "resetRow") {
+    if (!deps.isColorKey(panelMessage.key)) {
+      return;
+    }
+    clearPreview(panelMessage.key);
+    deps.refresh();
+    deps.postState();
+    return;
+  }
+  if (
+    panelMessage.type === "previewToggle" ||
+    panelMessage.type === "applyToggle"
+  ) {
+    if (!deps.isToggleKey(panelMessage.key)) {
+      return;
+    }
+    const value = panelMessage.value === true;
+    if (panelMessage.type === "previewToggle") {
+      setPreviewToggle(panelMessage.key, value);
+      deps.refresh();
+      return;
+    }
+    clearPreview(panelMessage.key);
+    await deps.save(panelMessage.key, value, panelMessage.scope);
+    deps.refresh();
+    deps.postState();
+    return;
+  }
+  if (!deps.isColorKey(panelMessage.key)) {
+    return;
+  }
+  if (panelMessage.type === "preview") {
+    setPreviewColor(panelMessage.key, panelMessage.value);
+    deps.refresh();
+    return;
+  }
+  if (panelMessage.type === "apply") {
+    clearPreview(panelMessage.key);
+    await deps.save(panelMessage.key, panelMessage.value, panelMessage.scope);
+    deps.refresh();
+    deps.postState();
+  }
+}
+
 let resolvedHtml: string | undefined;
 let resolvedView: vscode.WebviewView | undefined;
 
@@ -185,67 +280,13 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
   }
 
   private async handle(message: PanelMessage) {
-    if (!message) {
-      return;
-    }
-    if (message.type === "applyAll") {
-      for (const { key, value } of getPendingPreviews()) {
-        if (isKnownKey(key) || isKnownToggle(key)) {
-          await this.save(key, value, message.scope);
-        }
-      }
-      clearAllPreviews();
-      this.refresh();
-      this.postState();
-      return;
-    }
-    if (message.type === "resetAll") {
-      // Toggles go too: a pending switch is a preview like any other, and
-      // "reset all" that left one standing would not have reset the panel.
-      clearAllPreviews();
-      this.refresh();
-      this.postState();
-      return;
-    }
-    if (message.type === "resetRow") {
-      if (!isKnownKey(message.key)) {
-        return;
-      }
-      clearPreview(message.key);
-      this.refresh();
-      this.postState();
-      return;
-    }
-    if (message.type === "previewToggle" || message.type === "applyToggle") {
-      if (!isKnownToggle(message.key)) {
-        return;
-      }
-      const value = message.value === true;
-      if (message.type === "previewToggle") {
-        setPreviewToggle(message.key, value);
-        this.refresh();
-        return;
-      }
-      clearPreview(message.key);
-      await this.save(message.key, value, message.scope);
-      this.refresh();
-      this.postState();
-      return;
-    }
-    if (!isKnownKey(message.key)) {
-      return;
-    }
-    if (message.type === "preview") {
-      setPreviewColor(message.key, message.value);
-      this.refresh();
-      return;
-    }
-    if (message.type === "apply") {
-      clearPreview(message.key);
-      await this.save(message.key, message.value, message.scope);
-      this.refresh();
-      this.postState();
-    }
+    await handlePanelMessage(message, {
+      isColorKey: isKnownKey,
+      isToggleKey: isKnownToggle,
+      save: (key, value, scope) => this.save(key, value, scope),
+      refresh: () => this.refresh(),
+      postState: () => this.postState(),
+    });
   }
 }
 
