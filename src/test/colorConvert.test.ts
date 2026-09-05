@@ -57,7 +57,7 @@ const cases: { hex: string; rgb: Rgb; hsl: Hsl; hsv: Hsv }[] = [
   },
 ];
 
-const malformed = ['ff0000', '#ff000', '#ff00zz', '#ff0000ff', 'red', ''];
+const malformed = ['ff0000', '#ff000', '#ff00zz', '#ff0000ff', 'red', '', '#f00'];
 
 const roundTrips = ['#1e90ff', '#d9dcff', '#123456', '#e7ffc8'];
 
@@ -94,6 +94,8 @@ describe('Test convert colors between hex, rgb and hsl', () => {
   for (const value of malformed) {
     it(`Must refuse ${JSON.stringify(value)} as a hex color`, () => {
       assert.strictEqual(hexToRgb(value), null);
+      assert.strictEqual(hexToHsl(value), null);
+      assert.strictEqual(hexToHsv(value), null);
     });
   }
 
@@ -111,6 +113,10 @@ describe('Test convert colors between hex, rgb and hsl', () => {
 
   it('Must wrap hue 360 back to red', () => {
     assert.strictEqual(hslToHex({ h: 360, s: 100, l: 50 }), '#ff0000');
+  });
+
+  it('Must wrap hue 480 round to green', () => {
+    assert.strictEqual(hslToHex({ h: 480, s: 100, l: 50 }), '#00ff00');
   });
 
   for (const hex of roundTrips) {
@@ -150,6 +156,10 @@ describe('Test convert colors between hex, rgb and hsl', () => {
 
   it('Must wrap hue 360 back to red in hsv', () => {
     assert.strictEqual(hsvToHex({ h: 360, s: 100, v: 100 }), '#ff0000');
+  });
+
+  it('Must wrap hue 480 round to green in hsv', () => {
+    assert.strictEqual(hsvToHex({ h: 480, s: 100, v: 100 }), '#00ff00');
   });
 
   for (const hex of roundTrips) {
