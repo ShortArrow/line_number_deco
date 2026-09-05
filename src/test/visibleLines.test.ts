@@ -64,6 +64,14 @@ describe('Test visible line indexes', () => {
       expected: range(0, 16),
     },
     {
+      name: 'Must sort ranges given out of order',
+      input: {
+        ranges: [{ startLine: 20, endLine: 30 }, { startLine: 0, endLine: 3 }],
+        lineCount: 100,
+      },
+      expected: range(0, 4).concat(range(20, 31)),
+    },
+    {
       name: 'no ranges',
       input: { ranges: [], lineCount: 100 },
       expected: [],
