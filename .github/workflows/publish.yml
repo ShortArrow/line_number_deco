@@ -1,0 +1,76 @@
+name: Publish a released VSIX
+
+# Back-publishes an EXISTING GitHub Release's VSIX to the registries —
+# for a registry added after the tag was cut (Open VSX arrived after
+# v0.0.11), or a publish credential configured after the release run.
+# The artifact is the one the release pipeline already tested and
+# attested; nothing is rebuilt here.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag whose VSIX to publish (e.g. v0.0.11)"
+        required: true
+      registry:
+        description: "Where to publish"
+        required: true
+        type: choice
+        options:
+          - open-vsx
+          - vs-marketplace
+          - both
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish ${{ inputs.tag }} to ${{ inputs.registry }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Download the release VSIX
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download "${{ inputs.tag }}" --repo "$GITHUB_REPOSITORY" --pattern '*.vsix' --dir artifacts
+          ls -l artifacts
+
+      - name: Publish (Open VSX)
+        if: (inputs.registry == 'open-vsx' || inputs.registry == 'both')
+        run: |
+          set -euo pipefail
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::error::OVSX_PAT secret is not configured"
+            exit 1
+          fi
+          pnpm exec ovsx publish --packagePath artifacts/*.vsix -p "$OVSX_PAT"
+
+      - name: Publish (VS Marketplace)
+        if: (inputs.registry == 'vs-marketplace' || inputs.registry == 'both')
+        run: |
+          set -euo pipefail
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::error::VSCE_PAT secret is not configured"
+            exit 1
+          fi
+          pnpm exec vsce publish --packagePath artifacts/*.vsix
