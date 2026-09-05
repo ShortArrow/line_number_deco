@@ -226,12 +226,15 @@ jobs:
     # [skip publish] in the tagged commit's message opts a release out.
     if: ${{ !contains(github.event.head_commit.message, '[skip publish]') && !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
-    # The federated credential in Entra trusts exactly the subject
-    # repo:ShortArrow/line_number_deco:environment:release, so the job runs in
-    # that environment and exchanges the runner's OIDC token for an Entra
-    # token — no stored secret anywhere. vsce authenticates with
-    # --azure-credential; the app registration is a Contributor of the
-    # ShortArrow publisher.
+    # Two credentials, tried in this order:
+    #   1. Federated Entra identity (AZURE_CLIENT_ID / AZURE_TENANT_ID
+    #      repository variables): secretless OIDC via the release
+    #      environment. Requires the app registration to be a member of the
+    #      publisher — which an MSA-owned publisher cannot express
+    #      (TF14045), so this path stays dormant until the publisher moves
+    #      under Entra.
+    #   2. VSCE_PAT secret: the officially documented CI route.
+    # With neither configured the job skips itself.
     environment: release
     permissions:
       contents: read
@@ -239,41 +242,47 @@ jobs:
     env:
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      USE_AZURE: ${{ vars.AZURE_CLIENT_ID != '' && vars.AZURE_TENANT_ID != '' && 'yes' || '' }}
     steps:
-      - name: Skip when the Entra identity is not configured
-        if: env.AZURE_CLIENT_ID == '' || env.AZURE_TENANT_ID == ''
-        run: echo "AZURE_CLIENT_ID / AZURE_TENANT_ID repository variables are not set; skipping Marketplace publish." >> "$GITHUB_STEP_SUMMARY"
+      - name: Skip when no credential is configured
+        if: env.USE_AZURE == '' && env.VSCE_PAT == ''
+        run: echo "Neither the Entra variables nor VSCE_PAT are configured; skipping Marketplace publish." >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        if: env.AZURE_CLIENT_ID != '' && env.AZURE_TENANT_ID != ''
+        if: env.USE_AZURE != '' || env.VSCE_PAT != ''
         with:
           persist-credentials: false
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-        if: env.AZURE_CLIENT_ID != '' && env.AZURE_TENANT_ID != ''
+        if: env.USE_AZURE != '' || env.VSCE_PAT != ''
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        if: env.AZURE_CLIENT_ID != '' && env.AZURE_TENANT_ID != ''
+        if: env.USE_AZURE != '' || env.VSCE_PAT != ''
         with:
           node-version: 22
           cache: pnpm
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        if: env.AZURE_CLIENT_ID != '' && env.AZURE_TENANT_ID != ''
+        if: env.USE_AZURE != '' || env.VSCE_PAT != ''
         with:
           name: vsix
           path: artifacts
 
       - uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3.0.2
-        if: env.AZURE_CLIENT_ID != '' && env.AZURE_TENANT_ID != ''
+        if: env.USE_AZURE != ''
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           allow-no-subscriptions: true
 
       - run: pnpm install --frozen-lockfile
-        if: env.AZURE_CLIENT_ID != '' && env.AZURE_TENANT_ID != ''
+        if: env.USE_AZURE != '' || env.VSCE_PAT != ''
 
-      - name: Publish
-        if: env.AZURE_CLIENT_ID != '' && env.AZURE_TENANT_ID != ''
+      - name: Publish (Entra OIDC)
+        if: env.USE_AZURE != ''
         run: pnpm exec vsce publish --azure-credential --packagePath artifacts/*.vsix
+
+      - name: Publish (PAT)
+        if: env.USE_AZURE == '' && env.VSCE_PAT != ''
+        run: pnpm exec vsce publish --packagePath artifacts/*.vsix
