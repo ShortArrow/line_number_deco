@@ -2,13 +2,14 @@ import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { getConfig, nameOfExtension } from "./config";
+import { nameOfExtension } from "./config";
 import {
   PanelRow,
   PanelSelect,
   PanelToggle,
   renderPanelHtml,
 } from "./panelHtml";
+import { ScopeValues } from "./panelState";
 import {
   clearAllPreviews,
   clearPreview,
@@ -28,11 +29,13 @@ const labels: { key: string; label: string }[] = [
   { key: "foreground", label: "Inactive line number" },
 ];
 
-const toggles: { key: string; label: string; fallback: boolean }[] = [
-  { key: "enableRelativeLine", label: "Relative line numbers", fallback: true },
-  { key: "enableRainbow", label: "Rainbow", fallback: false },
-  { key: "enableRepeatingDigits", label: "Repeating digits", fallback: false },
-  { key: "enableSequentialDigits", label: "Sequential digits", fallback: false },
+// No fallback beside the label: inspect() reports the package.json default
+// itself, so a second copy here could only drift from it.
+const toggles: { key: string; label: string }[] = [
+  { key: "enableRelativeLine", label: "Relative line numbers" },
+  { key: "enableRainbow", label: "Rainbow" },
+  { key: "enableRepeatingDigits", label: "Repeating digits" },
+  { key: "enableSequentialDigits", label: "Sequential digits" },
 ];
 
 const selectSection = "editor";
@@ -40,12 +43,31 @@ const selectName = "lineNumbers";
 const selectKey = `${selectSection}.${selectName}`;
 const selectOptions = ["on", "off", "relative", "interval"] as const;
 
-/** The saved state of every mode, each with its package.json default. */
+/**
+ * What one setting holds in each scope it can be written to.
+ *
+ * The panel needs all three rather than the effective value, because the radio
+ * decides which one a row shows: a user value hidden behind a workspace value
+ * still has to be visible when the user scope is selected.
+ *
+ * @param section the configuration section the key belongs to
+ * @param name the key within that section
+ */
+function scopeValuesOf<T>(section: string, name: string): ScopeValues<T> {
+  const inspected = vscode.workspace.getConfiguration(section).inspect<T>(name);
+  return {
+    defaultValue: inspected?.defaultValue,
+    userValue: inspected?.globalValue,
+    workspaceValue: inspected?.workspaceValue,
+  };
+}
+
+/** The saved state of every mode, in each scope that may hold one. */
 function currentToggles(): PanelToggle[] {
-  return toggles.map(({ key, label, fallback }) => ({
+  return toggles.map(({ key, label }) => ({
     key,
     label,
-    value: getConfig<boolean>(key, fallback),
+    values: scopeValuesOf<boolean>(nameOfExtension, key),
   }));
 }
 
@@ -58,9 +80,7 @@ function currentSelects(): PanelSelect[] {
     {
       key: selectKey,
       label: "Built-in line numbers",
-      value: vscode.workspace
-        .getConfiguration(selectSection)
-        .get<string>(selectName, "on"),
+      values: scopeValuesOf<string>(selectSection, selectName),
       options: [...selectOptions],
     },
   ];
@@ -76,7 +96,7 @@ function currentRows(): PanelRow[] {
   return labels.map(({ key, label }) => ({
     key,
     label,
-    savedColor: getConfig<string>(key, ""),
+    values: scopeValuesOf<string>(nameOfExtension, key),
   }));
 }
 
@@ -237,6 +257,24 @@ export function getResolvedPanelHtml(): string | undefined {
   return resolvedHtml;
 }
 
+/**
+ * The rows, switches and select a state message would carry right now.
+ *
+ * A test hook: the integration suite writes a setting in one scope and asks
+ * what the panel would say about it, without a webview to post the message to.
+ */
+export function buildPanelStateForTest(): {
+  toggles: PanelToggle[];
+  selects: PanelSelect[];
+  rows: PanelRow[];
+} {
+  return {
+    toggles: currentToggles(),
+    selects: currentSelects(),
+    rows: currentRows(),
+  };
+}
+
 /** Whether the settings view exists and is currently showing. */
 export function isSettingsPanelVisible(): boolean {
   return resolvedView?.visible === true;
@@ -331,6 +369,10 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
    * The pending map travels with the saved values because the script displays
    * one over the other: a state message posted while a row is staged used to
    * carry the saved value alone, and the row snapped back to it.
+   *
+   * Each setting travels as what all three scopes hold rather than as the one
+   * value in force, so the radio can change what the rows show without asking
+   * the extension again.
    */
   postState() {
     this.view?.webview.postMessage({

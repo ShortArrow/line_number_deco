@@ -51,9 +51,21 @@ Relative line numbers are on by default and use your theme's colors. Two decorat
 
 The color settings show a color picker when edited in `settings.json`.
 
+## Settings panel
+
+The LineNumberDeco icon in the activity bar opens a panel for every setting of this extension, and for `editor.lineNumbers` itself. Changes preview in the editor at once; nothing is saved until Apply. The radio at the top picks the scope you are editing, and the scope the rows show. Closing the panel discards anything unapplied.
+
 ## Commands
 
-The `ForUser` variants write to your user settings; the others write to the current workspace.
+Everything the panel does is also a palette command, named on one pattern: `LineNumberDeco: Enable/Disable <decoration> ...` and `LineNumberDeco: Update color ...`, each in a workspace and a `for user` variant. For example:
+
+- `LineNumberDeco: Enable rainbow for workspace`
+- `LineNumberDeco: Toggle settings panel`
+
+The command IDs matter only when calling them from a keybinding or `init.lua`:
+
+<details>
+<summary>Full command list</summary>
 
 | Command | Title |
 | --- | --- |
@@ -87,13 +99,11 @@ The `ForUser` variants write to your user settings; the others write to the curr
 | `line-number-deco.hideSettingsPanel` | LineNumberDeco: Hide settings panel |
 | `line-number-deco.toggleSettingsPanel` | LineNumberDeco: Toggle settings panel |
 
-## Settings panel
-
-The LineNumberDeco entry in the activity bar opens a panel with a switch for each decoration above every color setting with its saved value and a color picker. Flipping a switch and dragging a picker both preview in the open editors without saving anything, and the row is marked until it is saved. The Apply beside a row saves that one setting; Apply all at the bottom saves everything still pending. Either writes to the workspace or to your user settings, whichever the radio at the top selects. Closing the panel discards every preview that was not applied. Each color row also expands into a 2-D saturation and value surface above HSL or RGB sliders, all of which update the preview exactly as the picker does, beside a hex field you can copy the code out of or type a new one into. The Reset beside a row drops that row's pending preview and puts every control back to the saved color; Reset all at the bottom drops all of them. Between the switches and the colors, the panel also stages VS Code's own `editor.lineNumbers` (`on`, `off`, `relative` or `interval`); this row has no live preview, because VS Code draws those numbers itself, so the change lands on Apply.
+</details>
 
 ## Calling commands from init.lua
 
-With [VSCode Neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim), any of the commands above can be called from Lua:
+With [VSCode Neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim), any command from the list above can be called from Lua:
 
 ```lua
 vim.fn.VSCodeNotify('line-number-deco.enableRainbow')

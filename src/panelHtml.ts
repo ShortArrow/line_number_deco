@@ -1,26 +1,66 @@
-/** One color setting as the panel shows it: the saved value beside a picker. */
+import { ScopeName, ScopedDisplay, ScopeValues, displayForScope } from "./panelState";
+
+/**
+ * One color setting as the panel shows it: what each scope holds, beside a
+ * picker.
+ *
+ * The whole triple travels rather than one value, because which of the three
+ * a row displays is the radio's to decide, and the radio can flip without the
+ * extension being asked again.
+ */
 export interface PanelRow {
   key: string;
   label: string;
-  savedColor: string;
+  values: ScopeValues<string>;
 }
 
 /**
- * One enumerated setting as the panel shows it: the value in force beside the
- * whole set it may take.
+ * One enumerated setting as the panel shows it: what each scope holds beside
+ * the whole set it may take.
  */
 export interface PanelSelect {
   key: string;
   label: string;
-  value: string;
+  values: ScopeValues<string>;
   options: string[];
 }
 
-/** One boolean mode as the panel shows it: a switch carrying its saved state. */
+/** One boolean mode as the panel shows it: a switch and what each scope holds. */
 export interface PanelToggle {
   key: string;
   label: string;
-  value: boolean;
+  values: ScopeValues<boolean>;
+}
+
+/** The scope a freshly opened panel shows, matching the checked radio. */
+const initialScope: ScopeName = "workspace";
+
+/** The words a row uses to name where its value is written. */
+const sourceLabels: { [source: string]: string } = {
+  workspace: "from workspace",
+  user: "from user",
+  default: "from default",
+  none: "not set",
+};
+
+/**
+ * The marks a row carries so the reader and the script agree on what it shows.
+ *
+ * The source is an attribute rather than a class because the script rewrites it
+ * on every radio flip, and a row whose value is written somewhere other than
+ * the selected scope is dimmed: it is showing what it would inherit, not what
+ * that scope holds.
+ */
+function scopeMarks<T extends string | boolean>(
+  display: ScopedDisplay<T>,
+  scope: ScopeName
+): { classes: string; attribute: string; tag: string } {
+  const inherited = display.source !== scope;
+  return {
+    classes: inherited ? " inherited" : "",
+    attribute: ` data-source="${display.source}"`,
+    tag: `<span class="source" data-source-tag="true">${sourceLabels[display.source]}</span>`,
+  };
 }
 
 function escapeHtml(value: string) {
@@ -41,11 +81,13 @@ function pickerValue(savedColor: string) {
 
 function renderToggle(toggle: PanelToggle) {
   const key = escapeHtml(toggle.key);
-  return `      <div class="row toggle-row" data-row="${key}">
+  const display = displayForScope(initialScope, toggle.key, toggle.values, {});
+  const marks = scopeMarks(display, initialScope);
+  return `      <div class="row toggle-row${marks.classes}" data-row="${key}"${marks.attribute}>
         <label class="toggle">
-          <span class="label">${escapeHtml(toggle.label)}</span>
+          <span class="label">${escapeHtml(toggle.label)}${marks.tag}</span>
           <span class="switch">
-            <input type="checkbox" data-toggle="${key}"${toggle.value ? " checked" : ""} />
+            <input type="checkbox" data-toggle="${key}"${display.value === true ? " checked" : ""} />
             <span class="slider"></span>
           </span>
         </label>
@@ -123,15 +165,17 @@ const discardGlyph =
  */
 function renderSelect(select: PanelSelect) {
   const key = escapeHtml(select.key);
+  const display = displayForScope(initialScope, select.key, select.values, {});
+  const marks = scopeMarks(display, initialScope);
   const options = select.options
     .map((option) => {
       const value = escapeHtml(option);
-      const current = option === select.value ? ' data-current="true"' : "";
+      const current = option === display.value ? ' data-current="true"' : "";
       return `            <button class="segment" data-select-for="${key}" data-value="${value}"${current}>${value}</button>`;
     })
     .join("\n");
-  return `      <div class="row select-row" data-row="${key}">
-        <div class="label">${escapeHtml(select.label)}</div>
+  return `      <div class="row select-row${marks.classes}" data-row="${key}"${marks.attribute}>
+        <div class="label">${escapeHtml(select.label)}${marks.tag}</div>
         <div class="controls">
           <div class="segmented" role="group" aria-label="${escapeHtml(select.label)}">
 ${options}
@@ -144,12 +188,17 @@ ${options}
 
 function renderRow(row: PanelRow) {
   const key = escapeHtml(row.key);
-  const saved = escapeHtml(row.savedColor);
-  return `      <div class="row" data-row="${key}">
-        <div class="label">${escapeHtml(row.label)}</div>
+  const display = displayForScope(initialScope, row.key, row.values, {});
+  const marks = scopeMarks(display, initialScope);
+  // A setting written nowhere shows an empty field over the neutral swatch,
+  // exactly as an empty saved color always has: there is no color to show.
+  const shown = display.value ?? "";
+  const saved = escapeHtml(shown);
+  return `      <div class="row${marks.classes}" data-row="${key}"${marks.attribute}>
+        <div class="label">${escapeHtml(row.label)}${marks.tag}</div>
         <div class="controls">
           <span class="swatch" data-swatch="${key}" style="background:${saved}" title="${saved}"></span>
-          <input type="color" data-key="${key}" value="${escapeHtml(pickerValue(row.savedColor))}" />
+          <input type="color" data-key="${key}" value="${escapeHtml(pickerValue(shown))}" />
           <input type="text" class="hex" spellcheck="false" data-hex-for="${key}" value="${saved}" />
           <button data-apply="${key}">Apply</button>
           <button class="icon" title="Reset" aria-label="Reset" data-reset="${key}">${discardGlyph}</button>
@@ -212,12 +261,48 @@ const script = `      const vscode = acquireVsCodeApi();
         return exports['display' + kind.charAt(0).toUpperCase() + kind.slice(1)];
       }
       /**
-       * What one row should show now, falling back to the saved value alone
-       * when the merge could not be inlined.
+       * What one row shows for the selected scope, falling back to the value
+       * the workspace would resolve to when the resolver could not be inlined.
        */
-      function shown(kind, saved, key, pending) {
-        const merge = display(kind);
-        return merge ? merge(saved, key, pending || {}) : { value: saved, pending: false };
+      function shownForScope(key, values, pending) {
+        const resolve = display('forScope');
+        if (resolve) {
+          return resolve(scope(), key, values || {}, pending || {});
+        }
+        const saved = values
+          ? values.workspaceValue !== undefined
+            ? values.workspaceValue
+            : values.userValue !== undefined
+              ? values.userValue
+              : values.defaultValue
+          : undefined;
+        return { value: saved, source: 'workspace', pending: false };
+      }
+      /** The words a row uses to name where the value it shows is written. */
+      const sourceLabels = {
+        workspace: 'from workspace',
+        user: 'from user',
+        default: 'from default',
+        none: 'not set',
+      };
+      /**
+       * Put the source of one row onto the row itself.
+       *
+       * A row whose value is written somewhere other than the selected scope is
+       * dimmed and says so, which is the whole point of the radio: applying to
+       * user has to be visible even while the workspace holds its own value.
+       */
+      function markSource(key, source) {
+        const row = document.querySelector('[data-row="' + key + '"]');
+        if (!row) {
+          return;
+        }
+        row.dataset.source = source;
+        row.classList.toggle('inherited', source !== scope());
+        const tag = row.querySelector('[data-source-tag]');
+        if (tag) {
+          tag.textContent = sourceLabels[source] || '';
+        }
       }
       function sliders(key) {
         return document.querySelectorAll('input[data-slider-for="' + key + '"]');
@@ -471,29 +556,38 @@ const script = `      const vscode = acquireVsCodeApi();
           vscode.postMessage({ type: 'resetAll' });
         });
       });
-      window.addEventListener('message', (event) => {
-        const message = event.data;
-        if (!message || message.type !== 'state') {
-          return;
-        }
-        const pending = message.pending || {};
-        (message.toggles || []).forEach((toggle) => {
-          const entry = shown('toggle', toggle.value, toggle.key, pending);
+      /**
+       * The last thing the extension said, kept so the radio can re-render
+       * without asking again.
+       *
+       * The scope is the panel's own choice, not the extension's; a round trip
+       * to redraw rows from values already in hand would only be slower.
+       */
+      let state = { toggles: [], selects: [], rows: [], pending: {} };
+      /** Draw every row for the scope now selected, over whatever is staged. */
+      function renderState() {
+        const pending = state.pending || {};
+        (state.toggles || []).forEach((toggle) => {
+          const entry = shownForScope(toggle.key, toggle.values, pending);
           const box = switchOf(toggle.key);
           if (box) {
-            box.checked = entry.value;
+            box.checked = entry.value === true;
           }
           markPending(toggle.key, entry.pending);
+          markSource(toggle.key, entry.source);
         });
-        (message.selects || []).forEach((select) => {
-          const entry = shown('value', select.value, select.key, pending);
+        (state.selects || []).forEach((select) => {
+          const entry = shownForScope(select.key, select.values, pending);
           markSelected(select.key, entry.value);
           markPending(select.key, entry.pending);
+          markSource(select.key, entry.source);
         });
-        message.rows.forEach((row) => {
-          const entry = shown('value', row.savedColor, row.key, pending);
-          const color = entry.value;
+        (state.rows || []).forEach((row) => {
+          const entry = shownForScope(row.key, row.values, pending);
+          // A setting written nowhere shows an empty field: there is no color.
+          const color = entry.value === undefined ? '' : entry.value;
           markPending(row.key, entry.pending);
+          markSource(row.key, entry.source);
           const swatch = document.querySelector('[data-swatch="' + row.key + '"]');
           if (swatch) {
             swatch.style.background = color;
@@ -512,6 +606,24 @@ const script = `      const vscode = acquireVsCodeApi();
             field.classList.remove('invalid');
           }
         });
+      }
+      window.addEventListener('message', (event) => {
+        const message = event.data;
+        if (!message || message.type !== 'state') {
+          return;
+        }
+        state = {
+          toggles: message.toggles || [],
+          selects: message.selects || [],
+          rows: message.rows || [],
+          pending: message.pending || {},
+        };
+        renderState();
+      });
+      // The radio chooses what the rows show, not only where Apply writes: the
+      // values of all three scopes are already here, so the flip is local.
+      document.querySelectorAll('input[name="scope"]').forEach((radio) => {
+        radio.addEventListener('change', renderState);
       });
       document.querySelectorAll('input[type="color"][data-key]').forEach((input) => {
         showOnSliders(input.dataset.key, input.value);
@@ -522,6 +634,8 @@ const style = `      body { font-family: var(--vscode-font-family); font-size: v
       .scope label { display: flex; align-items: center; gap: 4px; }
       .row { margin-bottom: 10px; }
       .row.pending .label::after { content: " ●"; color: var(--vscode-charts-orange, var(--vscode-button-background)); }
+      .row.inherited .controls, .row.inherited .switch { opacity: 0.6; }
+      .source { margin-left: 6px; opacity: 0.7; font-size: 0.85em; }
       .footer { border-top: 1px solid var(--vscode-panel-border); padding-top: 10px; }
       .toggle-row { display: flex; align-items: center; gap: 8px; }
       .toggle-row .toggle { flex: 1; margin-bottom: 0; }
@@ -585,6 +699,12 @@ const style = `      body { font-family: var(--vscode-font-family); font-size: v
  * commits every pending row at once. A state message names what is saved and
  * what is staged separately, and every control shows the staged value over the
  * saved one, so a resync arriving mid-edit cannot undo a choice.
+ *
+ * The radio at the top picks the scope a row displays as well as the one Apply
+ * writes to. Each row is given what all three scopes hold, so flipping it is
+ * local; a row showing a value written elsewhere is dimmed and names its
+ * source, because otherwise a user-level value would stay invisible behind
+ * whatever the workspace holds.
  *
  * The select rows sit between the two: they are settings of the editor rather
  * than of this extension, and choosing one stages it without any local
