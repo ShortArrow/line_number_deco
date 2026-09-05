@@ -15,3 +15,6 @@ pnpm-workspace.yaml
 smoke/**
 ui-test/**
 docs/**
+images/Animation.gif
+images/static_image.png
+images/icon.svg

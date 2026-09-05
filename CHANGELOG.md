@@ -70,3 +70,8 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - The panel also controls VS Code's editor.lineNumbers, staged like everything else (no live preview: VS Code draws its own numbers)
 - Color rows expand into HSL or RGB slider editors, because the native picker's 2-D plane looks the same in every format
 - Color rows gain a 2-D picking surface, an editable hex field and Reset controls beside Apply
+
+## 0.0.11
+
+- Same content as the 0.0.10 GitHub release. The version number moves because a different build was published to the Marketplace as 0.0.10 back in January 2025, and the store rejects a number it has seen; the release pipeline now refuses to ship a version the Marketplace already has
+- The VSIX no longer carries the README images or the icon source; the packaged README already loads them from the repository (about 680 KB down to about 90 KB)
