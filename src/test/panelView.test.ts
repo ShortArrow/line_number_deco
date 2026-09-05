@@ -43,5 +43,13 @@ describe('Test color panel view', () => {
       (html as string).includes('data-apply-all='),
       'resolved panel html has no apply all control'
     );
+    assert.ok(
+      (html as string).includes('data-slider-for="foreground"'),
+      'resolved panel html has no sliders for foreground'
+    );
+    assert.ok(
+      (html as string).includes('hexToHsl'),
+      'resolved panel html does not inline the color conversions'
+    );
   });
 });
