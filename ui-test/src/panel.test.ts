@@ -84,6 +84,17 @@ describe("settings panel segmented control", function () {
     return klass.split(/\s+/).includes("pending");
   }
 
+  /** Which scope the row says the value it is showing is written in. */
+  async function rowSource(): Promise<string | undefined> {
+    const row = await view.findWebElement(By.css(`[data-row="${selectKey}"]`));
+    return (await row.getAttribute("data-source")) ?? undefined;
+  }
+
+  /** The radio button selecting one scope, as the reader would click it. */
+  async function scopeRadio(scope: string): Promise<WebElement> {
+    return await view.findWebElement(By.css(`input[name="scope"][value="${scope}"]`));
+  }
+
   before(async function () {
     const control = await new ActivityBar().getViewControl("LineNumberDeco");
     assert.ok(control, "the extension contributes no LineNumberDeco view container");
@@ -157,5 +168,29 @@ describe("settings panel segmented control", function () {
 
     assert.strictEqual(await markedOption(), savedOption);
     assert.strictEqual(await rowIsPending(), false);
+  });
+
+  it("U5 shows the user scope when the user radio is clicked", async function () {
+    // Nothing is written anywhere in a fresh test profile, so both scopes
+    // inherit the same default; what has to change is the row saying so, which
+    // only happens if the radio really re-renders the rows.
+    await (await scopeRadio("user")).click();
+
+    await VSBrowser.instance.driver.wait(
+      async () => (await rowSource()) === "default",
+      settleMs,
+      "the row never named the scope its value comes from after the radio was clicked"
+    );
+
+    assert.strictEqual(
+      await rowSource(),
+      "default",
+      "the row does not show the user scope's value after the radio was clicked"
+    );
+    assert.notStrictEqual(
+      await rowSource(),
+      "workspace",
+      "the row is still showing the workspace view after the user radio was clicked"
+    );
   });
 });
