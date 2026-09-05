@@ -3,7 +3,12 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { getConfig, nameOfExtension } from "./config";
-import { PanelRow, PanelToggle, renderPanelHtml } from "./panelHtml";
+import {
+  PanelRow,
+  PanelSelect,
+  PanelToggle,
+  renderPanelHtml,
+} from "./panelHtml";
 import {
   clearAllPreviews,
   clearPreview,
@@ -30,6 +35,11 @@ const toggles: { key: string; label: string; fallback: boolean }[] = [
   { key: "enableSequentialDigits", label: "Sequential digits", fallback: false },
 ];
 
+const selectSection = "editor";
+const selectName = "lineNumbers";
+const selectKey = `${selectSection}.${selectName}`;
+const selectOptions = ["on", "off", "relative", "interval"] as const;
+
 /** The saved state of every mode, each with its package.json default. */
 function currentToggles(): PanelToggle[] {
   return toggles.map(({ key, label, fallback }) => ({
@@ -37,6 +47,23 @@ function currentToggles(): PanelToggle[] {
     label,
     value: getConfig<boolean>(key, fallback),
   }));
+}
+
+/**
+ * The editor's own line number mode, read from VS Code rather than from this
+ * extension: the panel offers it, but the setting is not ours.
+ */
+function currentSelects(): PanelSelect[] {
+  return [
+    {
+      key: selectKey,
+      label: "Built-in line numbers",
+      value: vscode.workspace
+        .getConfiguration(selectSection)
+        .get<string>(selectName, "on"),
+      options: [...selectOptions],
+    },
+  ];
 }
 
 /**
@@ -70,6 +97,16 @@ function isKnownToggle(key: string) {
   return toggles.some((entry) => entry.key === key);
 }
 
+function isKnownSelect(key: string) {
+  return key === selectKey;
+}
+
+function isKnownSelectValue(key: string, value: string) {
+  return (
+    isKnownSelect(key) && (selectOptions as readonly string[]).includes(value)
+  );
+}
+
 /**
  * The effects {@link handlePanelMessage} is allowed to have.
  *
@@ -79,6 +116,8 @@ function isKnownToggle(key: string) {
 export interface PanelMessageDeps {
   isColorKey(key: string): boolean;
   isToggleKey(key: string): boolean;
+  isSelectKey(key: string): boolean;
+  isValidSelectValue(key: string, value: string): boolean;
   save(key: string, value: string | boolean, scope: string): Promise<void>;
   refresh(): void;
   postState(): void;
@@ -104,7 +143,7 @@ export async function handlePanelMessage(
   const panelMessage = message as PanelMessage;
   if (panelMessage.type === "applyAll") {
     for (const { key, value } of getPendingPreviews()) {
-      if (deps.isColorKey(key) || deps.isToggleKey(key)) {
+      if (deps.isColorKey(key) || deps.isToggleKey(key) || deps.isSelectKey(key)) {
         await deps.save(key, value, panelMessage.scope);
       }
     }
@@ -122,7 +161,10 @@ export async function handlePanelMessage(
     return;
   }
   if (panelMessage.type === "resetRow") {
-    if (!deps.isColorKey(panelMessage.key)) {
+    if (
+      !deps.isColorKey(panelMessage.key) &&
+      !deps.isSelectKey(panelMessage.key)
+    ) {
       return;
     }
     clearPreview(panelMessage.key);
@@ -147,6 +189,24 @@ export async function handlePanelMessage(
     await deps.save(panelMessage.key, value, panelMessage.scope);
     deps.refresh();
     deps.postState();
+    return;
+  }
+  if (deps.isSelectKey(panelMessage.key)) {
+    // Nothing is repainted either way: VS Code renders these numbers itself,
+    // so the panel can only stage the value and let a real write change it.
+    if (!deps.isValidSelectValue(panelMessage.key, panelMessage.value)) {
+      return;
+    }
+    if (panelMessage.type === "preview") {
+      setPreviewColor(panelMessage.key, panelMessage.value);
+      deps.postState();
+      return;
+    }
+    if (panelMessage.type === "apply") {
+      await deps.save(panelMessage.key, panelMessage.value, panelMessage.scope);
+      clearPreview(panelMessage.key);
+      deps.postState();
+    }
     return;
   }
   if (!deps.isColorKey(panelMessage.key)) {
@@ -239,6 +299,7 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
     const nonce = crypto.randomBytes(16).toString("base64");
     webviewView.webview.html = renderPanelHtml(
       currentToggles(),
+      currentSelects(),
       currentRows(),
       nonce,
       webviewView.webview.cspSource,
@@ -266,12 +327,29 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
     this.view?.webview.postMessage({
       type: "state",
       toggles: currentToggles(),
+      selects: currentSelects(),
       rows: currentRows(),
     });
   }
 
-  /** Save one setting where the scope radio points. */
+  /**
+   * Save one setting where the scope radio points.
+   *
+   * The select rows name a setting of the editor, so they are written to that
+   * section rather than to this extension's: routing them through the
+   * extension's own section would silently create a key nothing reads.
+   */
   private async save(key: string, value: string | boolean, scope: string) {
+    const target =
+      scope === "user"
+        ? vscode.ConfigurationTarget.Global
+        : vscode.ConfigurationTarget.Workspace;
+    if (isKnownSelect(key)) {
+      await vscode.workspace
+        .getConfiguration(selectSection)
+        .update(selectName, value, target);
+      return;
+    }
     if (scope === "user") {
       await updateUserConfig(key, value);
     } else {
@@ -283,6 +361,8 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
     await handlePanelMessage(message, {
       isColorKey: isKnownKey,
       isToggleKey: isKnownToggle,
+      isSelectKey: isKnownSelect,
+      isValidSelectValue: isKnownSelectValue,
       save: (key, value, scope) => this.save(key, value, scope),
       refresh: () => this.refresh(),
       postState: () => this.postState(),
@@ -305,7 +385,10 @@ export function registerColorPanel(
   const disposables = [
     vscode.window.registerWebviewViewProvider(viewId, provider),
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration(nameOfExtension)) {
+      if (
+        event.affectsConfiguration(nameOfExtension) ||
+        event.affectsConfiguration(selectKey)
+      ) {
         provider.postState();
       }
     }),

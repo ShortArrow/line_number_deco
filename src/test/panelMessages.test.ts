@@ -11,6 +11,8 @@ import {
 
 const colorKeys = ['centerColorOfRainbow', 'foreground'];
 const toggleKeys = ['enableRainbow'];
+const selectKeys = ['editor.lineNumbers'];
+const selectValues = ['on', 'off', 'relative', 'interval'];
 
 interface SaveCall {
   key: string;
@@ -25,6 +27,9 @@ function recordingDeps() {
   const deps: PanelMessageDeps = {
     isColorKey: (key) => colorKeys.includes(key),
     isToggleKey: (key) => toggleKeys.includes(key),
+    isSelectKey: (key) => selectKeys.includes(key),
+    isValidSelectValue: (key, value) =>
+      selectKeys.includes(key) && selectValues.includes(value),
     save: async (key, value, scope) => {
       saves.push({ key, value, scope });
     },
@@ -144,5 +149,77 @@ describe('Test panel message handling', () => {
     assert.deepStrictEqual(saves, []);
     assert.strictEqual(counts.refresh, 0);
     assert.strictEqual(counts.postState, 0);
+  });
+
+  it('Must stage a select without saving or repainting anything', async () => {
+    const { deps, saves, counts } = recordingDeps();
+    await handlePanelMessage(
+      { type: 'preview', key: 'editor.lineNumbers', value: 'relative' },
+      deps
+    );
+    assert.strictEqual(getPreviewColor('editor.lineNumbers'), 'relative');
+    assert.deepStrictEqual(saves, []);
+    assert.strictEqual(counts.refresh, 0);
+    assert.strictEqual(counts.postState, 1);
+  });
+
+  it('Must ignore a select value the setting does not offer', async () => {
+    const { deps, saves, counts } = recordingDeps();
+    await handlePanelMessage(
+      { type: 'preview', key: 'editor.lineNumbers', value: 'sideways' },
+      deps
+    );
+    assert.strictEqual(getPreviewColor('editor.lineNumbers'), undefined);
+    assert.deepStrictEqual(saves, []);
+    assert.strictEqual(counts.refresh, 0);
+    assert.strictEqual(counts.postState, 0);
+  });
+
+  it('Must save an applied select once and clear that row', async () => {
+    const { deps, saves, counts } = recordingDeps();
+    setPreviewColor('editor.lineNumbers', 'relative');
+    await handlePanelMessage(
+      { type: 'apply', key: 'editor.lineNumbers', value: 'off', scope: 'user' },
+      deps
+    );
+    assert.deepStrictEqual(saves, [
+      { key: 'editor.lineNumbers', value: 'off', scope: 'user' },
+    ]);
+    assert.strictEqual(getPreviewColor('editor.lineNumbers'), undefined);
+    assert.strictEqual(counts.refresh, 0);
+  });
+
+  it('Must refuse to apply a select value the setting does not offer', async () => {
+    const { deps, saves } = recordingDeps();
+    await handlePanelMessage(
+      { type: 'apply', key: 'editor.lineNumbers', value: 'diagonal', scope: 'user' },
+      deps
+    );
+    assert.deepStrictEqual(saves, []);
+    assert.strictEqual(getPreviewColor('editor.lineNumbers'), undefined);
+  });
+
+  it('Must save a pending select along with the colors on apply all', async () => {
+    const { deps, saves } = recordingDeps();
+    setPreviewColor('editor.lineNumbers', 'interval');
+    setPreviewColor('centerColorOfRainbow', '#123456');
+    await handlePanelMessage({ type: 'applyAll', scope: 'workspace' }, deps);
+    assert.strictEqual(saves.length, 2);
+    assert.deepStrictEqual(byKey(saves), [
+      { key: 'centerColorOfRainbow', value: '#123456', scope: 'workspace' },
+      { key: 'editor.lineNumbers', value: 'interval', scope: 'workspace' },
+    ]);
+    assert.strictEqual(getPreviewColor('editor.lineNumbers'), undefined);
+    assert.strictEqual(getPreviewColor('centerColorOfRainbow'), undefined);
+  });
+
+  it('Must reset only the select row, leaving the other preview standing', async () => {
+    const { deps, saves } = recordingDeps();
+    setPreviewColor('editor.lineNumbers', 'interval');
+    setPreviewColor('centerColorOfRainbow', '#123456');
+    await handlePanelMessage({ type: 'resetRow', key: 'editor.lineNumbers' }, deps);
+    assert.strictEqual(getPreviewColor('editor.lineNumbers'), undefined);
+    assert.strictEqual(getPreviewColor('centerColorOfRainbow'), '#123456');
+    assert.deepStrictEqual(saves, []);
   });
 });
