@@ -13,3 +13,4 @@ out/test/**
 out/generater/**
 pnpm-workspace.yaml
 smoke/**
+ui-test/**

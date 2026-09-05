@@ -1,0 +1,21 @@
+{
+  "name": "line-number-deco-ui-test",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Drives the real VS Code desktop with vscode-extension-tester and clicks the settings webview",
+  "packageManager": "pnpm@11.22.0",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "install-vsix": "extest install-vsix --storage .resources --extensions_dir .test-extensions --vsix_file",
+    "run-tests": "extest run-tests --storage .resources --extensions_dir .test-extensions --code_version 1.135.0 out/*.test.js"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.0.0",
+    "@types/selenium-webdriver": "^4.35.6",
+    "mocha": "^11.0.0",
+    "selenium-webdriver": "^4.48.0",
+    "typescript": "^5.6.0",
+    "vscode-extension-tester": "^8.25.0"
+  }
+}
