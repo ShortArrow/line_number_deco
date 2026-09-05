@@ -54,6 +54,7 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Fix bug that decoration is not updated when the document size is small than the editor size
 ## 0.0.10
 
+- The scope radio also selects which scope the panel shows, so a user-level value is visible even when the workspace overrides it
 - Color settings show a color picker in `settings.json` (#34)
 - Fix relative numbers disappearing below a folded region (#32)
 - Fix numbers not updating when mouse-scrolling an editor that does not have the cursor (#30)

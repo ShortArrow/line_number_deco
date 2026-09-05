@@ -2,25 +2,44 @@ import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { PanelRow, PanelSelect, PanelToggle, renderPanelHtml } from '../panelHtml';
 
+/** A triple holding one workspace value, the shape most rows are given here. */
+function inWorkspace<T>(value: T) {
+  return { defaultValue: undefined, userValue: undefined, workspaceValue: value };
+}
+
+/** A triple holding one user value and nothing in the workspace. */
+function inUser<T>(value: T) {
+  return { defaultValue: undefined, userValue: value, workspaceValue: undefined };
+}
+
+/** A setting written nowhere at all. */
+function unset<T>() {
+  return {
+    defaultValue: undefined as T | undefined,
+    userValue: undefined as T | undefined,
+    workspaceValue: undefined as T | undefined,
+  };
+}
+
 const rows: PanelRow[] = [
-  { key: 'centerColorOfRainbow', label: 'Rainbow center', savedColor: '#8888ff' },
-  { key: 'foreground', label: 'Inactive line number', savedColor: '' },
+  { key: 'centerColorOfRainbow', label: 'Rainbow center', values: inWorkspace('#8888ff') },
+  { key: 'foreground', label: 'Inactive line number', values: unset<string>() },
 ];
 
 const sel: PanelSelect[] = [
   {
     key: 'editor.lineNumbers',
     label: 'Built-in line numbers',
-    value: 'relative',
+    values: inWorkspace('relative'),
     options: ['on', 'off', 'relative', 'interval'],
   },
 ];
 
 const toggles: PanelToggle[] = [
-  { key: 'enableRelativeLine', label: 'Relative line numbers', value: true },
-  { key: 'enableRainbow', label: 'Rainbow', value: false },
-  { key: 'enableRepeatingDigits', label: 'Repeating digits', value: false },
-  { key: 'enableSequentialDigits', label: 'Sequential digits', value: false },
+  { key: 'enableRelativeLine', label: 'Relative line numbers', values: inWorkspace(true) },
+  { key: 'enableRainbow', label: 'Rainbow', values: inWorkspace(false) },
+  { key: 'enableRepeatingDigits', label: 'Repeating digits', values: inWorkspace(false) },
+  { key: 'enableSequentialDigits', label: 'Sequential digits', values: inWorkspace(false) },
 ];
 
 describe('Test render the color panel html', () => {
@@ -49,7 +68,7 @@ describe('Test render the color panel html', () => {
     const html = renderPanelHtml(
       toggles,
       [],
-      [{ key: 'foreground', label: 'Inactive line number', savedColor: '<img onerror=x>' }],
+      [{ key: 'foreground', label: 'Inactive line number', values: inWorkspace('<img onerror=x>') }],
       'n0nce',
       'vscode-resource:',
       ''
@@ -67,7 +86,7 @@ describe('Test render the color panel html', () => {
 
   it('Must leave an off toggle unchecked', () => {
     const html = renderPanelHtml(
-      [{ key: 'enableRainbow', label: 'Rainbow', value: false }],
+      [{ key: 'enableRainbow', label: 'Rainbow', values: inWorkspace(false) }],
       [],
       rows,
       'n0nce',
@@ -81,7 +100,7 @@ describe('Test render the color panel html', () => {
 
   it('Must check a toggle that is on', () => {
     const html = renderPanelHtml(
-      [{ key: 'enableRainbow', label: 'Rainbow', value: true }],
+      [{ key: 'enableRainbow', label: 'Rainbow', values: inWorkspace(true) }],
       [],
       rows,
       'n0nce',
@@ -105,7 +124,7 @@ describe('Test render the color panel html', () => {
 
   it('Must escape a toggle label that looks like markup', () => {
     const html = renderPanelHtml(
-      [{ key: 'enableRainbow', label: '<b>x</b>', value: false }],
+      [{ key: 'enableRainbow', label: '<b>x</b>', values: inWorkspace(false) }],
       [],
       rows,
       'n0nce',
@@ -232,7 +251,7 @@ describe('Test render the color panel html', () => {
     const html = renderPanelHtml(
       toggles,
       [],
-      [{ key: 'foreground', label: 'Inactive line number', savedColor: '"><svg onload=x>' }],
+      [{ key: 'foreground', label: 'Inactive line number', values: inWorkspace('"><svg onload=x>') }],
       'n0nce',
       'vscode-resource:',
       ''
@@ -293,7 +312,7 @@ describe('Test render the color panel html', () => {
         {
           key: 'editor.lineNumbers',
           label: 'Built-in line numbers',
-          value: '"><img',
+          values: inWorkspace('"><img'),
           options: ['on', 'off', 'relative', 'interval'],
         },
       ],
@@ -303,5 +322,99 @@ describe('Test render the color panel html', () => {
       ''
     );
     assert.ok(!html.includes('<img'), 'the select value escaped its attribute');
+  });
+});
+
+/** The opening tag of one row, where its scope marks are written. */
+function rowTag(html: string, key: string): string {
+  const tag = new RegExp('<div class="[^"]*"[^>]*data-row="' + key + '"[^>]*>').exec(html);
+  assert.ok(tag, `no row for ${key}`);
+  return (tag as RegExpExecArray)[0];
+}
+
+/** Everything one row renders, from its opening tag to the next row or section. */
+function rowMarkup(html: string, key: string): string {
+  const at = html.indexOf(`data-row="${key}"`);
+  assert.ok(at >= 0, `no row for ${key}`);
+  const next = html.indexOf('data-row="', at + 1);
+  return html.slice(at, next === -1 ? html.indexOf('<div class="footer"', at) : next);
+}
+
+describe('Test the panel shows which scope a value comes from', () => {
+  it('W1 Must name the workspace as the source of a workspace value', () => {
+    const html = renderPanelHtml(
+      toggles,
+      [],
+      [{ key: 'foreground', label: 'Inactive line number', values: inWorkspace('#123456') }],
+      'n0nce',
+      'vscode-resource:',
+      ''
+    );
+    const tag = rowTag(html, 'foreground');
+    assert.ok(tag.includes('data-source="workspace"'), `the row does not name its source: ${tag}`);
+    assert.ok(!/\bclass="[^"]*\binherited\b/.test(tag), `a workspace value is dimmed: ${tag}`);
+  });
+
+  it('W2 Must mark a user value as inherited in the workspace view', () => {
+    const html = renderPanelHtml(
+      toggles,
+      [],
+      [{ key: 'foreground', label: 'Inactive line number', values: inUser('#abcdef') }],
+      'n0nce',
+      'vscode-resource:',
+      ''
+    );
+    const tag = rowTag(html, 'foreground');
+    assert.ok(tag.includes('data-source="user"'), `the row does not name the user scope: ${tag}`);
+    assert.ok(
+      /\bclass="[^"]*\binherited\b/.test(tag),
+      `an inherited value is not marked inherited: ${tag}`
+    );
+  });
+
+  it('W3 Must name the source in words beside the label', () => {
+    const inherited = renderPanelHtml(
+      toggles,
+      [],
+      [{ key: 'foreground', label: 'Inactive line number', values: inUser('#abcdef') }],
+      'n0nce',
+      'vscode-resource:',
+      ''
+    );
+    assert.ok(
+      rowMarkup(inherited, 'foreground').includes('from user'),
+      'the inherited row does not say where its value comes from'
+    );
+    const nothing = renderPanelHtml(
+      toggles,
+      [],
+      [{ key: 'foreground', label: 'Inactive line number', values: unset<string>() }],
+      'n0nce',
+      'vscode-resource:',
+      ''
+    );
+    assert.ok(
+      rowMarkup(nothing, 'foreground').includes('not set'),
+      'a row holding no value anywhere does not say so'
+    );
+  });
+
+  it('W4 Must name the source of a toggle row and of a select row too', () => {
+    const html = renderPanelHtml(
+      [{ key: 'enableRainbow', label: 'Rainbow', values: inUser(true) }],
+      sel,
+      rows,
+      'n0nce',
+      'vscode-resource:',
+      ''
+    );
+    assert.ok(
+      rowTag(html, 'enableRainbow').includes('data-source="user"'),
+      'the toggle row does not name its source'
+    );
+    assert.ok(
+      rowTag(html, 'editor.lineNumbers').includes('data-source="workspace"'),
+      'the select row does not name its source'
+    );
   });
 });
