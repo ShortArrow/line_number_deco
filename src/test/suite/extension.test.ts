@@ -13,6 +13,10 @@ const extensionName = "LineNumberDeco";
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
 
+	suiteTeardown(async () => {
+		await vscode.workspace.getConfiguration(extensionName).update('enableRainbow', undefined, vsCodeGlobal);
+	});
+
 	test('Sample test', () => {
 		assert.strictEqual(-1, [1, 2, 3].indexOf(5));
 		assert.strictEqual(-1, [1, 2, 3].indexOf(0));
