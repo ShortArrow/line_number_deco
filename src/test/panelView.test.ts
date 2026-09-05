@@ -52,6 +52,10 @@ describe('Test color panel view', () => {
       'resolved panel html does not inline the color conversions'
     );
     assert.ok(
+      (html as string).includes('displayValue'),
+      'resolved panel html does not inline the pending merge'
+    );
+    assert.ok(
       (html as string).includes('data-plane-for="foreground"'),
       'resolved panel html has no picking plane for foreground'
     );

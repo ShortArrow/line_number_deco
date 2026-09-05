@@ -2,7 +2,9 @@ import * as assert from 'assert';
 import { beforeEach, describe, it } from 'mocha';
 import { PanelMessageDeps, handlePanelMessage } from '../panel';
 import {
+  PendingPreview,
   clearAllPreviews,
+  getPendingPreviews,
   getPreviewColor,
   getPreviewToggle,
   setPreviewColor,
@@ -161,6 +163,18 @@ describe('Test panel message handling', () => {
     assert.deepStrictEqual(saves, []);
     assert.strictEqual(counts.refresh, 0);
     assert.strictEqual(counts.postState, 1);
+  });
+
+  it('Must have the staged select pending while that state is posted', async () => {
+    const staged: PendingPreview[][] = [];
+    const { deps } = recordingDeps();
+    await handlePanelMessage(
+      { type: 'preview', key: 'editor.lineNumbers', value: 'relative' },
+      { ...deps, postState: () => staged.push(getPendingPreviews()) }
+    );
+    assert.deepStrictEqual(staged, [
+      [{ key: 'editor.lineNumbers', value: 'relative' }],
+    ]);
   });
 
   it('Must ignore a select value the setting does not offer', async () => {

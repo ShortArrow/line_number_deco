@@ -268,20 +268,22 @@ export async function toggleSettingsPanel(): Promise<void> {
 }
 
 /**
- * The compiled conversions, as text to paste into the webview script.
+ * The compiled conversions and the pending merge, as text to paste into the
+ * webview script.
  *
  * A panel whose sliders cannot convert is still worth showing, so an unreadable
  * file costs the sliders and nothing else: the picker keeps working.
  */
 function readInlineLib(extensionPath: string): string {
-  try {
-    return fs.readFileSync(
-      path.join(extensionPath, "out", "colorConvert.js"),
-      "utf8"
-    );
-  } catch {
-    return "";
-  }
+  return ["colorConvert.js", "panelState.js"]
+    .map((file) => {
+      try {
+        return fs.readFileSync(path.join(extensionPath, "out", file), "utf8");
+      } catch {
+        return "";
+      }
+    })
+    .join("\n");
 }
 
 class ColorPanelProvider implements vscode.WebviewViewProvider {
@@ -323,12 +325,22 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
     });
   }
 
+  /**
+   * Tell the webview what is saved and what is still only proposed.
+   *
+   * The pending map travels with the saved values because the script displays
+   * one over the other: a state message posted while a row is staged used to
+   * carry the saved value alone, and the row snapped back to it.
+   */
   postState() {
     this.view?.webview.postMessage({
       type: "state",
       toggles: currentToggles(),
       selects: currentSelects(),
       rows: currentRows(),
+      pending: Object.fromEntries(
+        getPendingPreviews().map((entry) => [entry.key, entry.value])
+      ),
     });
   }
 

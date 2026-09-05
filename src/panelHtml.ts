@@ -200,6 +200,25 @@ const script = `      const vscode = acquireVsCodeApi();
       function convert(from, to) {
         return exports[from + 'To' + to.charAt(0).toUpperCase() + to.slice(1)];
       }
+      /**
+       * One inlined merge of a saved value with whatever is staged, by the kind
+       * of control asking, or undefined when the library could not be read.
+       *
+       * Assembled like {@link convert} and for the same reason: the panel
+       * script never spells the name, so finding it in the document is proof
+       * the library was really inlined.
+       */
+      function display(kind) {
+        return exports['display' + kind.charAt(0).toUpperCase() + kind.slice(1)];
+      }
+      /**
+       * What one row should show now, falling back to the saved value alone
+       * when the merge could not be inlined.
+       */
+      function shown(kind, saved, key, pending) {
+        const merge = display(kind);
+        return merge ? merge(saved, key, pending || {}) : { value: saved, pending: false };
+      }
       function sliders(key) {
         return document.querySelectorAll('input[data-slider-for="' + key + '"]');
       }
@@ -457,34 +476,39 @@ const script = `      const vscode = acquireVsCodeApi();
         if (!message || message.type !== 'state') {
           return;
         }
+        const pending = message.pending || {};
         (message.toggles || []).forEach((toggle) => {
+          const entry = shown('toggle', toggle.value, toggle.key, pending);
           const box = switchOf(toggle.key);
           if (box) {
-            box.checked = toggle.value;
+            box.checked = entry.value;
           }
-          markPending(toggle.key, false);
+          markPending(toggle.key, entry.pending);
         });
         (message.selects || []).forEach((select) => {
-          markSelected(select.key, select.value);
-          markPending(select.key, false);
+          const entry = shown('value', select.value, select.key, pending);
+          markSelected(select.key, entry.value);
+          markPending(select.key, entry.pending);
         });
         message.rows.forEach((row) => {
-          markPending(row.key, false);
+          const entry = shown('value', row.savedColor, row.key, pending);
+          const color = entry.value;
+          markPending(row.key, entry.pending);
           const swatch = document.querySelector('[data-swatch="' + row.key + '"]');
           if (swatch) {
-            swatch.style.background = row.savedColor;
-            swatch.title = row.savedColor;
+            swatch.style.background = color;
+            swatch.title = color;
           }
           const input = document.querySelector('input[type="color"][data-key="' + row.key + '"]');
-          if (input && /^#[0-9a-fA-F]{6}$/.test(row.savedColor)) {
-            input.value = row.savedColor;
+          if (input && /^#[0-9a-fA-F]{6}$/.test(color)) {
+            input.value = color;
           }
-          showOnSliders(row.key, /^#[0-9a-fA-F]{6}$/.test(row.savedColor) ? row.savedColor : '#000000');
-          // The saved value wins over whatever is being typed: a reset has to
-          // reach a field the reader still has the caret in.
+          showOnSliders(row.key, /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#000000');
+          // The displayed value wins over whatever is being typed: a reset has
+          // to reach a field the reader still has the caret in.
           const field = document.querySelector('[data-hex-for="' + row.key + '"]');
           if (field) {
-            field.value = row.savedColor;
+            field.value = color;
             field.classList.remove('invalid');
           }
         });
@@ -558,15 +582,18 @@ const style = `      body { font-family: var(--vscode-font-family); font-size: v
  *
  * Flipping a switch or dragging a picker only previews; a row marks itself
  * pending until a state message says its value was saved. The footer button
- * commits every pending row at once.
+ * commits every pending row at once. A state message names what is saved and
+ * what is staged separately, and every control shows the staged value over the
+ * saved one, so a resync arriving mid-edit cannot undo a choice.
  *
  * The select rows sit between the two: they are settings of the editor rather
  * than of this extension, and choosing one stages it without any local
  * rendering, because VS Code draws those numbers itself.
  *
- * @param inlineLib compiled color conversions, pasted verbatim into the nonced
- *   script behind an exports shim so the sliders convert with the very code the
- *   unit tests cover; an empty string leaves the row usable through its picker
+ * @param inlineLib the compiled color conversions and pending merge, pasted
+ *   verbatim into the nonced script behind an exports shim so the panel runs
+ *   the very code the unit tests cover; an empty string leaves the row usable
+ *   through its picker
  */
 export function renderPanelHtml(
   toggles: PanelToggle[],
