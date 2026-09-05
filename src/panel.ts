@@ -1,4 +1,6 @@
 import * as crypto from "crypto";
+import * as fs from "fs";
+import * as path from "path";
 import * as vscode from "vscode";
 import { getConfig, nameOfExtension } from "./config";
 import { PanelRow, PanelToggle, renderPanelHtml } from "./panelHtml";
@@ -108,10 +110,30 @@ export async function toggleSettingsPanel(): Promise<void> {
   await showSettingsPanel();
 }
 
+/**
+ * The compiled conversions, as text to paste into the webview script.
+ *
+ * A panel whose sliders cannot convert is still worth showing, so an unreadable
+ * file costs the sliders and nothing else: the picker keeps working.
+ */
+function readInlineLib(extensionPath: string): string {
+  try {
+    return fs.readFileSync(
+      path.join(extensionPath, "out", "colorConvert.js"),
+      "utf8"
+    );
+  } catch {
+    return "";
+  }
+}
+
 class ColorPanelProvider implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | undefined;
 
-  constructor(private readonly refresh: () => void) {}
+  constructor(
+    private readonly refresh: () => void,
+    private readonly extensionPath: string
+  ) {}
 
   resolveWebviewView(webviewView: vscode.WebviewView) {
     this.view = webviewView;
@@ -122,7 +144,8 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
       currentToggles(),
       currentRows(),
       nonce,
-      webviewView.webview.cspSource
+      webviewView.webview.cspSource,
+      readInlineLib(this.extensionPath)
     );
     resolvedHtml = webviewView.webview.html;
     webviewView.webview.onDidReceiveMessage((message: PanelMessage) =>
@@ -218,7 +241,7 @@ export function registerColorPanel(
   context: vscode.ExtensionContext,
   refresh: () => void
 ): vscode.Disposable {
-  const provider = new ColorPanelProvider(refresh);
+  const provider = new ColorPanelProvider(refresh, context.extensionPath);
   const disposables = [
     vscode.window.registerWebviewViewProvider(viewId, provider),
     vscode.workspace.onDidChangeConfiguration((event) => {

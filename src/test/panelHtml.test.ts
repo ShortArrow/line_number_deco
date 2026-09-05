@@ -16,23 +16,23 @@ const toggles: PanelToggle[] = [
 
 describe('Test render the color panel html', () => {
   it('Must carry the row key on a color input', () => {
-    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
     assert.ok(/<input type="color"[^>]*data-key="centerColorOfRainbow"/.test(html));
   });
 
   it('Must use the nonce for the script and in the policy', () => {
-    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
     assert.ok(html.includes('<script nonce="n0nce"'));
     assert.ok(html.includes("script-src 'nonce-n0nce'"));
   });
 
   it('Must deny every default source in the policy', () => {
-    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
     assert.ok(html.includes("default-src 'none'"));
   });
 
   it('Must show the saved color of a row', () => {
-    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
     assert.ok(html.includes('#8888ff'));
   });
 
@@ -41,13 +41,14 @@ describe('Test render the color panel html', () => {
       toggles,
       [{ key: 'foreground', label: 'Inactive line number', savedColor: '<img onerror=x>' }],
       'n0nce',
-      'vscode-resource:'
+      'vscode-resource:',
+      ''
     );
     assert.ok(!html.includes('<img'));
   });
 
   it('Must offer both scopes and an apply button per row', () => {
-    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
     assert.ok(html.includes('value="workspace"'));
     assert.ok(html.includes('value="user"'));
     assert.ok(html.includes('data-apply="centerColorOfRainbow"'));
@@ -59,7 +60,8 @@ describe('Test render the color panel html', () => {
       [{ key: 'enableRainbow', label: 'Rainbow', value: false }],
       rows,
       'n0nce',
-      'vscode-resource:'
+      'vscode-resource:',
+      ''
     );
     const input = /<input type="checkbox"[^>]*data-toggle="enableRainbow"[^>]*>/.exec(html);
     assert.ok(input, 'no checkbox for enableRainbow');
@@ -71,7 +73,8 @@ describe('Test render the color panel html', () => {
       [{ key: 'enableRainbow', label: 'Rainbow', value: true }],
       rows,
       'n0nce',
-      'vscode-resource:'
+      'vscode-resource:',
+      ''
     );
     const input = /<input type="checkbox"[^>]*data-toggle="enableRainbow"[^>]*>/.exec(html);
     assert.ok(input, 'no checkbox for enableRainbow');
@@ -79,7 +82,7 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must draw every toggle above the color rows', () => {
-    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
     const firstColor = html.indexOf('data-key=');
     for (const toggle of toggles) {
       const at = html.indexOf(`data-toggle="${toggle.key}"`);
@@ -93,27 +96,72 @@ describe('Test render the color panel html', () => {
       [{ key: 'enableRainbow', label: '<b>x</b>', value: false }],
       rows,
       'n0nce',
-      'vscode-resource:'
+      'vscode-resource:',
+      ''
     );
     assert.ok(!html.includes('<b>'));
   });
 
   it('Must offer an apply button per toggle row', () => {
-    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
     assert.ok(html.includes('data-apply-toggle="enableRainbow"'));
   });
 
   it('Must offer exactly one apply all control', () => {
-    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
     const occurrences = html.split('data-apply-all=').length - 1;
     assert.strictEqual(occurrences, 1);
   });
 
   it('Must draw the apply all control below the color rows', () => {
-    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:');
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
     const lastApply = html.lastIndexOf('data-apply=');
     const applyAll = html.indexOf('data-apply-all=');
     assert.ok(lastApply >= 0, 'no color row apply button');
     assert.ok(applyAll > lastApply, 'the apply all control is not below the colors');
+  });
+
+  it('Must offer an hsl and an rgb slider per component of a color row', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
+    for (const component of ['h', 's', 'l', 'r', 'g', 'b']) {
+      const slider = new RegExp(
+        '<input[^>]*data-slider-for="centerColorOfRainbow"[^>]*data-slider="' + component + '"'
+      );
+      assert.ok(slider.test(html), `no ${component} slider for centerColorOfRainbow`);
+    }
+  });
+
+  it('Must hold the sliders of a color row inside a details element', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
+    const details = html.indexOf('<details');
+    const slider = html.indexOf('data-slider-for="centerColorOfRainbow"');
+    assert.ok(details >= 0, 'no details element');
+    assert.ok(details < slider, 'the sliders are not inside a details element');
+  });
+
+  it('Must offer both mode tabs for a color row', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', '');
+    assert.ok(html.includes('data-mode-tab="hsl"'));
+    assert.ok(html.includes('data-mode-tab="rgb"'));
+  });
+
+  it('Must inline the conversion library inside the nonced script', () => {
+    const html = renderPanelHtml(
+      toggles,
+      rows,
+      'n0nce',
+      'vscode-resource:',
+      'INLINE_LIB_SENTINEL_9f3c'
+    );
+    const script = html.indexOf('<script nonce="n0nce"');
+    const sentinel = html.indexOf('INLINE_LIB_SENTINEL_9f3c');
+    assert.ok(script >= 0, 'no nonced script block');
+    assert.ok(sentinel > script, 'the library is not inside the nonced script');
+    assert.ok(html.indexOf('</script>', sentinel) > sentinel, 'the library escapes the script');
+  });
+
+  it('Must leave the inlined library unescaped so it can run', () => {
+    const html = renderPanelHtml(toggles, rows, 'n0nce', 'vscode-resource:', 'INLINE<LIB');
+    assert.ok(html.includes('INLINE<LIB'), 'the inlined library was html-escaped');
   });
 });
