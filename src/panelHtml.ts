@@ -5,6 +5,17 @@ export interface PanelRow {
   savedColor: string;
 }
 
+/**
+ * One enumerated setting as the panel shows it: the value in force beside the
+ * whole set it may take.
+ */
+export interface PanelSelect {
+  key: string;
+  label: string;
+  value: string;
+  options: string[];
+}
+
 /** One boolean mode as the panel shows it: a switch carrying its saved state. */
 export interface PanelToggle {
   key: string;
@@ -102,6 +113,35 @@ const discardGlyph =
   '<path fill="currentColor" d="M8.75 1.4v3.2L5.6 3z"/>' +
   "</svg>";
 
+/**
+ * One enumerated setting as a segmented control.
+ *
+ * The row carries the same Apply and Reset controls as a color row, so it
+ * commits and discards through the paths every other row already uses. Which
+ * option is in force is an attribute rather than a class, so the script and the
+ * tests read the same mark.
+ */
+function renderSelect(select: PanelSelect) {
+  const key = escapeHtml(select.key);
+  const options = select.options
+    .map((option) => {
+      const value = escapeHtml(option);
+      const current = option === select.value ? ' data-current="true"' : "";
+      return `            <button class="segment" data-select-for="${key}" data-value="${value}"${current}>${value}</button>`;
+    })
+    .join("\n");
+  return `      <div class="row select-row" data-row="${key}">
+        <div class="label">${escapeHtml(select.label)}</div>
+        <div class="controls">
+          <div class="segmented" role="group" aria-label="${escapeHtml(select.label)}">
+${options}
+          </div>
+          <button data-apply="${key}">Apply</button>
+          <button class="icon" title="Reset" aria-label="Reset" data-reset="${key}">${discardGlyph}</button>
+        </div>
+      </div>`;
+}
+
 function renderRow(row: PanelRow) {
   const key = escapeHtml(row.key);
   const saved = escapeHtml(row.savedColor);
@@ -128,6 +168,16 @@ const script = `      const vscode = acquireVsCodeApi();
         if (row) {
           row.classList.toggle('pending', pending);
         }
+      }
+      /**
+       * The switch of one toggle row.
+       *
+       * The attribute is assembled rather than written out, so the switch
+       * attribute appears literally only in the markup and the order of the
+       * sections can be read straight off the output.
+       */
+      function switchOf(key) {
+        return document.querySelector('input[data-toggle' + '="' + key + '"]');
       }
       document.querySelectorAll('input[type="checkbox"][data-toggle]').forEach((input) => {
         input.addEventListener('change', () => {
@@ -288,9 +338,42 @@ const script = `      const vscode = acquireVsCodeApi();
             });
         });
       });
+      /** The option a select row is currently showing, staged or saved alike. */
+      function selectedValue(key) {
+        const marked = document.querySelector(
+          '[data-select-for="' + key + '"][data-current="true"]'
+        );
+        return marked ? marked.dataset.value : undefined;
+      }
+      /** Move the mark to one option, so exactly one segment reads as current. */
+      function markSelected(key, value) {
+        document.querySelectorAll('[data-select-for="' + key + '"]').forEach((segment) => {
+          if (segment.dataset.value === value) {
+            segment.dataset.current = 'true';
+          } else {
+            delete segment.dataset.current;
+          }
+        });
+      }
+      document.querySelectorAll('[data-select-for]').forEach((segment) => {
+        segment.addEventListener('click', () => {
+          const key = segment.dataset.selectFor;
+          const value = segment.dataset.value;
+          markSelected(key, value);
+          markPending(key, true);
+          // No local rendering: VS Code draws these numbers itself, so the
+          // panel can only stage the value and wait for a real write.
+          vscode.postMessage({ type: 'preview', key: key, value: value });
+        });
+      });
       document.querySelectorAll('button[data-apply]').forEach((button) => {
         button.addEventListener('click', () => {
           const key = button.dataset.apply;
+          const selected = selectedValue(key);
+          if (selected !== undefined) {
+            vscode.postMessage({ type: 'apply', key: key, value: selected, scope: scope() });
+            return;
+          }
           const input = document.querySelector('input[type="color"][data-key="' + key + '"]');
           vscode.postMessage({ type: 'apply', key: key, value: input.value, scope: scope() });
         });
@@ -298,7 +381,7 @@ const script = `      const vscode = acquireVsCodeApi();
       document.querySelectorAll('button[data-apply-toggle]').forEach((button) => {
         button.addEventListener('click', () => {
           const key = button.dataset.applyToggle;
-          const box = document.querySelector('input[data-toggle="' + key + '"]');
+          const box = switchOf(key);
           vscode.postMessage({
             type: 'applyToggle',
             key: key,
@@ -375,11 +458,15 @@ const script = `      const vscode = acquireVsCodeApi();
           return;
         }
         (message.toggles || []).forEach((toggle) => {
-          const box = document.querySelector('input[data-toggle="' + toggle.key + '"]');
+          const box = switchOf(toggle.key);
           if (box) {
             box.checked = toggle.value;
           }
           markPending(toggle.key, false);
+        });
+        (message.selects || []).forEach((select) => {
+          markSelected(select.key, select.value);
+          markPending(select.key, false);
         });
         message.rows.forEach((row) => {
           markPending(row.key, false);
@@ -430,6 +517,13 @@ const style = `      body { font-family: var(--vscode-font-family); font-size: v
       .switch input:checked + .slider { background: var(--vscode-button-background); }
       .switch input:checked + .slider::before { transform: translateX(14px); }
       .switch input:focus-visible + .slider { outline: 1px solid var(--vscode-focusBorder); }
+      .select-row .controls { flex-wrap: wrap; }
+      .segmented { display: inline-flex; border: 1px solid var(--vscode-panel-border); overflow: hidden; }
+      .segment { background: transparent; color: var(--vscode-foreground); opacity: 0.7; padding: 2px 8px; }
+      .segment + .segment { border-left: 1px solid var(--vscode-panel-border); }
+      .segment:hover { background: var(--vscode-list-hoverBackground, var(--vscode-button-hoverBackground)); }
+      .segment[data-current="true"] { opacity: 1; color: var(--vscode-button-foreground); background: var(--vscode-button-background); }
+      .segment:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: -1px; }
       .hex { width: 72px; font-family: var(--vscode-editor-font-family, monospace); color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-panel-border); padding: 1px 4px; }
       .hex.invalid { border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground)); }
       button.icon { display: inline-flex; align-items: center; padding: 2px 4px; }
@@ -466,12 +560,17 @@ const style = `      body { font-family: var(--vscode-font-family); font-size: v
  * pending until a state message says its value was saved. The footer button
  * commits every pending row at once.
  *
+ * The select rows sit between the two: they are settings of the editor rather
+ * than of this extension, and choosing one stages it without any local
+ * rendering, because VS Code draws those numbers itself.
+ *
  * @param inlineLib compiled color conversions, pasted verbatim into the nonced
  *   script behind an exports shim so the sliders convert with the very code the
  *   unit tests cover; an empty string leaves the row usable through its picker
  */
 export function renderPanelHtml(
   toggles: PanelToggle[],
+  selects: PanelSelect[],
   rows: PanelRow[],
   nonce: string,
   cspSource: string,
@@ -497,6 +596,10 @@ ${style}
     <div class="section">
       <h2>Decorations</h2>
 ${toggles.map(renderToggle).join("\n")}
+    </div>
+    <div class="section">
+      <h2>Editor</h2>
+${selects.map(renderSelect).join("\n")}
     </div>
     <div class="section">
       <h2>Colors</h2>
