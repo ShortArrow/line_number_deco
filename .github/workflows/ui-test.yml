@@ -1,0 +1,86 @@
+name: UI Test
+
+# Clicks the settings webview in a real VS Code desktop, so an interaction bug
+# cannot reach a release. Unit tests mock the webview away and the smoke test
+# only proves the extension activates; neither could have caught the segment
+# bounce, where a state message overwrote the option the user had just picked.
+#
+# vscode-extension-tester drives VS Code through ChromeDriver, which needs a
+# display: the job runs under xvfb. The VSIX built here is the artifact under
+# test, installed into a throwaway VS Code instance rather than the runner's.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ui-test:
+    name: Click the settings panel
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            ui-test/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Package the VSIX under test
+        run: pnpm exec vsce package --no-dependencies
+
+      - name: Install the harness
+        working-directory: ui-test
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run compile
+
+      - name: Download VS Code and ChromeDriver
+        working-directory: ui-test
+        run: pnpm exec extest get-vscode --storage .resources --code_version "$CODE_VERSION" && pnpm exec extest get-chromedriver --storage .resources --code_version "$CODE_VERSION"
+        env:
+          # ExTester 8.25 supports up to 1.135.0; a newer stable would be
+          # downloaded happily and then fail on locators it does not know.
+          CODE_VERSION: "1.135.0"
+
+      - name: Install the VSIX into the test instance
+        working-directory: ui-test
+        run: |
+          set -euo pipefail
+          vsix="$(ls "$GITHUB_WORKSPACE"/*.vsix)"
+          pnpm exec extest install-vsix --storage .resources --extensions_dir .test-extensions --vsix_file "$vsix"
+
+      - name: Click the panel
+        id: click
+        working-directory: ui-test
+        run: xvfb-run -a pnpm exec extest run-tests --storage .resources --extensions_dir .test-extensions --code_version 1.135.0 "out/*.test.js"
+
+      # Webview automation flakes: an iframe can be a frame late, a click can
+      # land while the panel is still laying out. One retry keeps that from
+      # blocking a pull request, and two consecutive failures are a real one.
+      - name: Click the panel (retry)
+        if: failure() && steps.click.outcome == 'failure'
+        working-directory: ui-test
+        run: xvfb-run -a pnpm exec extest run-tests --storage .resources --extensions_dir .test-extensions --code_version 1.135.0 "out/*.test.js"
+
+      - name: Upload failure screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ui-test-screenshots
+          path: ui-test/.resources/screenshots
+          if-no-files-found: ignore
