@@ -63,5 +63,23 @@ describe('Test color panel view', () => {
       (html as string).includes('data-reset-all='),
       'resolved panel html has no reset all control'
     );
+    assert.ok(
+      (html as string).includes('data-select-for="editor.lineNumbers"'),
+      'resolved panel html has no built-in line number control'
+    );
+    // Read, never written: the panel must show what the editor is really set
+    // to, and a test that wrote it would leak into the next run.
+    const lineNumbers = vscode.workspace
+      .getConfiguration('editor')
+      .get<string>('lineNumbers', 'on');
+    const marked = new RegExp(
+      '<[a-z]+[^>]*data-select-for="editor.lineNumbers"[^>]*data-value="' +
+        lineNumbers +
+        '"[^>]*data-current="true"'
+    );
+    assert.ok(
+      marked.test(html as string),
+      `the marked option is not the configured ${lineNumbers}`
+    );
   });
 });

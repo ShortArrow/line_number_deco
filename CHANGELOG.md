@@ -65,5 +65,6 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - A settings panel in the activity bar previews toggles and colors live, with per-row Apply and Apply all per workspace or user (#21)
 - List settings and commands in `README.md` (#20), add an `init.lua` example (#31), and trim the recommended plugin list to maintained extensions (#26)
 - Commands to show, hide and toggle the settings panel, callable from the palette or init.lua
+- The panel also controls VS Code's editor.lineNumbers, staged like everything else (no live preview: VS Code draws its own numbers)
 - Color rows expand into HSL or RGB slider editors, because the native picker's 2-D plane looks the same in every format
 - Color rows gain a 2-D picking surface, an editable hex field and Reset controls beside Apply
