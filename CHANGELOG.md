@@ -61,6 +61,7 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Sequential-digit line numbers (123, 543, 10) can get their own color — poker mode (#12)
 - Releases are built by GitHub Actions on tag push: tests on three OSes, a packaged VSIX with build provenance, and an installation smoke test (#29)
 - The VSIX no longer ships tests, the generator, or CI files
+- CI clicks the settings panel for real before a release can regress it (ExTester on xvfb)
 - Package manager is pnpm instead of Yarn
 - A settings panel in the activity bar previews toggles and colors live, with per-row Apply and Apply all per workspace or user (#21)
 - List settings and commands in `README.md` (#20), add an `init.lua` example (#31), and trim the recommended plugin list to maintained extensions (#26)
