@@ -77,6 +77,13 @@ jobs:
           else
             echo "::warning::could not query the Marketplace; skipping the burned-version check"
           fi
+          status="$(curl -s -o /dev/null -w '%{http_code}' "https://open-vsx.org/api/shortarrow/line-number-deco/$manifest" || echo 000)"
+          if [ "$status" = "200" ]; then
+            echo "::error::version $manifest already exists on Open VSX; bump the version instead of reusing it"
+            exit 1
+          elif [ "$status" != "404" ]; then
+            echo "::warning::Open VSX returned $status; skipping its burned-version check"
+          fi
 
       - name: Test (Linux, under Xvfb)
         if: runner.os == 'Linux'
@@ -220,7 +227,7 @@ jobs:
             artifacts/*.vsix
 
   publish-marketplace:
-    name: Publish to VS Code Marketplace
+    name: Publish to the registries
     needs: release
     # Pre-release tags (with a suffix) never go to the Marketplace, and
     # [skip publish] in the tagged commit's message opts a release out.
@@ -243,28 +250,29 @@ jobs:
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
       USE_AZURE: ${{ vars.AZURE_CLIENT_ID != '' && vars.AZURE_TENANT_ID != '' && 'yes' || '' }}
     steps:
       - name: Skip when no credential is configured
-        if: env.USE_AZURE == '' && env.VSCE_PAT == ''
-        run: echo "Neither the Entra variables nor VSCE_PAT are configured; skipping Marketplace publish." >> "$GITHUB_STEP_SUMMARY"
+        if: env.USE_AZURE == '' && env.VSCE_PAT == '' && env.OVSX_PAT == ''
+        run: echo "None of the Entra variables, VSCE_PAT or OVSX_PAT are configured; skipping registry publish." >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        if: env.USE_AZURE != '' || env.VSCE_PAT != ''
+        if: env.USE_AZURE != '' || env.VSCE_PAT != '' || env.OVSX_PAT != ''
         with:
           persist-credentials: false
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-        if: env.USE_AZURE != '' || env.VSCE_PAT != ''
+        if: env.USE_AZURE != '' || env.VSCE_PAT != '' || env.OVSX_PAT != ''
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        if: env.USE_AZURE != '' || env.VSCE_PAT != ''
+        if: env.USE_AZURE != '' || env.VSCE_PAT != '' || env.OVSX_PAT != ''
         with:
           node-version: 22
           cache: pnpm
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        if: env.USE_AZURE != '' || env.VSCE_PAT != ''
+        if: env.USE_AZURE != '' || env.VSCE_PAT != '' || env.OVSX_PAT != ''
         with:
           name: vsix
           path: artifacts
@@ -277,7 +285,7 @@ jobs:
           allow-no-subscriptions: true
 
       - run: pnpm install --frozen-lockfile
-        if: env.USE_AZURE != '' || env.VSCE_PAT != ''
+        if: env.USE_AZURE != '' || env.VSCE_PAT != '' || env.OVSX_PAT != ''
 
       - name: Publish (Entra OIDC)
         if: env.USE_AZURE != ''
@@ -286,3 +294,7 @@ jobs:
       - name: Publish (PAT)
         if: env.USE_AZURE == '' && env.VSCE_PAT != ''
         run: pnpm exec vsce publish --packagePath artifacts/*.vsix
+
+      - name: Publish (Open VSX)
+        if: env.OVSX_PAT != ''
+        run: pnpm exec ovsx publish --packagePath artifacts/*.vsix -p "$OVSX_PAT"
