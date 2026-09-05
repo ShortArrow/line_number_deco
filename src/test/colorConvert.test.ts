@@ -1,15 +1,60 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { Hsl, Rgb, hexToHsl, hexToRgb, hslToHex, rgbToHex } from '../colorConvert';
+import {
+  Hsl,
+  Hsv,
+  Rgb,
+  hexToHsl,
+  hexToHsv,
+  hexToRgb,
+  hslToHex,
+  hsvToHex,
+  rgbToHex,
+} from '../colorConvert';
 
-const cases: { hex: string; rgb: Rgb; hsl: Hsl }[] = [
-  { hex: '#ff0000', rgb: { r: 255, g: 0, b: 0 }, hsl: { h: 0, s: 100, l: 50 } },
-  { hex: '#00ff00', rgb: { r: 0, g: 255, b: 0 }, hsl: { h: 120, s: 100, l: 50 } },
-  { hex: '#0000ff', rgb: { r: 0, g: 0, b: 255 }, hsl: { h: 240, s: 100, l: 50 } },
-  { hex: '#ffa500', rgb: { r: 255, g: 165, b: 0 }, hsl: { h: 39, s: 100, l: 50 } },
-  { hex: '#808080', rgb: { r: 128, g: 128, b: 128 }, hsl: { h: 0, s: 0, l: 50 } },
-  { hex: '#ffffff', rgb: { r: 255, g: 255, b: 255 }, hsl: { h: 0, s: 0, l: 100 } },
-  { hex: '#000000', rgb: { r: 0, g: 0, b: 0 }, hsl: { h: 0, s: 0, l: 0 } },
+const cases: { hex: string; rgb: Rgb; hsl: Hsl; hsv: Hsv }[] = [
+  {
+    hex: '#ff0000',
+    rgb: { r: 255, g: 0, b: 0 },
+    hsl: { h: 0, s: 100, l: 50 },
+    hsv: { h: 0, s: 100, v: 100 },
+  },
+  {
+    hex: '#00ff00',
+    rgb: { r: 0, g: 255, b: 0 },
+    hsl: { h: 120, s: 100, l: 50 },
+    hsv: { h: 120, s: 100, v: 100 },
+  },
+  {
+    hex: '#0000ff',
+    rgb: { r: 0, g: 0, b: 255 },
+    hsl: { h: 240, s: 100, l: 50 },
+    hsv: { h: 240, s: 100, v: 100 },
+  },
+  {
+    hex: '#ffa500',
+    rgb: { r: 255, g: 165, b: 0 },
+    hsl: { h: 39, s: 100, l: 50 },
+    hsv: { h: 39, s: 100, v: 100 },
+  },
+  {
+    hex: '#808080',
+    rgb: { r: 128, g: 128, b: 128 },
+    hsl: { h: 0, s: 0, l: 50 },
+    hsv: { h: 0, s: 0, v: 50 },
+  },
+  {
+    hex: '#ffffff',
+    rgb: { r: 255, g: 255, b: 255 },
+    hsl: { h: 0, s: 0, l: 100 },
+    hsv: { h: 0, s: 0, v: 100 },
+  },
+  {
+    hex: '#000000',
+    rgb: { r: 0, g: 0, b: 0 },
+    hsl: { h: 0, s: 0, l: 0 },
+    hsv: { h: 0, s: 0, v: 0 },
+  },
 ];
 
 const malformed = ['ff0000', '#ff000', '#ff00zz', '#ff0000ff', 'red', ''];
@@ -72,6 +117,45 @@ describe('Test convert colors between hex, rgb and hsl', () => {
     it(`Must keep every channel of ${hex} within three of a round trip`, () => {
       const before = hexToRgb(hex) as Rgb;
       const after = hexToRgb(hslToHex(hexToHsl(hex) as Hsl)) as Rgb;
+      assert.ok(Math.abs(before.r - after.r) <= 3, `red drifted from ${before.r} to ${after.r}`);
+      assert.ok(Math.abs(before.g - after.g) <= 3, `green drifted from ${before.g} to ${after.g}`);
+      assert.ok(Math.abs(before.b - after.b) <= 3, `blue drifted from ${before.b} to ${after.b}`);
+    });
+  }
+
+  for (const { hex, hsv } of cases) {
+    it(`Must read ${hex} as its hsv components`, () => {
+      assert.deepStrictEqual(hexToHsv(hex), hsv);
+    });
+  }
+
+  for (const { hex, hsv } of cases.filter((entry) => entry.hex !== '#ffa500')) {
+    it(`Must write the hsv components of ${hex} back as hex`, () => {
+      assert.strictEqual(hsvToHex(hsv), hex);
+    });
+  }
+
+  it('Must write the hsv components of orange back one step off in green', () => {
+    // Integer h=39 is not exactly #ffa500 (h is about 38.82), so the reproduced hex differs by one step in green.
+    assert.strictEqual(hsvToHex({ h: 39, s: 100, v: 100 }), '#ffa600');
+  });
+
+  it('Must refuse a hex color without its hash as hsv', () => {
+    assert.strictEqual(hexToHsv('ff0000'), null);
+  });
+
+  it('Must refuse an empty string as hsv', () => {
+    assert.strictEqual(hexToHsv(''), null);
+  });
+
+  it('Must wrap hue 360 back to red in hsv', () => {
+    assert.strictEqual(hsvToHex({ h: 360, s: 100, v: 100 }), '#ff0000');
+  });
+
+  for (const hex of roundTrips) {
+    it(`Must keep every channel of ${hex} within three of an hsv round trip`, () => {
+      const before = hexToRgb(hex) as Rgb;
+      const after = hexToRgb(hsvToHex(hexToHsv(hex) as Hsv)) as Rgb;
       assert.ok(Math.abs(before.r - after.r) <= 3, `red drifted from ${before.r} to ${after.r}`);
       assert.ok(Math.abs(before.g - after.g) <= 3, `green drifted from ${before.g} to ${after.g}`);
       assert.ok(Math.abs(before.b - after.b) <= 3, `blue drifted from ${before.b} to ${after.b}`);
