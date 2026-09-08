@@ -3,7 +3,7 @@
   "displayName": "LineNumberDeco",
   "description": "VSCode extension to display relative line numbers",
   "publisher": "ShortArrow",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "engines": {
     "vscode": "^1.76.0"
   },
@@ -269,7 +269,7 @@
     "@vscode/vsce": "^3.9.2",
     "eslint": "^8.34.0",
     "glob": "^8.1.0",
-    "mocha": "^10.2.0",
+    "mocha": "^11.0.0",
     "ovsx": "^1.1.1",
     "rimraf": "^5.0.1",
     "typescript": "^4.9.5"

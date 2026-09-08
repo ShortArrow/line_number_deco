@@ -2,3 +2,10 @@ packages: []
 allowBuilds:
   '@vscode/vsce-sign': false
   keytar: false
+
+# mocha (root 10.x / ui-test 11.x) and vscode-extension-tester still ask for
+# serialize-javascript ^6, whose advisories are fixed only in 7.0.5.
+overrides:
+  serialize-javascript: ^7.0.5
+  qs: ^6.16.0
+  diff: ^8.0.3
