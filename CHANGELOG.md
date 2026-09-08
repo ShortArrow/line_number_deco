@@ -75,3 +75,7 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 
 - Same content as the 0.0.10 GitHub release. The version number moves because a different build was published to the Marketplace as 0.0.10 back in January 2025, and the store rejects a number it has seen; the release pipeline now refuses to ship a version the Marketplace already has
 - The VSIX no longer carries the README images or the icon source; the packaged README already loads them from the repository (about 680 KB down to about 90 KB)
+
+## 0.0.12
+
+- Dependency advisories cleared: serialize-javascript, fast-uri, qs and diff move past their patched versions (mocha goes 10 to 11 along the way); the one advisory without a fix, extract-zip inside the UI-test harness, is dismissed with its reasoning recorded on the alert
