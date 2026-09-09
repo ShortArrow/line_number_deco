@@ -305,6 +305,33 @@ describe('Test render the color panel html', () => {
     assert.ok(html.includes('data-reset="editor.lineNumbers"'), 'no reset for the select row');
   });
 
+  it('Must restore a persisted scope before asking for state', () => {
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', '');
+    const restore = html.indexOf('getState');
+    const ready = html.indexOf("'ready'");
+    assert.ok(restore >= 0, 'the script never reads the persisted scope');
+    assert.ok(ready >= 0, 'the script never announces itself as ready');
+    assert.ok(restore < ready, 'the scope is restored after the state was asked for');
+  });
+
+  it('Must persist the scope the radio was moved to', () => {
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', '');
+    assert.ok(html.includes('setState'), 'the script never persists the scope');
+    assert.ok(
+      html.includes('vscode.setState({ scope: scope() })'),
+      'the script persists something other than the selected scope'
+    );
+  });
+
+  it('Must register the message listener before announcing readiness', () => {
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', '');
+    const listener = html.indexOf("addEventListener('message'");
+    const ready = html.indexOf("postMessage({ type: 'ready' })");
+    assert.ok(listener >= 0, 'the script listens for no state message');
+    assert.ok(ready >= 0, 'the script never posts a ready message');
+    assert.ok(listener < ready, 'the ready post can outrun the listener');
+  });
+
   it('Must escape a select value that looks like markup', () => {
     const html = renderPanelHtml(
       toggles,

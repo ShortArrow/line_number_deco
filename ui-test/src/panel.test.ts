@@ -193,4 +193,28 @@ describe("settings panel segmented control", function () {
       "the row is still showing the workspace view after the user radio was clicked"
     );
   });
+
+  it("U6 keeps the chosen scope after a trip to another pane", async function () {
+    // U5 left the user radio selected; leave the iframe before touching the shell.
+    await view.switchBack();
+    const explorer = await new ActivityBar().getViewControl("Explorer");
+    assert.ok(explorer, "the activity bar offers no Explorer view");
+    await explorer.openView();
+    const control = await new ActivityBar().getViewControl("LineNumberDeco");
+    assert.ok(control, "the activity bar lost the LineNumberDeco view");
+    await control.openView();
+    // The old iframe died with the view; enter the fresh one.
+    view = new WebviewView(new SideBarView());
+    await view.switchToFrame(frameTimeoutMs);
+    assert.strictEqual(
+      await (await scopeRadio("user")).isSelected(),
+      true,
+      "the scope radio fell back to workspace after the view was hidden"
+    );
+    await VSBrowser.instance.driver.wait(
+      async () => (await rowSource()) === "default",
+      settleMs,
+      "the re-shown panel never rendered the restored scope's rows"
+    );
+  });
 });

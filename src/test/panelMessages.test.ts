@@ -131,6 +131,14 @@ describe('Test panel message handling', () => {
     assert.deepStrictEqual(saves, []);
   });
 
+  it('Must answer a ready message with the state and nothing else', async () => {
+    const { deps, saves, counts } = recordingDeps();
+    await handlePanelMessage({ type: 'ready' }, deps);
+    assert.strictEqual(counts.postState, 1);
+    assert.deepStrictEqual(saves, []);
+    assert.strictEqual(counts.refresh, 0);
+  });
+
   it('Must ignore a preview of a key the panel does not offer', async () => {
     const { deps, saves, counts } = recordingDeps();
     await handlePanelMessage(

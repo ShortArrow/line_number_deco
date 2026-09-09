@@ -79,3 +79,4 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 ## 0.0.12
 
 - Dependency advisories cleared: serialize-javascript, fast-uri, qs and diff move past their patched versions (mocha goes 10 to 11 along the way); the one advisory without a fix, extract-zip inside the UI-test harness, is dismissed with its reasoning recorded on the alert
+- The settings panel remembers the selected scope across a switch to another sidebar view, and asks the extension for the current state as soon as it is shown again

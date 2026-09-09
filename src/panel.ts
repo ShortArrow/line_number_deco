@@ -107,7 +107,8 @@ type PanelMessage =
   | { type: "applyToggle"; key: string; value: boolean; scope: string }
   | { type: "applyAll"; scope: string }
   | { type: "resetRow"; key: string }
-  | { type: "resetAll" };
+  | { type: "resetAll" }
+  | { type: "ready" };
 
 function isKnownKey(key: string) {
   return labels.some((entry) => entry.key === key);
@@ -161,6 +162,12 @@ export async function handlePanelMessage(
     return;
   }
   const panelMessage = message as PanelMessage;
+  if (panelMessage.type === "ready") {
+    // A hidden webview drops what is posted to it and its iframe is destroyed
+    // when the view is hidden, so a re-shown panel has to ask rather than wait.
+    deps.postState();
+    return;
+  }
   if (panelMessage.type === "applyAll") {
     for (const { key, value } of getPendingPreviews()) {
       if (deps.isColorKey(key) || deps.isToggleKey(key) || deps.isSelectKey(key)) {
