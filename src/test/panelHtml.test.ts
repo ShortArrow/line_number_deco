@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
+import { panelCss, panelScript } from '../generated/webviewAssets';
 import { PanelRow, PanelSelect, PanelToggle, renderPanelHtml } from '../panelHtml';
 
 /** A triple holding one workspace value, the shape most rows are given here. */
@@ -35,6 +36,20 @@ const sel: PanelSelect[] = [
   },
 ];
 
+/**
+ * The document down to the script tag: where the sections are laid out.
+ *
+ * Section order is a property of the markup, and the bundled script mentions
+ * the same data attributes in its selectors. A scan for the last occurrence of
+ * one has to stop before the script, or it measures the bundler's output
+ * instead of the panel's layout.
+ */
+function markupOf(html: string): string {
+  const script = html.indexOf('<script nonce=');
+  assert.ok(script >= 0, 'no nonced script block');
+  return html.slice(0, script);
+}
+
 const toggles: PanelToggle[] = [
   { key: 'enableRelativeLine', label: 'Relative line numbers', values: inWorkspace(true) },
   { key: 'enableRainbow', label: 'Rainbow', values: inWorkspace(false) },
@@ -44,23 +59,23 @@ const toggles: PanelToggle[] = [
 
 describe('Test render the color panel html', () => {
   it('Must carry the row key on a color input', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(/<input type="color"[^>]*data-key="centerColorOfRainbow"/.test(html));
   });
 
   it('Must use the nonce for the script and in the policy', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(html.includes('<script nonce="n0nce"'));
     assert.ok(html.includes("script-src 'nonce-n0nce'"));
   });
 
   it('Must deny every default source in the policy', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(html.includes("default-src 'none'"));
   });
 
   it('Must show the saved color of a row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(html.includes('#8888ff'));
   });
 
@@ -70,14 +85,13 @@ describe('Test render the color panel html', () => {
       [],
       [{ key: 'foreground', label: 'Inactive line number', values: inWorkspace('<img onerror=x>') }],
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     assert.ok(!html.includes('<img'));
   });
 
   it('Must offer both scopes and an apply button per row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(html.includes('value="workspace"'));
     assert.ok(html.includes('value="user"'));
     assert.ok(html.includes('data-apply="centerColorOfRainbow"'));
@@ -90,8 +104,7 @@ describe('Test render the color panel html', () => {
       [],
       rows,
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     const input = /<input type="checkbox"[^>]*data-toggle="enableRainbow"[^>]*>/.exec(html);
     assert.ok(input, 'no checkbox for enableRainbow');
@@ -104,8 +117,7 @@ describe('Test render the color panel html', () => {
       [],
       rows,
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     const input = /<input type="checkbox"[^>]*data-toggle="enableRainbow"[^>]*>/.exec(html);
     assert.ok(input, 'no checkbox for enableRainbow');
@@ -113,7 +125,7 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must draw every toggle above the color rows', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = markupOf(renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:'));
     const firstColor = html.indexOf('data-key=');
     for (const toggle of toggles) {
       const at = html.indexOf(`data-toggle="${toggle.key}"`);
@@ -128,25 +140,24 @@ describe('Test render the color panel html', () => {
       [],
       rows,
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     assert.ok(!html.includes('<b>'));
   });
 
   it('Must offer an apply button per toggle row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(html.includes('data-apply-toggle="enableRainbow"'));
   });
 
   it('Must offer exactly one apply all control', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     const occurrences = html.split('data-apply-all=').length - 1;
     assert.strictEqual(occurrences, 1);
   });
 
   it('Must draw the apply all control below the color rows', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = markupOf(renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:'));
     const lastApply = html.lastIndexOf('data-apply=');
     const applyAll = html.indexOf('data-apply-all=');
     assert.ok(lastApply >= 0, 'no color row apply button');
@@ -154,7 +165,7 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must offer an hsl and an rgb slider per component of a color row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     for (const component of ['h', 's', 'l', 'r', 'g', 'b']) {
       const slider = new RegExp(
         '<input[^>]*data-slider-for="centerColorOfRainbow"[^>]*data-slider="' + component + '"'
@@ -164,7 +175,7 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must hold the sliders of a color row inside a details element', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     const details = html.indexOf('<details');
     const slider = html.indexOf('data-slider-for="centerColorOfRainbow"');
     assert.ok(details >= 0, 'no details element');
@@ -172,34 +183,26 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must offer both mode tabs for a color row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(html.includes('data-mode-tab="hsl"'));
     assert.ok(html.includes('data-mode-tab="rgb"'));
   });
 
-  it('Must inline the conversion library inside the nonced script', () => {
-    const html = renderPanelHtml(
-      toggles,
-      [],
-      rows,
-      'n0nce',
-      'vscode-resource:',
-      'INLINE_LIB_SENTINEL_9f3c'
-    );
+  it('Must embed the bundled script and stylesheet verbatim', () => {
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
+    assert.ok(panelScript.length > 0, 'the bundled script is empty');
+    assert.ok(panelCss.length > 0, 'the bundled stylesheet is empty');
+    assert.ok(html.includes(panelScript), 'the bundled script is not in the document');
+    assert.ok(html.includes(panelCss), 'the bundled stylesheet is not in the document');
     const script = html.indexOf('<script nonce="n0nce"');
-    const sentinel = html.indexOf('INLINE_LIB_SENTINEL_9f3c');
+    const bundle = html.indexOf(panelScript);
     assert.ok(script >= 0, 'no nonced script block');
-    assert.ok(sentinel > script, 'the library is not inside the nonced script');
-    assert.ok(html.indexOf('</script>', sentinel) > sentinel, 'the library escapes the script');
-  });
-
-  it('Must leave the inlined library unescaped so it can run', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', 'INLINE<LIB');
-    assert.ok(html.includes('INLINE<LIB'), 'the inlined library was html-escaped');
+    assert.ok(bundle > script, 'the bundle is not inside the nonced script');
+    assert.ok(html.indexOf('</script>', bundle) > bundle, 'the bundle escapes the script');
   });
 
   it('Must offer a hex text field carrying the saved color of a row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     const field = /<input[^>]*data-hex-for="centerColorOfRainbow"[^>]*>/.exec(html);
     assert.ok(field, 'no hex field for centerColorOfRainbow');
     assert.ok(
@@ -209,7 +212,7 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must offer a picking plane with a marker per color row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(
       html.includes('data-plane-for="centerColorOfRainbow"'),
       'no picking plane for centerColorOfRainbow'
@@ -221,7 +224,7 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must draw the picking plane inside the details above the mode tabs', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     const details = html.indexOf('<details');
     const plane = html.indexOf('data-plane-for="centerColorOfRainbow"');
     const tabs = html.indexOf('data-mode-tab="hsl"');
@@ -231,7 +234,7 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must offer a reset control drawn as an inline svg per color row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     const reset = /data-reset="centerColorOfRainbow"[\s\S]*?<\/button>/.exec(html);
     assert.ok(reset, 'no reset control for centerColorOfRainbow');
     assert.ok(
@@ -241,7 +244,7 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must offer exactly one reset all control beside apply all', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(html.includes('data-reset-all='), 'no reset all control');
     assert.ok(html.includes('data-apply-all='), 'no apply all control');
     assert.strictEqual(html.split('data-reset-all=').length - 1, 1);
@@ -253,14 +256,13 @@ describe('Test render the color panel html', () => {
       [],
       [{ key: 'foreground', label: 'Inactive line number', values: inWorkspace('"><svg onload=x>') }],
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     assert.ok(!html.includes('<svg onload'), 'the saved color escaped the hex field');
   });
 
   it('Must offer one option element per select value', () => {
-    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
     for (const value of ['on', 'off', 'relative', 'interval']) {
       const option = new RegExp(
         '<[a-z]+[^>]*data-select-for="editor.lineNumbers"[^>]*data-value="' + value + '"'
@@ -270,7 +272,7 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must mark exactly the current option of a select', () => {
-    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
     const relative = new RegExp(
       '<[a-z]+[^>]*data-select-for="editor.lineNumbers"[^>]*data-value="relative"[^>]*>'
     ).exec(html);
@@ -290,7 +292,7 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must draw the select rows between the toggles and the color rows', () => {
-    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', '');
+    const html = markupOf(renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:'));
     const lastToggle = html.lastIndexOf('data-toggle=');
     const firstSelect = html.indexOf('data-select-for=');
     const firstColor = html.indexOf('data-key=');
@@ -300,33 +302,35 @@ describe('Test render the color panel html', () => {
   });
 
   it('Must offer an apply and a reset control per select row', () => {
-    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', '');
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
     assert.ok(html.includes('data-apply="editor.lineNumbers"'), 'no apply for the select row');
     assert.ok(html.includes('data-reset="editor.lineNumbers"'), 'no reset for the select row');
   });
 
+  // The script is minified into the document, so these read it by pattern
+  // rather than by literal: whitespace and quote style are the bundler's,
+  // while the identifiers are deliberately left unmangled.
   it('Must restore a persisted scope before asking for state', () => {
-    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', '');
-    const restore = html.indexOf('getState');
-    const ready = html.indexOf("'ready'");
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
+    const restore = html.search(/getState/);
+    const ready = html.search(/['"]ready['"]/);
     assert.ok(restore >= 0, 'the script never reads the persisted scope');
     assert.ok(ready >= 0, 'the script never announces itself as ready');
     assert.ok(restore < ready, 'the scope is restored after the state was asked for');
   });
 
   it('Must persist the scope the radio was moved to', () => {
-    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', '');
-    assert.ok(html.includes('setState'), 'the script never persists the scope');
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
     assert.ok(
-      html.includes('vscode.setState({ scope: scope() })'),
+      html.search(/setState\(\{\s*scope:/) >= 0,
       'the script persists something other than the selected scope'
     );
   });
 
   it('Must register the message listener before announcing readiness', () => {
-    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', '');
-    const listener = html.indexOf("addEventListener('message'");
-    const ready = html.indexOf("postMessage({ type: 'ready' })");
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
+    const listener = html.search(/addEventListener\(['"]message/);
+    const ready = html.search(/postMessage\(\{\s*type:\s*['"]ready['"]/);
     assert.ok(listener >= 0, 'the script listens for no state message');
     assert.ok(ready >= 0, 'the script never posts a ready message');
     assert.ok(listener < ready, 'the ready post can outrun the listener');
@@ -345,22 +349,23 @@ describe('Test render the color panel html', () => {
       ],
       rows,
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     assert.ok(!html.includes('<img'), 'the select value escaped its attribute');
   });
 });
 
 /** The opening tag of one row, where its scope marks are written. */
-function rowTag(html: string, key: string): string {
+function rowTag(document: string, key: string): string {
+  const html = markupOf(document);
   const tag = new RegExp('<div class="[^"]*"[^>]*data-row="' + key + '"[^>]*>').exec(html);
   assert.ok(tag, `no row for ${key}`);
   return (tag as RegExpExecArray)[0];
 }
 
 /** Everything one row renders, from its opening tag to the next row or section. */
-function rowMarkup(html: string, key: string): string {
+function rowMarkup(document: string, key: string): string {
+  const html = markupOf(document);
   const at = html.indexOf(`data-row="${key}"`);
   assert.ok(at >= 0, `no row for ${key}`);
   const next = html.indexOf('data-row="', at + 1);
@@ -374,8 +379,7 @@ describe('Test the panel shows which scope a value comes from', () => {
       [],
       [{ key: 'foreground', label: 'Inactive line number', values: inWorkspace('#123456') }],
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     const tag = rowTag(html, 'foreground');
     assert.ok(tag.includes('data-source="workspace"'), `the row does not name its source: ${tag}`);
@@ -388,8 +392,7 @@ describe('Test the panel shows which scope a value comes from', () => {
       [],
       [{ key: 'foreground', label: 'Inactive line number', values: inUser('#abcdef') }],
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     const tag = rowTag(html, 'foreground');
     assert.ok(tag.includes('data-source="user"'), `the row does not name the user scope: ${tag}`);
@@ -405,8 +408,7 @@ describe('Test the panel shows which scope a value comes from', () => {
       [],
       [{ key: 'foreground', label: 'Inactive line number', values: inUser('#abcdef') }],
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     assert.ok(
       rowMarkup(inherited, 'foreground').includes('from user'),
@@ -417,8 +419,7 @@ describe('Test the panel shows which scope a value comes from', () => {
       [],
       [{ key: 'foreground', label: 'Inactive line number', values: unset<string>() }],
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     assert.ok(
       rowMarkup(nothing, 'foreground').includes('not set'),
@@ -432,8 +433,7 @@ describe('Test the panel shows which scope a value comes from', () => {
       sel,
       rows,
       'n0nce',
-      'vscode-resource:',
-      ''
+      'vscode-resource:'
     );
     assert.ok(
       rowTag(html, 'enableRainbow').includes('data-source="user"'),

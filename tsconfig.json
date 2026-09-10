@@ -19,5 +19,10 @@
 	   (ui-test/) would be swept in by the default include and fail rootDir. */
 	"include": [
 		"src"
+	],
+	/* src/webview is browser code: it is typechecked against DOM types by its
+	   own project and bundled by esbuild, never compiled into out/. */
+	"exclude": [
+		"src/webview"
 	]
 }

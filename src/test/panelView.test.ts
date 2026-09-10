@@ -49,11 +49,11 @@ describe('Test color panel view', () => {
     );
     assert.ok(
       (html as string).includes('hexToHsl'),
-      'resolved panel html does not inline the color conversions'
+      'resolved panel html does not carry the color conversions'
     );
     assert.ok(
-      (html as string).includes('displayValue'),
-      'resolved panel html does not inline the pending merge'
+      (html as string).includes('displayForScope'),
+      'resolved panel html does not carry the pending merge'
     );
     assert.ok(
       (html as string).includes('data-plane-for="foreground"'),
