@@ -7,18 +7,15 @@
 [![Open VSX Version](https://img.shields.io/open-vsx/v/ShortArrow/line-number-deco)](https://open-vsx.org/extension/shortarrow/line-number-deco/)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/shortarrow/line-number-deco)](https://open-vsx.org/extension/shortarrow/line-number-deco/)
 
-LineNumberDeco is a Visual Studio Code extension.
-Adds relative line numbers to Visual Studio Code with decorations.
-This is useful if you are using one of the Emacs or Vim like plugins.
+LineNumberDeco is a Visual Studio Code extension that adds relative line numbers as editor decorations. It is useful if you use one of the Emacs or Vim like plugins.
 
-The relative line number can be displayed with only the standard function of vscode. However, when doing pair programming using liveshare or  face-to-face, it is easier to communicate if absolute line numbers are displayed. This extension is useful when you want to display both absolute and relative line numbers.
+VS Code can already show relative line numbers on its own, but it shows them instead of the absolute ones. During pair programming over Live Share or face to face, an absolute line number is the one you can say out loud. This extension displays both at once.
 
-This extension has not anoying for testrunners or debuggers.
-Because, it does not block the display of breakpoint icons, test start icons, test result icons, etc.
+The decorations do not get in the way of a test runner or a debugger, because they do not cover the gutter icons for breakpoints, test starts or test results.
 
 ## Recommended Usage
 
-Use with these recomended plugins.
+Use with these recommended plugins.
 
 - [VSCode Neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim)
 - [VSCode Vim](https://marketplace.visualstudio.com/items?itemName=vscodevim.vim)
@@ -42,6 +39,8 @@ Every key, with types and defaults: [docs/settings.md](docs/settings.md).
 The color settings show a color picker when edited in `settings.json`.
 
 ## Settings panel
+
+![The settings panel](./images/panel.png)
 
 The LineNumberDeco icon in the activity bar opens a panel for every setting of this extension, and for `editor.lineNumbers` itself. Changes preview in the editor at once; nothing is saved until Apply. The radio at the top picks the scope you are editing, and the scope the rows show. Closing the panel discards anything unapplied.
 
@@ -96,8 +95,3 @@ Then only show line numbers in your vscode by this extension.
 ## License
 
 MIT License
-
-## Road Map
-
-- More faster!!!
-- More variations to the decoration
