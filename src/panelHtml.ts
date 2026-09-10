@@ -212,6 +212,23 @@ const script = `      const vscode = acquireVsCodeApi();
         const checked = document.querySelector('input[name="scope"]:checked');
         return checked ? checked.value : 'workspace';
       }
+      /**
+       * Put the radio back where the reader left it.
+       *
+       * The iframe is destroyed whenever the view is hidden and the script
+       * re-runs from the baked html, which always checks workspace. Setting
+       * checked from script fires no change event, so nothing is redrawn here:
+       * the redraw comes with the state the ready message asks for.
+       */
+      const persisted = vscode.getState();
+      if (persisted && (persisted.scope === 'user' || persisted.scope === 'workspace')) {
+        const restored = document.querySelector(
+          'input[name="scope"][value="' + persisted.scope + '"]'
+        );
+        if (restored) {
+          restored.checked = true;
+        }
+      }
       function markPending(key, pending) {
         const row = document.querySelector('[data-row="' + key + '"]');
         if (row) {
@@ -623,11 +640,17 @@ const script = `      const vscode = acquireVsCodeApi();
       // The radio chooses what the rows show, not only where Apply writes: the
       // values of all three scopes are already here, so the flip is local.
       document.querySelectorAll('input[name="scope"]').forEach((radio) => {
-        radio.addEventListener('change', renderState);
+        radio.addEventListener('change', () => {
+          vscode.setState({ scope: scope() });
+          renderState();
+        });
       });
       document.querySelectorAll('input[type="color"][data-key]').forEach((input) => {
         showOnSliders(input.dataset.key, input.value);
-      });`;
+      });
+      // Last, and after the listener above: the baked values are as old as the
+      // last resolve, and the answer to this must not arrive unheard.
+      vscode.postMessage({ type: 'ready' });`;
 
 const style = `      body { font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); padding: 8px; }
       .scope { display: flex; gap: 12px; margin-bottom: 12px; }
