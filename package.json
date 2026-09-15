@@ -4,6 +4,9 @@
   "description": "VSCode extension to display relative line numbers",
   "publisher": "ShortArrow",
   "version": "0.0.12",
+  "sponsor": {
+    "url": "https://github.com/sponsors/ShortArrow"
+  },
   "engines": {
     "vscode": "^1.76.0"
   },
