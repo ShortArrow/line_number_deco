@@ -1,0 +1,56 @@
+      body { font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); padding: 8px; }
+      .scope { display: flex; gap: 12px; margin-bottom: 12px; }
+      .scope label { display: flex; align-items: center; gap: 4px; }
+      .row { margin-bottom: 10px; }
+      .row.pending .label::after { content: " ●"; color: var(--vscode-charts-orange, var(--vscode-button-background)); }
+      .row.inherited .controls, .row.inherited .switch { opacity: 0.6; }
+      .source { margin-left: 6px; opacity: 0.7; font-size: 0.85em; }
+      .footer { border-top: 1px solid var(--vscode-panel-border); padding-top: 10px; }
+      .toggle-row { display: flex; align-items: center; gap: 8px; }
+      .toggle-row .toggle { flex: 1; margin-bottom: 0; }
+      .label { margin-bottom: 4px; }
+      .controls { display: flex; align-items: center; gap: 6px; }
+      .swatch { width: 18px; height: 18px; border: 1px solid var(--vscode-panel-border); display: inline-block; }
+      input[type="color"] { width: 40px; height: 22px; padding: 0; border: none; background: none; }
+      button { color: var(--vscode-button-foreground); background: var(--vscode-button-background); border: none; padding: 2px 8px; cursor: pointer; }
+      button:hover { background: var(--vscode-button-hoverBackground); }
+      h2 { font-size: var(--vscode-font-size); text-transform: uppercase; opacity: 0.7; margin: 0 0 8px; }
+      .section { margin-bottom: 16px; }
+      .toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; cursor: pointer; }
+      .switch { position: relative; flex: none; width: 32px; height: 18px; }
+      .switch input { position: absolute; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+      .slider { position: absolute; inset: 0; border-radius: 9px; background: var(--vscode-panel-border); transition: background 0.1s; pointer-events: none; }
+      .slider::before { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--vscode-button-foreground); transition: transform 0.1s; }
+      .switch input:checked + .slider { background: var(--vscode-button-background); }
+      .switch input:checked + .slider::before { transform: translateX(14px); }
+      .switch input:focus-visible + .slider { outline: 1px solid var(--vscode-focusBorder); }
+      .select-row .controls { flex-wrap: wrap; }
+      .segmented { display: inline-flex; border: 1px solid var(--vscode-panel-border); overflow: hidden; }
+      .segment { background: transparent; color: var(--vscode-foreground); opacity: 0.7; padding: 2px 8px; }
+      .segment + .segment { border-left: 1px solid var(--vscode-panel-border); }
+      .segment:hover { background: var(--vscode-list-hoverBackground, var(--vscode-button-hoverBackground)); }
+      .segment[data-current="true"] { opacity: 1; color: var(--vscode-button-foreground); background: var(--vscode-button-background); }
+      .segment:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: -1px; }
+      .hex { width: 72px; font-family: var(--vscode-editor-font-family, monospace); color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-panel-border); padding: 1px 4px; }
+      .hex.invalid { border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground)); }
+      button.icon { display: inline-flex; align-items: center; padding: 2px 4px; }
+      .editor { margin-top: 6px; }
+      .editor summary { cursor: pointer; opacity: 0.7; font-size: 0.9em; }
+      .plane { position: relative; width: 100%; height: 96px; margin: 6px 0; background: #ff0000; touch-action: none; cursor: crosshair; }
+      .plane::before, .plane::after { content: ""; position: absolute; inset: 0; }
+      .plane::before { background: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 0)); }
+      .plane::after { background: linear-gradient(to bottom, rgba(0, 0, 0, 0), #000000); }
+      .plane-marker { position: absolute; z-index: 1; width: 10px; height: 10px; margin: -5px 0 0 -5px; border: 1px solid #ffffff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6); pointer-events: none; }
+      .modes { display: flex; gap: 4px; margin: 6px 0; }
+      .mode { opacity: 0.5; padding: 1px 8px; }
+      .mode.active { opacity: 1; }
+      .sliders.hidden { display: none; }
+      .slider-line { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+      .slider-name { width: 14px; opacity: 0.7; font-size: 0.9em; }
+      .slider-readout { width: 30px; text-align: right; opacity: 0.7; font-size: 0.9em; }
+      input[type="range"] { flex: 1; height: 10px; appearance: none; -webkit-appearance: none; border-radius: 5px; background: var(--vscode-panel-border); }
+      input[type="range"]::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 10px; height: 14px; border-radius: 2px; background: var(--vscode-button-foreground); border: 1px solid var(--vscode-panel-border); cursor: pointer; }
+      input[type="range"][data-slider="h"] { background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000); }
+      input[type="range"][data-slider="r"] { background: linear-gradient(to right, #000000, #ff0000); }
+      input[type="range"][data-slider="g"] { background: linear-gradient(to right, #000000, #00ff00); }
+      input[type="range"][data-slider="b"] { background: linear-gradient(to right, #000000, #0000ff); }
