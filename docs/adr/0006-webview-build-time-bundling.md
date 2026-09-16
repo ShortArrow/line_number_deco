@@ -1,4 +1,4 @@
-# 0006. Webview build-time bundling
+# 6. The webview script and stylesheet are bundled at build time
 
 Status: accepted
 

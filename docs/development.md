@@ -8,7 +8,7 @@ Everything below runs from a clone of the repository. The extension source is `s
 | --- | --- | --- |
 | pnpm | 11.22.0 | `packageManager` in every `package.json` |
 | Node.js | 22 | the extension: build, unit tests, packaging, release |
-| Node.js | 25.x | the `ui-test/` harness only |
+| Node.js | 22 or 25, never 26 | the `ui-test/` harness (CI runs it on 22, local runs are proven on 25) |
 
 Node 26 breaks the `ui-test/` harness: ExTester unpacks the VS Code download through extract-zip 2.0.1, whose unpack promise never settles there, so the run stalls with a truncated VS Code tree.
 
@@ -20,11 +20,15 @@ Install the root dependencies with `pnpm install`. Each harness is installed sep
 pnpm test
 ```
 
-The `test` script runs `pretest` first, which is `pnpm run clean && pnpm run compile && pnpm run lint` — `rimraf ./out`, then `tsc -p ./`, then `eslint src --ext ts`. It then launches `node ./out/test/runTest.js`, which downloads a VS Code build and runs the Mocha suite inside it. Compiled JavaScript lands in `out/`, so `out/test/` holds the suite and `out/generated/generated.js` the table the extension imports at runtime.
+The `test` script runs `pretest` first, which is `pnpm run clean && pnpm run compile && pnpm run lint` — `rimraf ./out`, then the three steps of `compile`, then `eslint src --ext ts`. It then launches `node ./out/test/runTest.js`, which downloads a VS Code build and runs the Mocha suite inside it. Compiled JavaScript lands in `out/`, so `out/test/` holds the suite, `out/generated/generated.js` the command table the extension imports at runtime, and `out/generated/webviewAssets.js` the bundled panel script and stylesheet.
+
+`compile` is `node scripts/bundle-webview.mjs && tsc -p src/webview --noEmit && tsc -p ./`. The bundling step runs esbuild over `src/webview/panel.ts` and `src/webview/panel.css` and writes `src/generated/webviewAssets.ts`, which `src/panelHtml.ts` imports. That file is gitignored and produced by the build, so it has to exist before either tsc pass. The first pass typechecks the webview against DOM types under `src/webview/tsconfig.json` and emits nothing; the second builds the extension itself.
+
+`pnpm watch` runs `tsc -watch -p ./` alone, so it re-emits the extension but does not re-bundle. An edit to `src/webview/panel.ts` or `src/webview/panel.css` reaches the panel only after a `pnpm compile`.
 
 On Linux the suite needs a display; CI runs it as `xvfb-run -a pnpm test`.
 
-To compile without testing, run `pnpm compile`; `pnpm watch` keeps `tsc` running. `pnpm package` is an alias for the compile step that `vsce` calls through `vscode:prepublish`.
+To compile without testing, run `pnpm compile`. `pnpm package` is an alias for the compile step that `vsce` calls through `vscode:prepublish`.
 
 ## Regenerate the reference documents
 
@@ -32,7 +36,9 @@ To compile without testing, run `pnpm compile`; `pnpm watch` keeps `tsc` running
 pnpm generate
 ```
 
-This runs `src/generater/fromPackageJson.ts` and rewrites `docs/commands.md` and `docs/settings.md` from the `contributes` block of `package.json`. `src/test/docs.test.ts` binds the two documents to the manifest in both directions: a contributed command or configuration key missing from its table fails, and so does a table row naming an id the manifest no longer has. Run `pnpm generate` after touching `contributes` or the suite goes red.
+This runs `src/generater/fromPackageJson.ts`, which reads the `contributes` block of `package.json` and rewrites three files: `src/generated/generated.ts`, the command wrapper class the extension imports, and the tables in `docs/commands.md` and `docs/settings.md`. Running it twice in a row changes nothing the second time, so a clean `git diff` after a run means the transcriptions are current.
+
+`src/test/docs.test.ts` binds the two documents to the manifest in both directions: a contributed command or configuration key missing from its table fails, and so does a table row naming an id the manifest no longer has. Run `pnpm generate` after touching `contributes` or the suite goes red.
 
 ## Click the settings panel
 

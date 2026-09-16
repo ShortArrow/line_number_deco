@@ -1,76 +1,141 @@
-import { readFile } from 'fs/promises';
-import { writeFile } from 'fs/promises';
+/**
+ * Regenerate everything that transcribes the `contributes` block of
+ * `package.json`: the command wrapper class the extension imports, and the two
+ * reference tables under `docs/`.
+ *
+ * A transcription rots silently, so it is written by a script and checked by
+ * `src/test/docs.test.ts` in both directions.
+ */
 
-function getFilePath() {
-  return 'package.json';
+import { readFile, writeFile } from 'fs/promises';
+
+type ContributedCommand = { command: string; title: string };
+
+type ContributedProperty = {
+  type: string;
+  format?: string;
+  default?: unknown;
+  description?: string;
+};
+
+type Manifest = {
+  name?: string;
+  contributes?: {
+    commands?: ContributedCommand[];
+    configuration?: { properties?: Record<string, ContributedProperty> };
+  };
+};
+
+const manifestPath = 'package.json';
+const generatedClassPath = './src/generated/generated.ts';
+const commandsDocPath = './docs/commands.md';
+const settingsDocPath = './docs/settings.md';
+
+async function readManifest(): Promise<Manifest> {
+  return JSON.parse(await readFile(manifestPath, 'utf8'));
 }
 
-async function getKeyValue(key: string): Promise<string | null> {
-  try {
-    // read the file asynchronously
-    const fileContent = await readFile(getFilePath(), 'utf8');
-    // parse the read JSON into an object
-    const json = JSON.parse(fileContent);
-    // return the value of the specified key
-    return json[key] || null;
-  } catch (error) {
-    console.error('Error reading or parsing JSON file:', error);
-    return null;
+/**
+ * The class name the extension imports, derived from the package name:
+ * `line-number-deco` becomes `LineNumberDeco`.
+ */
+function classNameOf(packageName: string): string {
+  return packageName
+    .replace(/-(.)/g, (_match: string, letter: string) => letter.toUpperCase())
+    .replace(/^(.)/, (letter: string) => letter.toUpperCase());
+}
+
+function renderCommandClass(className: string, commands: ContributedCommand[]): string {
+  const methods = commands.map(({ command, title }) => {
+    const methodName = command.split('.').pop();
+    return `  /**
+   * ${title}
+   */
+  static ${methodName}(callback: Function) {
+    return vscode.commands.registerCommand('${command}', () =>
+      callback()
+    );
+  }`;
+  });
+  return (
+    '// This file is generated from package.json.\n' +
+    '// Do not modify this file manually.\n\n' +
+    'import * as vscode from "vscode";\n\n' +
+    `export class ${className} {\n` +
+    methods.join('\n\n') +
+    '\n}'
+  );
+}
+
+function renderCommandsDoc(commands: ContributedCommand[]): string {
+  const rows = commands.map(
+    ({ command, title }) => `| \`${command}\` | ${title} |`
+  );
+  return `# Commands
+
+Every command of the extension, with the id to use from a keybinding or \`init.lua\`. Workspace variants write to the current workspace; \`ForUser\` variants write to your user settings.
+
+| Command | Title |
+| --- | --- |
+${rows.join('\n')}
+
+Calling one from [VSCode Neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim):
+
+\`\`\`lua
+vim.fn.VSCodeNotify('line-number-deco.toggleSettingsPanel')
+\`\`\`
+`;
+}
+
+/**
+ * A color key is declared as a string with `"format": "color"`, and the table
+ * names that format rather than the JSON type, because the format is what
+ * decides whether `settings.json` offers a color picker.
+ */
+function typeOf(property: ContributedProperty): string {
+  return property.format === 'color' ? 'color' : property.type;
+}
+
+/**
+ * An empty default on a color key means the theme decides, so the table says
+ * so instead of showing an empty cell.
+ */
+function defaultOf(property: ContributedProperty): string {
+  if (typeOf(property) === 'color' && property.default === '') {
+    return '(theme color)';
   }
+  return `\`${JSON.stringify(property.default)}\``.replace(/"/g, '');
 }
 
-async function readCommands(): Promise<any[] | null> {
-  try {
-    // read the file asynchronously
-    const fileContent = await readFile(getFilePath(), 'utf8');
-    // parse the read JSON into an object
-    const json = JSON.parse(fileContent);
-    // return the 'contributes.commands' array
-    return json.contributes?.commands || null;
-  } catch (error) {
-    console.error('Error reading or parsing JSON file:', error);
-    return null;
-  }
+function renderSettingsDoc(properties: Record<string, ContributedProperty>): string {
+  const rows = Object.entries(properties).map(
+    ([key, property]) =>
+      `| \`${key}\` | ${typeOf(property)} | ${defaultOf(property)} | ${property.description ?? ''} |`
+  );
+  return `# Settings
+
+Every configuration key of the extension. All of them are also editable from the settings panel in the activity bar.
+
+| Setting | Type | Default | Description |
+| --- | --- | --- | --- |
+${rows.join('\n')}
+`;
 }
 
-async function getExtensionName() {
-  const name = await getKeyValue('name');
-  return name || 'No name found';
-}
-
-async function generateFile(outputPath: string) {
-  const commands = await readCommands();
+async function generate(): Promise<void> {
+  const manifest = await readManifest();
+  const commands = manifest.contributes?.commands;
   if (!commands) {
     throw new Error('No extension commands found');
   }
-  const thisExtension = (await getExtensionName())
-    .replace(/-(.)/g, (_match: string, group1: string) => group1.toUpperCase())
-    .replace(/^(.)/, (match: string) => match.toUpperCase());
-  const warning = `// This file is generated from package.json.\n// Do not modify this file manually.\n\n`;
-  const importVscode = `import * as vscode from "vscode";\n\n`;
-  const classHeader = `export class ${thisExtension} {\n`;
-  const classFooter = `\n}`;
-  const lines = commands.map((command: any) => {
-    const { command: name, title } = command;
-    const commandName = name.split('.').pop();
-    return (
-      `  /**
-   * ${title}
-   */   
-  static ${commandName}(callback: Function) {
-    return vscode.commands.registerCommand(\'${name}\', () =>
-      callback()
-    );
-  }`
-    );
-  });
-  const content =
-    warning +
-    importVscode +
-    classHeader +
-    lines.join('\n\n') +
-    classFooter;
-  await writeFile(outputPath, content);
+  const properties = manifest.contributes?.configuration?.properties;
+  if (!properties) {
+    throw new Error('No extension configuration properties found');
+  }
+  const className = classNameOf(manifest.name ?? 'extension');
+  await writeFile(generatedClassPath, renderCommandClass(className, commands));
+  await writeFile(commandsDocPath, renderCommandsDoc(commands));
+  await writeFile(settingsDocPath, renderSettingsDoc(properties));
 }
 
-generateFile('./src/generated/generated.ts');
+generate();
