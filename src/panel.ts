@@ -25,6 +25,8 @@ const labels: { key: string; label: string }[] = [
   { key: "foregroundColorOfSequentialDigits", label: "Sequential digits" },
   { key: "activeForeground", label: "Active line number" },
   { key: "foreground", label: "Inactive line number" },
+  { key: "errorForeground", label: "Error lines" },
+  { key: "warningForeground", label: "Warning lines" },
 ];
 
 // No fallback beside the label: inspect() reports the package.json default
@@ -34,6 +36,7 @@ const toggles: { key: string; label: string }[] = [
   { key: "enableRainbow", label: "Rainbow" },
   { key: "enableRepeatingDigits", label: "Repeating digits" },
   { key: "enableSequentialDigits", label: "Sequential digits" },
+  { key: "enableDiagnostics", label: "Diagnostics" },
 ];
 
 const selectSection = "editor";

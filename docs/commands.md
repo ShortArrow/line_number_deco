@@ -30,6 +30,14 @@ Every command of the extension, with the id to use from a keybinding or `init.lu
 | `line-number-deco.disableSequentialDigits` | LineNumberDeco: Disable sequential digits color for workspace |
 | `line-number-deco.enableSequentialDigitsForUser` | LineNumberDeco: Enable sequential digits color for user |
 | `line-number-deco.disableSequentialDigitsForUser` | LineNumberDeco: Disable sequential digits color for user |
+| `line-number-deco.enableDiagnostics` | LineNumberDeco: Enable diagnostics color for workspace |
+| `line-number-deco.disableDiagnostics` | LineNumberDeco: Disable diagnostics color for workspace |
+| `line-number-deco.enableDiagnosticsForUser` | LineNumberDeco: Enable diagnostics color for user |
+| `line-number-deco.disableDiagnosticsForUser` | LineNumberDeco: Disable diagnostics color for user |
+| `line-number-deco.updateColorAtErrorLines` | LineNumberDeco: Update color of error lines for workspace |
+| `line-number-deco.updateColorAtErrorLinesForUser` | LineNumberDeco: Update color of error lines for user |
+| `line-number-deco.updateColorAtWarningLines` | LineNumberDeco: Update color of warning lines for workspace |
+| `line-number-deco.updateColorAtWarningLinesForUser` | LineNumberDeco: Update color of warning lines for user |
 | `line-number-deco.showSettingsPanel` | LineNumberDeco: Show settings panel |
 | `line-number-deco.hideSettingsPanel` | LineNumberDeco: Hide settings panel |
 | `line-number-deco.toggleSettingsPanel` | LineNumberDeco: Toggle settings panel |

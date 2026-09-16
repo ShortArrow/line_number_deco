@@ -10,6 +10,12 @@ import {
   getColorCodeAtRepeatingDigitsForUser,
   getColorCodeAtSequentialDigits,
   getColorCodeAtSequentialDigitsForUser,
+  getColorCodeAtErrorLines,
+  getColorCodeAtErrorLinesForUser,
+  getColorCodeAtWarningLines,
+  getColorCodeAtWarningLinesForUser,
+  updateEnableDiagnostics,
+  updateEnableDiagnosticsForUser,
   updateEnableRainbowForUser,
   updateEnableRainbowForWorkspace,
   updateEnableRelativeLine,
@@ -78,6 +84,16 @@ const commands = [
       updateRelativeLineNumbers(editor, decorationType);
     }
   }),
+  vscode.languages.onDidChangeDiagnostics((event) => {
+    // A language server reports for documents nobody is looking at, so the
+    // changed uris decide whether anything on screen could have moved.
+    const changed = new Set(event.uris.map((uri) => uri.toString()));
+    for (const editor of vscode.window.visibleTextEditors) {
+      if (changed.has(editor.document.uri.toString())) {
+        scheduleUpdate(editor);
+      }
+    }
+  }),
   LineNumberDeco.enableRelativeLineNumbers(() => updateEnableRelativeLine(true)),
   LineNumberDeco.disableRelativeLineNumbers(() => updateEnableRelativeLine(false)),
   LineNumberDeco.enableRelativeLineNumbersForUser(() => updateEnableRelativeLineForUser(true)),
@@ -98,6 +114,14 @@ const commands = [
   LineNumberDeco.disableSequentialDigitsForUser(() => updateEnableSequentialDigitsForUser(false)),
   LineNumberDeco.updateColorAtSequentialDigits(getColorCodeAtSequentialDigits),
   LineNumberDeco.updateColorAtSequentialDigitsForUser(getColorCodeAtSequentialDigitsForUser),
+  LineNumberDeco.enableDiagnostics(() => updateEnableDiagnostics(true)),
+  LineNumberDeco.disableDiagnostics(() => updateEnableDiagnostics(false)),
+  LineNumberDeco.enableDiagnosticsForUser(() => updateEnableDiagnosticsForUser(true)),
+  LineNumberDeco.disableDiagnosticsForUser(() => updateEnableDiagnosticsForUser(false)),
+  LineNumberDeco.updateColorAtErrorLines(getColorCodeAtErrorLines),
+  LineNumberDeco.updateColorAtErrorLinesForUser(getColorCodeAtErrorLinesForUser),
+  LineNumberDeco.updateColorAtWarningLines(getColorCodeAtWarningLines),
+  LineNumberDeco.updateColorAtWarningLinesForUser(getColorCodeAtWarningLinesForUser),
   LineNumberDeco.updateColorAtCenterOfRainbow(getColorCodeAtCenterOfRainbow),
   LineNumberDeco.updateColorAtCenterOfRainbowForUser(getColorCodeAtCenterOfRainbowForUser),
   LineNumberDeco.updateColorAtInactiveRowNumberForUser(getColorCodeAtInactiveRowNumberForUser),

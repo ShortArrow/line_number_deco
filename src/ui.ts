@@ -6,6 +6,8 @@ import {
     getColorAtInactiveRowNumber,
     getColorAtRepeatingDigits,
     getColorAtSequentialDigits,
+    getColorAtErrorLines,
+    getColorAtWarningLines,
     defaultCenterColorOfRainbow,
 } from "./config";
     
@@ -70,6 +72,22 @@ export async function updateColorAtSequentialDigitsForUser(set: string) {
   updateUserConfig("foregroundColorOfSequentialDigits", set);
 }
 
+export async function updateColorAtErrorLines(set: string) {
+  updateWorkspaceConfig("errorForeground", set);
+}
+
+export async function updateColorAtErrorLinesForUser(set: string) {
+  updateUserConfig("errorForeground", set);
+}
+
+export async function updateColorAtWarningLines(set: string) {
+  updateWorkspaceConfig("warningForeground", set);
+}
+
+export async function updateColorAtWarningLinesForUser(set: string) {
+  updateUserConfig("warningForeground", set);
+}
+
 async function getColorCode(
   prompt: string,
   defaultValue: string,
@@ -122,6 +140,42 @@ export async function getColorCodeAtSequentialDigitsForUser() {
     "",
     getColorAtSequentialDigits,
     updateColorAtSequentialDigitsForUser
+  );
+}
+
+export async function getColorCodeAtErrorLines() {
+  await getColorCode(
+    "Please input color code at error lines",
+    "",
+    getColorAtErrorLines,
+    updateColorAtErrorLines
+  );
+}
+
+export async function getColorCodeAtErrorLinesForUser() {
+  await getColorCode(
+    "Please input color code at error lines",
+    "",
+    getColorAtErrorLines,
+    updateColorAtErrorLinesForUser
+  );
+}
+
+export async function getColorCodeAtWarningLines() {
+  await getColorCode(
+    "Please input color code at warning lines",
+    "",
+    getColorAtWarningLines,
+    updateColorAtWarningLines
+  );
+}
+
+export async function getColorCodeAtWarningLinesForUser() {
+  await getColorCode(
+    "Please input color code at warning lines",
+    "",
+    getColorAtWarningLines,
+    updateColorAtWarningLinesForUser
   );
 }
 
@@ -201,4 +255,12 @@ export async function updateEnableSequentialDigits(set: boolean) {
 
 export async function updateEnableSequentialDigitsForUser(set: boolean) {
   updateUserConfig("enableSequentialDigits", set);
+}
+
+export async function updateEnableDiagnostics(set: boolean) {
+  updateWorkspaceConfig("enableDiagnostics", set);
+}
+
+export async function updateEnableDiagnosticsForUser(set: boolean) {
+  updateUserConfig("enableDiagnostics", set);
 }

@@ -20,7 +20,7 @@ Relative line numbers appear beside the absolute ones, following the cursor as i
 ![Relative numbers following the cursor](./images/Animation.gif)
 ![Relative and absolute numbers side by side](./images/static_image.png)
 
-Three optional decorations color the numbers further. The rainbow colors each number by its distance from the cursor. Repeating digits gives numbers whose digits all repeat (11, 22, 333) their own color. Sequential digits does the same for runs of consecutive digits (123, 543, 10).
+Four optional decorations color the numbers further. The rainbow colors each number by its distance from the cursor. Repeating digits gives numbers whose digits all repeat (11, 22, 333) their own color. Sequential digits does the same for runs of consecutive digits (123, 543, 10). Diagnostics paints the numbers of lines carrying an error or a warning.
 
 ## Settings panel
 
@@ -30,7 +30,7 @@ The LineNumberDeco icon in the activity bar opens a panel for every setting of t
 
 ## Settings
 
-Relative line numbers are on by default and use your theme's colors. Each decoration from the Features section has an enable key (`enableRainbow`, `enableRepeatingDigits`, `enableSequentialDigits`) and a color key beside it.
+Relative line numbers are on by default and use your theme's colors. Each decoration from the Features section has an enable key (`enableRainbow`, `enableRepeatingDigits`, `enableSequentialDigits`, `enableDiagnostics`) and a color key beside it.
 
 Every key, with types and defaults: [docs/settings.md](docs/settings.md).
 
