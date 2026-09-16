@@ -6,7 +6,7 @@ import * as vscode from "vscode";
 export class LineNumberDeco {
   /**
    * LineNumberDeco: Enable rainbow for workspace
-   */   
+   */
   static enableRainbow(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.enableRainbow', () =>
       callback()
@@ -15,7 +15,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Disable rainbow for workspace
-   */   
+   */
   static disableRainbow(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.disableRainbow', () =>
       callback()
@@ -24,7 +24,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Enable rainbow for user
-   */   
+   */
   static enableRainbowForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.enableRainbowForUser', () =>
       callback()
@@ -33,7 +33,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Disable rainbow for user
-   */   
+   */
   static disableRainbowForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.disableRainbowForUser', () =>
       callback()
@@ -41,8 +41,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Update color at center of rainbow for workspace
-   */   
+   * LineNumberDeco: Update color of the rainbow center for workspace
+   */
   static updateColorAtCenterOfRainbow(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.updateColorAtCenterOfRainbow', () =>
       callback()
@@ -50,8 +50,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Update color at center of rainbow for user
-   */   
+   * LineNumberDeco: Update color of the rainbow center for user
+   */
   static updateColorAtCenterOfRainbowForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.updateColorAtCenterOfRainbowForUser', () =>
       callback()
@@ -59,8 +59,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Update color at current row number
-   */   
+   * LineNumberDeco: Update color of the current line number for workspace
+   */
   static updateColorAtActiveRowNumber(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.updateColorAtActiveRowNumber', () =>
       callback()
@@ -68,8 +68,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Update color at current row number for user
-   */   
+   * LineNumberDeco: Update color of the current line number for user
+   */
   static updateColorAtActiveRowNumberForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.updateColorAtActiveRowNumberForUser', () =>
       callback()
@@ -77,8 +77,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Update color at inactive row number
-   */   
+   * LineNumberDeco: Update color of inactive line numbers for workspace
+   */
   static updateColorAtInactiveRowNumber(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.updateColorAtInactiveRowNumber', () =>
       callback()
@@ -86,8 +86,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Update color at inactive row number for user
-   */   
+   * LineNumberDeco: Update color of inactive line numbers for user
+   */
   static updateColorAtInactiveRowNumberForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.updateColorAtInactiveRowNumberForUser', () =>
       callback()
@@ -96,7 +96,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Update color of repeating digits for workspace
-   */   
+   */
   static updateColorAtRepeatingDigits(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.updateColorAtRepeatingDigits', () =>
       callback()
@@ -105,7 +105,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Update color of repeating digits for user
-   */   
+   */
   static updateColorAtRepeatingDigitsForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.updateColorAtRepeatingDigitsForUser', () =>
       callback()
@@ -114,7 +114,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Update color of sequential digits for workspace
-   */   
+   */
   static updateColorAtSequentialDigits(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.updateColorAtSequentialDigits', () =>
       callback()
@@ -123,7 +123,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Update color of sequential digits for user
-   */   
+   */
   static updateColorAtSequentialDigitsForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.updateColorAtSequentialDigitsForUser', () =>
       callback()
@@ -131,8 +131,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Enable Relative Line Numbers in This workspace
-   */   
+   * LineNumberDeco: Enable relative line numbers for workspace
+   */
   static enableRelativeLineNumbers(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.enableRelativeLineNumbers', () =>
       callback()
@@ -140,8 +140,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Enable Relative Line Numbers for user
-   */   
+   * LineNumberDeco: Enable relative line numbers for user
+   */
   static enableRelativeLineNumbersForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.enableRelativeLineNumbersForUser', () =>
       callback()
@@ -149,8 +149,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Disable Relative Line Numbers in This workspace
-   */   
+   * LineNumberDeco: Disable relative line numbers for workspace
+   */
   static disableRelativeLineNumbers(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.disableRelativeLineNumbers', () =>
       callback()
@@ -158,8 +158,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Disable Relative Line Numbers for user
-   */   
+   * LineNumberDeco: Disable relative line numbers for user
+   */
   static disableRelativeLineNumbersForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.disableRelativeLineNumbersForUser', () =>
       callback()
@@ -167,8 +167,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Enable repeating digits in this workspace
-   */   
+   * LineNumberDeco: Enable repeating digits color for workspace
+   */
   static enableRepeatingDigits(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.enableRepeatingDigits', () =>
       callback()
@@ -176,8 +176,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Disable repeating digits color in this workspace
-   */   
+   * LineNumberDeco: Disable repeating digits color for workspace
+   */
   static disableRepeatingDigits(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.disableRepeatingDigits', () =>
       callback()
@@ -186,7 +186,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Enable repeating digits color for user
-   */   
+   */
   static enableRepeatingDigitsForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.enableRepeatingDigitsForUser', () =>
       callback()
@@ -195,7 +195,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Disable repeating digits color for user
-   */   
+   */
   static disableRepeatingDigitsForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.disableRepeatingDigitsForUser', () =>
       callback()
@@ -203,8 +203,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Enable sequential digits in this workspace
-   */   
+   * LineNumberDeco: Enable sequential digits color for workspace
+   */
   static enableSequentialDigits(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.enableSequentialDigits', () =>
       callback()
@@ -212,8 +212,8 @@ export class LineNumberDeco {
   }
 
   /**
-   * LineNumberDeco: Disable sequential digits color in this workspace
-   */   
+   * LineNumberDeco: Disable sequential digits color for workspace
+   */
   static disableSequentialDigits(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.disableSequentialDigits', () =>
       callback()
@@ -222,7 +222,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Enable sequential digits color for user
-   */   
+   */
   static enableSequentialDigitsForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.enableSequentialDigitsForUser', () =>
       callback()
@@ -231,7 +231,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Disable sequential digits color for user
-   */   
+   */
   static disableSequentialDigitsForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.disableSequentialDigitsForUser', () =>
       callback()
@@ -240,7 +240,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Show settings panel
-   */   
+   */
   static showSettingsPanel(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.showSettingsPanel', () =>
       callback()
@@ -249,7 +249,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Hide settings panel
-   */   
+   */
   static hideSettingsPanel(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.hideSettingsPanel', () =>
       callback()
@@ -258,7 +258,7 @@ export class LineNumberDeco {
 
   /**
    * LineNumberDeco: Toggle settings panel
-   */   
+   */
   static toggleSettingsPanel(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.toggleSettingsPanel', () =>
       callback()

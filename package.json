@@ -1,7 +1,7 @@
 {
   "name": "line-number-deco",
   "displayName": "LineNumberDeco",
-  "description": "VSCode extension to display relative line numbers",
+  "description": "Show relative line numbers beside the absolute ones, as decorations",
   "publisher": "ShortArrow",
   "version": "0.0.12",
   "sponsor": {
@@ -72,27 +72,27 @@
       },
       {
         "command": "line-number-deco.updateColorAtCenterOfRainbow",
-        "title": "LineNumberDeco: Update color at center of rainbow for workspace"
+        "title": "LineNumberDeco: Update color of the rainbow center for workspace"
       },
       {
         "command": "line-number-deco.updateColorAtCenterOfRainbowForUser",
-        "title": "LineNumberDeco: Update color at center of rainbow for user"
+        "title": "LineNumberDeco: Update color of the rainbow center for user"
       },
       {
         "command": "line-number-deco.updateColorAtActiveRowNumber",
-        "title": "LineNumberDeco: Update color at current row number"
+        "title": "LineNumberDeco: Update color of the current line number for workspace"
       },
       {
         "command": "line-number-deco.updateColorAtActiveRowNumberForUser",
-        "title": "LineNumberDeco: Update color at current row number for user"
+        "title": "LineNumberDeco: Update color of the current line number for user"
       },
       {
         "command": "line-number-deco.updateColorAtInactiveRowNumber",
-        "title": "LineNumberDeco: Update color at inactive row number"
+        "title": "LineNumberDeco: Update color of inactive line numbers for workspace"
       },
       {
         "command": "line-number-deco.updateColorAtInactiveRowNumberForUser",
-        "title": "LineNumberDeco: Update color at inactive row number for user"
+        "title": "LineNumberDeco: Update color of inactive line numbers for user"
       },
       {
         "command": "line-number-deco.updateColorAtRepeatingDigits",
@@ -112,27 +112,27 @@
       },
       {
         "command": "line-number-deco.enableRelativeLineNumbers",
-        "title": "LineNumberDeco: Enable Relative Line Numbers in This workspace"
+        "title": "LineNumberDeco: Enable relative line numbers for workspace"
       },
       {
         "command": "line-number-deco.enableRelativeLineNumbersForUser",
-        "title": "LineNumberDeco: Enable Relative Line Numbers for user"
+        "title": "LineNumberDeco: Enable relative line numbers for user"
       },
       {
         "command": "line-number-deco.disableRelativeLineNumbers",
-        "title": "LineNumberDeco: Disable Relative Line Numbers in This workspace"
+        "title": "LineNumberDeco: Disable relative line numbers for workspace"
       },
       {
         "command": "line-number-deco.disableRelativeLineNumbersForUser",
-        "title": "LineNumberDeco: Disable Relative Line Numbers for user"
+        "title": "LineNumberDeco: Disable relative line numbers for user"
       },
       {
         "command": "line-number-deco.enableRepeatingDigits",
-        "title": "LineNumberDeco: Enable repeating digits in this workspace"
+        "title": "LineNumberDeco: Enable repeating digits color for workspace"
       },
       {
         "command": "line-number-deco.disableRepeatingDigits",
-        "title": "LineNumberDeco: Disable repeating digits color in this workspace"
+        "title": "LineNumberDeco: Disable repeating digits color for workspace"
       },
       {
         "command": "line-number-deco.enableRepeatingDigitsForUser",
@@ -144,11 +144,11 @@
       },
       {
         "command": "line-number-deco.enableSequentialDigits",
-        "title": "LineNumberDeco: Enable sequential digits in this workspace"
+        "title": "LineNumberDeco: Enable sequential digits color for workspace"
       },
       {
         "command": "line-number-deco.disableSequentialDigits",
-        "title": "LineNumberDeco: Disable sequential digits color in this workspace"
+        "title": "LineNumberDeco: Disable sequential digits color for workspace"
       },
       {
         "command": "line-number-deco.enableSequentialDigitsForUser",
@@ -177,52 +177,52 @@
         "LineNumberDeco.enableRelativeLine": {
           "type": "boolean",
           "default": true,
-          "description": "Enable display relative line"
+          "description": "Show relative line numbers"
         },
         "LineNumberDeco.centerColorOfRainbow": {
           "type": "string",
           "format": "color",
           "default": "#0000ff",
-          "description": "Center color of rainbow"
+          "description": "Color at the center of the rainbow, on the current line"
         },
         "LineNumberDeco.foregroundColorOfRepeatingDigits": {
           "type": "string",
           "format": "color",
           "default": "#00ff00",
-          "description": "Foreground color of Repeating digits"
+          "description": "Color of repeating-digit line numbers (11, 22, 333)"
         },
         "LineNumberDeco.foregroundColorOfSequentialDigits": {
           "type": "string",
           "format": "color",
           "default": "#ffa500",
-          "description": "Foreground color of sequential digits"
+          "description": "Color of sequential-digit line numbers (123, 543, 10)"
         },
         "LineNumberDeco.enableRainbow": {
           "type": "boolean",
           "default": false,
-          "description": "Enable rainbow color"
+          "description": "Color each line number by its distance from the cursor"
         },
         "LineNumberDeco.enableRepeatingDigits": {
           "type": "boolean",
           "default": false,
-          "description": "Enable color of repeating digits"
+          "description": "Give repeating-digit line numbers (11, 22, 333) their own color"
         },
         "LineNumberDeco.enableSequentialDigits": {
           "type": "boolean",
           "default": false,
-          "description": "Enable color of sequential digits (poker straights like 123 or 543)"
+          "description": "Give sequential-digit line numbers (123, 543, 10) their own color — the poker mode"
         },
         "LineNumberDeco.activeForeground": {
           "type": "string",
           "default": "",
           "format": "color",
-          "description": "Override color of active relative line number"
+          "description": "Color of the current line's number; empty uses the theme color"
         },
         "LineNumberDeco.foreground": {
           "type": "string",
           "format": "color",
           "default": "",
-          "description": "Override color of inactive relative line number"
+          "description": "Color of the other line numbers; empty uses the theme color"
         }
       }
     },
@@ -259,7 +259,7 @@
     "pretest": "pnpm run clean && pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
     "test": "pnpm run pretest && node ./out/test/runTest.js",
-    "generate": "pnpm dlx ts-node ./generater/fromPackageJson.ts"
+    "generate": "pnpm dlx ts-node ./src/generater/fromPackageJson.ts"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",

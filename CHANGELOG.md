@@ -31,8 +31,8 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
   - `line-number-doco.disableRelativeLineNumbers` -> `line-number-deco.disableRelativeLineNumbers`
 - Fix typo Extension Config name
   - `enableRlativeLineOnDefault` -> `enableRelativeLine`
-- Add mention Emacs at README.md
-  - this means that this extension is useful for Emacs users
+- Mention Emacs in `README.md`
+  - this extension is useful for Emacs users too
 - Add decoration for consecutive line numbers
 - Add new options
   - `line-number-deco.enableRepeatingDigits`
@@ -45,13 +45,19 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 ## 0.0.7
 
 - Add 'nvim' and 'helix' to `README.md`
-- Decorated only visible parts to improve speed
+- Decorate only the visible lines, to improve speed
 - Delete Commands list and Configuration list from `README.md`
 
 ## 0.0.8
 
 - Fix bug that decoration is not updated when the cursor is moved to the end of the line
-- Fix bug that decoration is not updated when the document size is small than the editor size
+- Fix bug that decoration is not updated when the document size is smaller than the editor size
+
+## 0.0.9
+
+- Declare `extensionKind` (`ui`, `workspace`) so the extension loads on either side of a remote session
+- Published to the Marketplace on 2024-02-25; there was no GitHub release, which is why this entry was reconstructed later
+
 ## 0.0.10
 
 - The scope radio also selects which scope the panel shows, so a user-level value is visible even when the workspace overrides it
@@ -81,3 +87,4 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Dependency advisories cleared: serialize-javascript, fast-uri, qs and diff move past their patched versions (mocha goes 10 to 11 along the way); the one advisory without a fix, extract-zip inside the UI-test harness, is dismissed with its reasoning recorded on the alert
 - The settings panel remembers the selected scope across a switch to another sidebar view, and asks the extension for the current state as soon as it is shown again
 - A Sponsor link to [github.com/sponsors/ShortArrow](https://github.com/sponsors/ShortArrow) appears on the Marketplace page and in the extension details header
+- Command titles and setting descriptions are rewritten in consistent English (every id is unchanged); the README is reordered around the product, the contributor guide and decision records are brought up to date, and the missing 0.0.9 entry is restored to this file
