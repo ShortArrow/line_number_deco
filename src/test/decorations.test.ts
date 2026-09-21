@@ -3,8 +3,10 @@ import { describe, it } from 'mocha';
 import { shiftHue } from '../colors';
 import {
   DecorationSettings,
+  DiagnosticMark,
   LineColor,
   buildLineDecorationSpecs,
+  markDiagnosticLines,
 } from '../decorations';
 
 const activeColor = '#aaaaaa';
@@ -12,6 +14,8 @@ const inactiveColor = '#bbbbbb';
 const repeatingColor = '#cccccc';
 const sequentialColor = '#dddddd';
 const centerColor = '#0000ff';
+const errorColor = '#eeeeee';
+const warningColor = '#ffffff';
 
 /** The settings every case starts from: one active line, every mode off. */
 const settingsWith = (overrides: Partial<DecorationSettings> = {}): DecorationSettings => ({
@@ -25,11 +29,17 @@ const settingsWith = (overrides: Partial<DecorationSettings> = {}): DecorationSe
   repeatingDigitsColor: repeatingColor,
   enableSequentialDigits: false,
   sequentialDigitsColor: sequentialColor,
+  enableDiagnostics: false,
+  errorColor,
+  warningColor,
   ...overrides,
 });
 
 const colorsOf = (lineIndexes: number[], overrides: Partial<DecorationSettings>): LineColor[] =>
   buildLineDecorationSpecs(lineIndexes, settingsWith(overrides)).map((spec) => spec.color);
+
+const marks = (entries: [number, DiagnosticMark][]): Map<number, DiagnosticMark> =>
+  new Map(entries);
 
 describe('Test build line decoration specs', () => {
   it('Must become nothing when relative lines are disabled', () => {
@@ -104,5 +114,90 @@ describe('Test build line decoration specs', () => {
       settingsWith({ activeLineNumber: 0, inactiveColor: themeColor })
     );
     assert.strictEqual(spec.color, themeColor);
+  });
+});
+
+describe('Test mark diagnostic lines', () => {
+  it('Must keep errors and warnings only, letting an error win its line', () => {
+    const marked = markDiagnosticLines([
+      { line: 3, severity: 1 },
+      { line: 3, severity: 0 },
+      { line: 7, severity: 2 },
+      { line: 9, severity: 3 },
+      { line: 4, severity: 1 },
+    ]);
+    assert.deepStrictEqual(
+      marked,
+      marks([
+        [3, 'error'],
+        [4, 'warning'],
+      ])
+    );
+  });
+});
+
+describe('Test diagnostic colors on line numbers', () => {
+  it('Must color an error line over the active line itself', () => {
+    const [spec] = buildLineDecorationSpecs(
+      [2],
+      settingsWith({
+        activeLineNumber: 2,
+        enableDiagnostics: true,
+        errorColor: '#ff0000',
+      }),
+      marks([[2, 'error']])
+    );
+    assert.strictEqual(spec.color, '#ff0000');
+  });
+
+  it('Must color a warning line over its repeating digits', () => {
+    const [spec] = buildLineDecorationSpecs(
+      [11],
+      settingsWith({
+        activeLineNumber: 0,
+        enableRepeatingDigits: true,
+        enableDiagnostics: true,
+        warningColor: '#123456',
+      }),
+      marks([[11, 'warning']])
+    );
+    assert.strictEqual(spec.label, '11');
+    assert.strictEqual(spec.color, '#123456');
+  });
+
+  it('Must pass a diagnostic theme color through by identity', () => {
+    const themeColor = { themeColor: 'warning' };
+    const [spec] = buildLineDecorationSpecs(
+      [3],
+      settingsWith({
+        activeLineNumber: 0,
+        enableDiagnostics: true,
+        warningColor: themeColor,
+      }),
+      marks([[3, 'warning']])
+    );
+    assert.strictEqual(spec.color, themeColor);
+  });
+
+  it('Must ignore the marks entirely while diagnostics are disabled', () => {
+    const lineIndexes = [0, 2, 11, 12];
+    const settings = settingsWith({
+      activeLineNumber: 0,
+      enableDiagnostics: false,
+      enableRepeatingDigits: true,
+      enableSequentialDigits: true,
+    });
+    const withMarks = buildLineDecorationSpecs(
+      lineIndexes,
+      settings,
+      marks([
+        [0, 'error'],
+        [2, 'warning'],
+        [11, 'error'],
+        [12, 'warning'],
+      ])
+    );
+    const withoutMarks = buildLineDecorationSpecs(lineIndexes, settings, new Map());
+    assert.deepStrictEqual(withMarks, withoutMarks);
   });
 });

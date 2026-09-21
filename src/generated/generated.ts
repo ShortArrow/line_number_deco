@@ -239,6 +239,78 @@ export class LineNumberDeco {
   }
 
   /**
+   * LineNumberDeco: Enable diagnostics color for workspace
+   */
+  static enableDiagnostics(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.enableDiagnostics', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Disable diagnostics color for workspace
+   */
+  static disableDiagnostics(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.disableDiagnostics', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Enable diagnostics color for user
+   */
+  static enableDiagnosticsForUser(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.enableDiagnosticsForUser', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Disable diagnostics color for user
+   */
+  static disableDiagnosticsForUser(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.disableDiagnosticsForUser', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Update color of error lines for workspace
+   */
+  static updateColorAtErrorLines(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.updateColorAtErrorLines', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Update color of error lines for user
+   */
+  static updateColorAtErrorLinesForUser(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.updateColorAtErrorLinesForUser', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Update color of warning lines for workspace
+   */
+  static updateColorAtWarningLines(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.updateColorAtWarningLines', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Update color of warning lines for user
+   */
+  static updateColorAtWarningLinesForUser(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.updateColorAtWarningLinesForUser', () =>
+      callback()
+    );
+  }
+
+  /**
    * LineNumberDeco: Show settings panel
    */
   static showSettingsPanel(callback: Function) {

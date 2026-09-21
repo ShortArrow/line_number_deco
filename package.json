@@ -159,6 +159,38 @@
         "title": "LineNumberDeco: Disable sequential digits color for user"
       },
       {
+        "command": "line-number-deco.enableDiagnostics",
+        "title": "LineNumberDeco: Enable diagnostics color for workspace"
+      },
+      {
+        "command": "line-number-deco.disableDiagnostics",
+        "title": "LineNumberDeco: Disable diagnostics color for workspace"
+      },
+      {
+        "command": "line-number-deco.enableDiagnosticsForUser",
+        "title": "LineNumberDeco: Enable diagnostics color for user"
+      },
+      {
+        "command": "line-number-deco.disableDiagnosticsForUser",
+        "title": "LineNumberDeco: Disable diagnostics color for user"
+      },
+      {
+        "command": "line-number-deco.updateColorAtErrorLines",
+        "title": "LineNumberDeco: Update color of error lines for workspace"
+      },
+      {
+        "command": "line-number-deco.updateColorAtErrorLinesForUser",
+        "title": "LineNumberDeco: Update color of error lines for user"
+      },
+      {
+        "command": "line-number-deco.updateColorAtWarningLines",
+        "title": "LineNumberDeco: Update color of warning lines for workspace"
+      },
+      {
+        "command": "line-number-deco.updateColorAtWarningLinesForUser",
+        "title": "LineNumberDeco: Update color of warning lines for user"
+      },
+      {
         "command": "line-number-deco.showSettingsPanel",
         "title": "LineNumberDeco: Show settings panel"
       },
@@ -223,6 +255,23 @@
           "format": "color",
           "default": "",
           "description": "Color of the other line numbers; empty uses the theme color"
+        },
+        "LineNumberDeco.enableDiagnostics": {
+          "type": "boolean",
+          "default": false,
+          "description": "Color line numbers on lines with errors or warnings"
+        },
+        "LineNumberDeco.errorForeground": {
+          "type": "string",
+          "format": "color",
+          "default": "",
+          "description": "Color of line numbers on error lines; empty uses the theme color"
+        },
+        "LineNumberDeco.warningForeground": {
+          "type": "string",
+          "format": "color",
+          "default": "",
+          "description": "Color of line numbers on warning lines; empty uses the theme color"
         }
       }
     },

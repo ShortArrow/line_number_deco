@@ -1,7 +1,10 @@
 import * as vscode from "vscode";
-import { buildLineDecorationSpecs } from "./decorations";
+import { buildLineDecorationSpecs, markDiagnosticLines } from "./decorations";
 import { visibleLineIndexes } from "./visibleLines";
 import {
+  getEnableDiagnostics,
+  getErrorLineNumberColor,
+  getWarningLineNumberColor,
   getColorAtCenterOfRainbow,
   getEnableRainbow,
   getEnableRelativeLine,
@@ -36,6 +39,12 @@ export async function updateRelativeLineNumbers(
     editor.visibleRanges.map((r) => ({ startLine: r.start.line, endLine: r.end.line })),
     document.lineCount
   );
+  const diagnosticSeverities = markDiagnosticLines(
+    vscode.languages.getDiagnostics(document.uri).map((diagnostic) => ({
+      line: diagnostic.range.start.line,
+      severity: diagnostic.severity,
+    }))
+  );
   const specs = buildLineDecorationSpecs(lineIndexes, {
     enableRelativeLine: getEnableRelativeLine(),
     activeLineNumber: editor.selection.active.line,
@@ -47,7 +56,10 @@ export async function updateRelativeLineNumbers(
     repeatingDigitsColor: getColorAtRepeatingDigits(),
     enableSequentialDigits: getEnableSequentialDigits(),
     sequentialDigitsColor: getColorAtSequentialDigits(),
-  });
+    enableDiagnostics: getEnableDiagnostics(),
+    errorColor: getErrorLineNumberColor(),
+    warningColor: getWarningLineNumberColor(),
+  }, diagnosticSeverities);
   for (const { lineIndex, label, color } of specs) {
     try {
       const lineRange = document.lineAt(lineIndex).range;

@@ -9,6 +9,8 @@ const colorKeys = [
   'foregroundColorOfSequentialDigits',
   'activeForeground',
   'foreground',
+  'errorForeground',
+  'warningForeground',
 ];
 
 const toggleKeys = [
@@ -16,6 +18,7 @@ const toggleKeys = [
   'enableRainbow',
   'enableRepeatingDigits',
   'enableSequentialDigits',
+  'enableDiagnostics',
 ];
 
 describe('Test color panel view', () => {
@@ -89,6 +92,22 @@ describe('Test color panel view', () => {
       marked.test(html as string),
       `the marked option is not the configured ${lineNumbers}`
     );
+  });
+
+  it('Must offer every color row and switch the panel claims to carry', () => {
+    const state = buildPanelStateForTest();
+    for (const key of colorKeys) {
+      assert.ok(
+        state.rows.some((row) => row.key === key),
+        `the panel state carries no row for ${key}`
+      );
+    }
+    for (const key of toggleKeys) {
+      assert.ok(
+        state.toggles.some((toggle) => toggle.key === key),
+        `the panel state carries no switch for ${key}`
+      );
+    }
   });
 
   /**
