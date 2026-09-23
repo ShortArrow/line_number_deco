@@ -64,18 +64,43 @@ CI runs `run.js` twice: once without `--vsix` as a negative control that must ex
 
 ## Cut a release
 
-Releases are driven by a signed `v*` tag pushed to `main`; `.github/workflows/release.yml` does the rest in five jobs.
+Releases are driven by a signed `v*` tag pushed to `main`; `.github/workflows/release.yml` does the rest in six jobs.
 
-1. `test` runs on ubuntu, windows and macos. It first fails the release if the tag's `X.Y.Z` disagrees with `version` in `package.json`, then refuses a version number either registry already carries, then runs `pnpm test`.
-2. `build` packages the artifact with `pnpm exec vsce package --no-dependencies` and uploads the `.vsix`.
-3. `smoke` checks out only `smoke/` — sparse, so no other copy of the extension exists on the runner — and runs the structural check, the negative control and the activation smoke against the uploaded artifact.
-4. `release` attests build provenance for the `.vsix` through Sigstore, then creates the GitHub Release with generated notes and the artifact attached.
-5. `publish-marketplace` publishes to the VS Code Marketplace and to Open VSX.
+1. `channel` reads the tag once. It passes the base version, whether the tag carries a suffix, and the channel to the later jobs.
+2. `test` runs on ubuntu, windows and macos. It first fails the release if the tag's `X.Y.Z` disagrees with `version` in `package.json`, then refuses a version number either registry already carries, then runs `pnpm test`.
+3. `build` packages the artifact with `pnpm exec vsce package --no-dependencies`, adding `--pre-release` on the pre-release channel, and uploads the `.vsix`.
+4. `smoke` checks out only `smoke/` — sparse, so no other copy of the extension exists on the runner — and runs the structural check, the negative control and the activation smoke against the uploaded artifact.
+5. `release` attests build provenance for the `.vsix` through Sigstore, then creates the GitHub Release with generated notes and the artifact attached.
+6. `publish-marketplace` publishes to the VS Code Marketplace and to Open VSX.
 
-The burned-version guard in step 1 queries `vsce show ShortArrow.line-number-deco` and `https://open-vsx.org/api/shortarrow/line-number-deco/<version>`. A published version number can never be reused, so a hit is a hard failure; an unreachable registry only warns, so that a store outage cannot block a GitHub release.
+### Which tag does what
 
-A tag with a suffix, such as `v0.0.10-beta.1`, is a pre-release: the same checks run, the GitHub Release is marked pre-release, the burned-version guard is skipped because the base version is reused on purpose, and nothing is published to a registry. `[skip publish]` in the tagged commit's message also opts a release out of the registry step.
+The Marketplace accepts only `major.minor.patch` and keeps pre-releases and releases in one number space, so the minor version's parity names the channel. [ADR 7](adr/0007-odd-minor-prereleases.md) records the decision.
+
+| Tag | Burned-version guard | GitHub Release | Registry publish |
+| --- | --- | --- | --- |
+| suffixed, such as `v0.1.0-beta.1` | skipped | pre-release | none |
+| odd minor, such as `v0.1.0` | runs | pre-release | `--pre-release` to both registries |
+| even minor, such as `v0.2.0` | runs | release | release to both registries |
+
+A suffixed tag is a rehearsal. Its base version is reused on purpose, which is why the guard is skipped, and the suffix never reaches the manifest.
+
+The burned-version guard queries `vsce show ShortArrow.line-number-deco` and `https://open-vsx.org/api/shortarrow/line-number-deco/<version>`. A published version number can never be reused, so a hit is a hard failure; an unreachable registry only warns, so that a store outage cannot block a GitHub release.
+
+`vsce publish --pre-release` refuses a VSIX that was packaged without the flag, so the odd-minor path passes `--pre-release` both when packaging and when publishing. `[skip publish]` in the tagged commit's message opts any tag out of the registry step.
+
+### Ship a pre-release and then its release
+
+1. Set `version` in `package.json` to `0.ODD.0` and name the top `CHANGELOG.md` heading after it.
+2. Optionally push `v0.ODD.0-beta.1` to rehearse the pipeline without publishing.
+3. Push `v0.ODD.0`. Fixes to the pre-release go out as `v0.ODD.1`, `v0.ODD.2` and so on.
+4. When the pre-release has proven itself, bump `version` to `0.EVEN.0`, the next even minor, and retitle the `CHANGELOG.md` heading to match.
+5. Push `v0.EVEN.0`.
+
+The pre-release and the release carry the same content under different numbers, because a number the Marketplace has seen cannot be published again.
+
+### Credentials and back-publishing
 
 Publishing authenticates with the `VSCE_PAT` and `OVSX_PAT` repository secrets. With neither configured, and no Entra variables set, the job skips itself and the GitHub Release still happens.
 
-To publish a release that already exists — a registry added after the tag was cut, or a credential configured later — run `.github/workflows/publish.yml` by `workflow_dispatch` with the tag and a registry choice. It downloads the released `.vsix` and publishes it; nothing is rebuilt.
+To publish a release that already exists — a registry added after the tag was cut, or a credential configured later — run `.github/workflows/publish.yml` by `workflow_dispatch` with the tag and a registry choice. It downloads the released `.vsix` and publishes it; nothing is rebuilt. It applies the same parity rule to the tag, passing `--pre-release` for an odd minor, and refuses a suffixed tag.

@@ -7,9 +7,11 @@ name: Release
 #
 # The X.Y.Z part of the tag has to equal `version` in package.json (checked
 # in the test job) so a release never ships a VSIX whose manifest disagrees
-# with its tag. A tag with a suffix — `v0.0.10-beta.1` — is a pre-release:
-# the same checks run, the GitHub Release is marked pre-release, and the
-# Marketplace step is skipped. The suffix never reaches the manifest,
+# with its tag. The minor number's parity picks the channel (see the
+# `channel` job): `v0.ODD.Z` ships as a Marketplace pre-release and
+# `v0.EVEN.Z` as a release. A tag with a suffix — `v0.1.0-beta.1` — is a
+# rehearsal: the same checks run, the GitHub Release is marked pre-release,
+# and no registry is published to. The suffix never reaches the manifest,
 # because the Marketplace rejects prerelease version strings.
 # Put `[skip publish]` in the tagged commit's message to skip the
 # Marketplace step while still creating the GitHub Release.
@@ -22,8 +24,46 @@ permissions:
   contents: read
 
 jobs:
+  channel:
+    name: Derive the release channel
+    # The Marketplace accepts only major.minor.patch, and a pre-release and
+    # a release share one number space, so the version itself has to say
+    # which channel it belongs to. Following Microsoft's recommendation, an
+    # odd minor is a pre-release and an even minor a release. A suffixed tag
+    # is a rehearsal whatever its minor.
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      base: ${{ steps.derive.outputs.base }}
+      suffixed: ${{ steps.derive.outputs.suffixed }}
+      minor: ${{ steps.derive.outputs.minor }}
+      channel: ${{ steps.derive.outputs.channel }}
+    steps:
+      - name: Classify the tag
+        id: derive
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          base="${tag%%-*}"
+          suffixed=false
+          [ "$base" != "$tag" ] && suffixed=true
+          minor="$(echo "$base" | cut -d. -f2)"
+          case "$minor" in
+            ''|*[!0-9]*) echo "::error::tag $GITHUB_REF_NAME has no numeric minor version"; exit 1 ;;
+          esac
+          if [ $((minor % 2)) -eq 1 ]; then channel=pre-release; else channel=release; fi
+          {
+            echo "base=$base"
+            echo "suffixed=$suffixed"
+            echo "minor=$minor"
+            echo "channel=$channel"
+          } >> "$GITHUB_OUTPUT"
+          echo "$GITHUB_REF_NAME: base $base, suffixed $suffixed, channel $channel" >> "$GITHUB_STEP_SUMMARY"
+
   test:
     name: Test (${{ matrix.os }})
+    needs: channel
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -45,13 +85,13 @@ jobs:
 
       - name: Check tag matches package.json version
         shell: bash
+        env:
+          BASE: ${{ needs.channel.outputs.base }}
         run: |
           set -euo pipefail
-          tag="${GITHUB_REF_NAME#v}"
-          base="${tag%%-*}"
           manifest="$(node -p "require('./package.json').version")"
-          if [ "$base" != "$manifest" ]; then
-            echo "::error::tag v$tag does not match package.json version $manifest"
+          if [ "$BASE" != "$manifest" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $manifest"
             exit 1
           fi
 
@@ -64,7 +104,7 @@ jobs:
         # number must fail here, before anything ships. Suffixed pre-release
         # tags reuse the base version by design and are exempt; a Marketplace
         # outage only warns, because it must not block a GitHub release.
-        if: ${{ !contains(github.ref_name, '-') }}
+        if: ${{ needs.channel.outputs.suffixed != 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -95,7 +135,7 @@ jobs:
 
   build:
     name: Package VSIX
-    needs: test
+    needs: [channel, test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -116,8 +156,16 @@ jobs:
       - name: Package
         # All dependencies are devDependencies, so nothing from node_modules
         # belongs in the VSIX; --no-dependencies also keeps vsce away from
-        # pnpm's non-hoisted node_modules layout.
-        run: pnpm exec vsce package --no-dependencies
+        # pnpm's non-hoisted node_modules layout. An odd-minor VSIX carries
+        # the pre-release marker in its manifest, because `vsce publish
+        # --pre-release` refuses a package that was not built with it.
+        env:
+          CHANNEL: ${{ needs.channel.outputs.channel }}
+        run: |
+          set -euo pipefail
+          flags=()
+          [ "$CHANNEL" = "pre-release" ] && flags=(--pre-release)
+          pnpm exec vsce package --no-dependencies "${flags[@]}"
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -192,7 +240,7 @@ jobs:
 
   release:
     name: Create Release
-    needs: smoke
+    needs: [channel, smoke]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -215,10 +263,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
+          SUFFIXED: ${{ needs.channel.outputs.suffixed }}
+          CHANNEL: ${{ needs.channel.outputs.channel }}
         run: |
           set -euo pipefail
           prerelease=()
-          case "$TAG" in *-*) prerelease=(--prerelease) ;; esac
+          if [ "$SUFFIXED" = "true" ] || [ "$CHANNEL" = "pre-release" ]; then
+            prerelease=(--prerelease)
+          fi
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --title "$TAG" \
@@ -228,10 +280,11 @@ jobs:
 
   publish-marketplace:
     name: Publish to the registries
-    needs: release
-    # Pre-release tags (with a suffix) never go to the Marketplace, and
+    needs: [channel, release]
+    # Rehearsal tags (with a suffix) never go to a registry, and
     # [skip publish] in the tagged commit's message opts a release out.
-    if: ${{ !contains(github.event.head_commit.message, '[skip publish]') && !contains(github.ref_name, '-') }}
+    # An odd minor publishes to the pre-release channel of both registries.
+    if: ${{ !contains(github.event.head_commit.message, '[skip publish]') && needs.channel.outputs.suffixed != 'true' }}
     runs-on: ubuntu-latest
     # Two credentials, tried in this order:
     #   1. Federated Entra identity (AZURE_CLIENT_ID / AZURE_TENANT_ID
@@ -252,6 +305,7 @@ jobs:
       VSCE_PAT: ${{ secrets.VSCE_PAT }}
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
       USE_AZURE: ${{ vars.AZURE_CLIENT_ID != '' && vars.AZURE_TENANT_ID != '' && 'yes' || '' }}
+      PRERELEASE_FLAG: ${{ needs.channel.outputs.channel == 'pre-release' && '--pre-release' || '' }}
     steps:
       - name: Skip when no credential is configured
         if: env.USE_AZURE == '' && env.VSCE_PAT == '' && env.OVSX_PAT == ''
@@ -289,12 +343,12 @@ jobs:
 
       - name: Publish (Entra OIDC)
         if: env.USE_AZURE != ''
-        run: pnpm exec vsce publish --azure-credential --packagePath artifacts/*.vsix
+        run: pnpm exec vsce publish --azure-credential $PRERELEASE_FLAG --packagePath artifacts/*.vsix
 
       - name: Publish (PAT)
         if: env.USE_AZURE == '' && env.VSCE_PAT != ''
-        run: pnpm exec vsce publish --packagePath artifacts/*.vsix
+        run: pnpm exec vsce publish $PRERELEASE_FLAG --packagePath artifacts/*.vsix
 
       - name: Publish (Open VSX)
         if: env.OVSX_PAT != ''
-        run: pnpm exec ovsx publish --packagePath artifacts/*.vsix -p "$OVSX_PAT"
+        run: pnpm exec ovsx publish $PRERELEASE_FLAG --packagePath artifacts/*.vsix -p "$OVSX_PAT"

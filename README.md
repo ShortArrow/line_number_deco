@@ -13,6 +13,8 @@ VS Code can already show relative line numbers on its own, but it shows them ins
 
 The decorations do not get in the way of a test runner or a debugger, because they do not cover the gutter icons for breakpoints, test starts or test results.
 
+New features reach the Marketplace and Open VSX first as pre-releases, which carry an odd minor version such as 0.1.x. To try them, open the extension in VS Code's Extensions view and choose "Switch to Pre-Release Version".
+
 ## Features
 
 Relative line numbers appear beside the absolute ones, following the cursor as it moves.

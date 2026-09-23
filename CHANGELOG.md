@@ -82,8 +82,9 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Same content as the 0.0.10 GitHub release. The version number moves because a different build was published to the Marketplace as 0.0.10 back in January 2025, and the store rejects a number it has seen; the release pipeline now refuses to ship a version the Marketplace already has
 - The VSIX no longer carries the README images or the icon source; the packaged README already loads them from the repository (about 680 KB down to about 90 KB)
 
-## 0.0.12
+## 0.1.0
 
+- Version numbers follow the Marketplace pre-release convention from here: an odd minor (0.1.x) is a pre-release, an even minor (0.2.x) a release; 0.0.12 was never published
 - Line numbers on lines an error or a warning starts on take the diagnostic's color, ahead of every other rule including the current line ([#74](https://github.com/ShortArrow/line_number_deco/issues/74))
 - Dependency advisories cleared: serialize-javascript, fast-uri, qs, diff and js-yaml move past their patched versions (mocha goes 10 to 11 along the way); the one advisory without a fix, extract-zip inside the UI-test harness, is dismissed with its reasoning recorded on the alert
 - The settings panel remembers the selected scope across a switch to another sidebar view, and asks the extension for the current state as soon as it is shown again

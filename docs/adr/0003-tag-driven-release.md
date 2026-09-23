@@ -1,6 +1,6 @@
 # 3. A pushed v* tag drives the release, and a burned version number stops it
 
-Status: accepted
+Status: accepted; the pre-release rule (suffixed tags as pre-releases) is superseded by ADR 7
 
 Date: 2026-09-05
 

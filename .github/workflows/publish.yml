@@ -47,6 +47,31 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Derive the channel from the tag
+        # Same rule as release.yml: an odd minor is a Marketplace
+        # pre-release, an even minor a release. The released VSIX of an odd
+        # minor was packaged with --pre-release, which `vsce publish
+        # --pre-release` requires.
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          tag="${TAG#v}"
+          base="${tag%%-*}"
+          if [ "$base" != "$tag" ]; then
+            echo "::error::$TAG is a rehearsal tag; rehearsals are never published to a registry"
+            exit 1
+          fi
+          minor="$(echo "$base" | cut -d. -f2)"
+          case "$minor" in
+            ''|*[!0-9]*) echo "::error::tag $TAG has no numeric minor version"; exit 1 ;;
+          esac
+          if [ $((minor % 2)) -eq 1 ]; then
+            echo "PRERELEASE_FLAG=--pre-release" >> "$GITHUB_ENV"
+          else
+            echo "PRERELEASE_FLAG=" >> "$GITHUB_ENV"
+          fi
+
       - name: Download the release VSIX
         env:
           GH_TOKEN: ${{ github.token }}
@@ -63,7 +88,7 @@ jobs:
             echo "::error::OVSX_PAT secret is not configured"
             exit 1
           fi
-          pnpm exec ovsx publish --packagePath artifacts/*.vsix -p "$OVSX_PAT"
+          pnpm exec ovsx publish $PRERELEASE_FLAG --packagePath artifacts/*.vsix -p "$OVSX_PAT"
 
       - name: Publish (VS Marketplace)
         if: (inputs.registry == 'vs-marketplace' || inputs.registry == 'both')
@@ -73,4 +98,4 @@ jobs:
             echo "::error::VSCE_PAT secret is not configured"
             exit 1
           fi
-          pnpm exec vsce publish --packagePath artifacts/*.vsix
+          pnpm exec vsce publish $PRERELEASE_FLAG --packagePath artifacts/*.vsix
