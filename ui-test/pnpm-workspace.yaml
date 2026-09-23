@@ -9,3 +9,4 @@ overrides:
   serialize-javascript: ^7.0.5
   qs: ^6.16.0
   diff: ^8.0.3
+  js-yaml: ^4.3.2
