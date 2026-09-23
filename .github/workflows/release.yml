@@ -48,10 +48,11 @@ jobs:
           base="${tag%%-*}"
           suffixed=false
           [ "$base" != "$tag" ] && suffixed=true
+          if ! [[ "$base" =~ ^(0|[1-9][0-9]*).(0|[1-9][0-9]*).(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::tag $GITHUB_REF_NAME is not vMAJOR.MINOR.PATCH (no leading zeros) before any suffix"
+            exit 1
+          fi
           minor="$(echo "$base" | cut -d. -f2)"
-          case "$minor" in
-            ''|*[!0-9]*) echo "::error::tag $GITHUB_REF_NAME has no numeric minor version"; exit 1 ;;
-          esac
           if [ $((minor % 2)) -eq 1 ]; then channel=pre-release; else channel=release; fi
           {
             echo "base=$base"

@@ -23,7 +23,9 @@ Following Microsoft's recommendation, a version with an odd minor
 release. `release.yml` derives the channel from the tag in one job. A tag
 without a suffix and with an odd minor runs the guard, packages with
 `--pre-release`, marks the GitHub Release as a pre-release and publishes
-with `--pre-release` to the Marketplace and to Open VSX. A tag with an even
+with `--pre-release`. The Marketplace takes the channel from the publish
+flag; Open VSX ignores that flag for a pre-packaged VSIX and reads the
+pre-release mark that packaging wrote into the manifest. A tag with an even
 minor takes the release path unchanged.
 
 A suffixed tag stays a rehearsal: everything runs except the guard and the

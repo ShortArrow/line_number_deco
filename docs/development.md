@@ -80,21 +80,21 @@ The Marketplace accepts only `major.minor.patch` and keeps pre-releases and rele
 | Tag | Burned-version guard | GitHub Release | Registry publish |
 | --- | --- | --- | --- |
 | suffixed, such as `v0.1.0-beta.1` | skipped | pre-release | none |
-| odd minor, such as `v0.1.0` | runs | pre-release | `--pre-release` to both registries |
+| odd minor, such as `v0.1.0` | runs | pre-release | pre-release channel on both registries |
 | even minor, such as `v0.2.0` | runs | release | release to both registries |
 
 A suffixed tag is a rehearsal. Its base version is reused on purpose, which is why the guard is skipped, and the suffix never reaches the manifest.
 
 The burned-version guard queries `vsce show ShortArrow.line-number-deco` and `https://open-vsx.org/api/shortarrow/line-number-deco/<version>`. A published version number can never be reused, so a hit is a hard failure; an unreachable registry only warns, so that a store outage cannot block a GitHub release.
 
-`vsce publish --pre-release` refuses a VSIX that was packaged without the flag, so the odd-minor path passes `--pre-release` both when packaging and when publishing. `[skip publish]` in the tagged commit's message opts any tag out of the registry step.
+`vsce publish --pre-release` refuses a VSIX that was packaged without the flag, so the odd-minor path passes `--pre-release` both when packaging and when publishing. Open VSX takes the channel from the pre-release mark that packaging wrote into the manifest; `ovsx publish` ignores `--pre-release` for a pre-packaged VSIX, and the flag on that step is there for symmetry. `[skip publish]` in the tagged commit's message opts any tag out of the registry step.
 
 ### Ship a pre-release and then its release
 
-1. Set `version` in `package.json` to `0.ODD.0` and name the top `CHANGELOG.md` heading after it.
+1. Set `version` in `package.json` to `0.ODD.0` and add a `## 0.ODD.0` section at the end of `CHANGELOG.md` (the file runs oldest first).
 2. Optionally push `v0.ODD.0-beta.1` to rehearse the pipeline without publishing.
 3. Push `v0.ODD.0`. Fixes to the pre-release go out as `v0.ODD.1`, `v0.ODD.2` and so on.
-4. When the pre-release has proven itself, bump `version` to `0.EVEN.0`, the next even minor, and retitle the `CHANGELOG.md` heading to match.
+4. When the pre-release has proven itself, bump `version` to `0.EVEN.0`, the next even minor, and append a `## 0.EVEN.0` section that says it ships the `0.ODD.x` pre-release unchanged. The pre-release entry stays.
 5. Push `v0.EVEN.0`.
 
 The pre-release and the release carry the same content under different numbers, because a number the Marketplace has seen cannot be published again.
