@@ -3,7 +3,7 @@
   "displayName": "LineNumberDeco",
   "description": "Show relative line numbers beside the absolute ones, as decorations",
   "publisher": "ShortArrow",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "sponsor": {
     "url": "https://github.com/sponsors/ShortArrow"
   },
