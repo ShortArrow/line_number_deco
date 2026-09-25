@@ -91,6 +91,8 @@ The burned-version guard queries `vsce show ShortArrow.line-number-deco` and `ht
 
 ### Ship a pre-release and then its release
 
+An odd minor is cut only when a change is worth previewing. A cycle without a preview skips steps 1 to 4 and goes straight to the next even minor.
+
 1. Set `version` in `package.json` to `0.ODD.0` and add a `## 0.ODD.0` section at the end of `CHANGELOG.md` (the file runs oldest first).
 2. Optionally push `v0.ODD.0-beta.1` to rehearse the pipeline without publishing.
 3. Push `v0.ODD.0`. Fixes to the pre-release go out as `v0.ODD.1`, `v0.ODD.2` and so on.

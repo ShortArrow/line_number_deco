@@ -34,8 +34,11 @@ registry publish, and its GitHub Release is marked pre-release.
 ## Consequences
 
 Pre-releases consume version numbers, and the release of the same content
-needs the next even minor. The unpublished 0.0.12 is abandoned; its content
-becomes the pre-release 0.1.0 and later ships as the release 0.2.0.
+needs the next even minor, so an odd minor is cut only when a change is
+worth previewing; a cycle that needs no preview goes straight to the next
+even minor. The unpublished 0.0.12 is abandoned and its content ships as
+0.2.0, leaving 0.1.0 unused. Pre-release channel users still receive every
+release, because VS Code offers them the highest version available.
 `publish.yml` applies the same rule to the tag it back-publishes, and it
 refuses a suffixed tag. `vsce publish --pre-release` refuses a VSIX that was
 packaged without the flag, so the flag has to be present at both steps.
