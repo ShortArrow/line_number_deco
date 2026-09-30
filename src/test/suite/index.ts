@@ -4,9 +4,13 @@ import * as glob from 'glob';
 
 export function run(): Promise<void> {
 	// Create the mocha test
+	// Several tests poll the running editor for up to 5 s (a view resolving,
+	// a setting reaching disk); mocha's 2 s default killed them first on the
+	// slower macOS runners. The limit has to stay above every such budget.
 	const mocha = new Mocha({
 		ui: 'tdd',
-		color: true
+		color: true,
+		timeout: 20000
 	});
 
 	const testsRoot = path.resolve(__dirname, '..');
