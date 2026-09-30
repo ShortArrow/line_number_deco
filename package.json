@@ -343,6 +343,7 @@
     "pretest": "pnpm run clean && pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
     "test": "pnpm run pretest && node ./out/test/runTest.js",
+    "bench": "pnpm run compile && node ./out/test/runBench.js",
     "generate": "pnpm dlx ts-node ./src/generater/fromPackageJson.ts"
   },
   "devDependencies": {
