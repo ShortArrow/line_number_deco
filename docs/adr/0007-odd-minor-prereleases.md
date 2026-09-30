@@ -1,6 +1,6 @@
 # 7. Pre-releases carry an odd minor version
 
-Status: accepted
+Status: withdrawn on 2026-09-30, before any tag used it
 
 Date: 2026-09-23
 
@@ -39,3 +39,17 @@ becomes the pre-release 0.1.0 and later ships as the release 0.2.0.
 `publish.yml` applies the same rule to the tag it back-publishes, and it
 refuses a suffixed tag. `vsce publish --pre-release` refuses a VSIX that was
 packaged without the flag, so the flag has to be present at both steps.
+
+## Why it was withdrawn
+
+The decision was reversed a week after it merged, and nothing was ever
+published under it. The Marketplace pre-release channel turned out to be a
+standing audience: a user opts in once and then receives every higher
+version, so it is a channel to keep fed, which an extension with occasional
+releases has no use for. Each preview also consumes a version number and
+pushes the release onto the next even minor.
+
+The repository went back to the rules of ADR 3. A suffixed tag publishes a
+GitHub pre-release, whose VSIX is installed by hand to verify the build, and
+only an unsuffixed tag reaches the registries. The workflow changes of this
+ADR were reverted in full and the version returned to 0.0.12.
