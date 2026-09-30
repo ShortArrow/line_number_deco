@@ -6,6 +6,7 @@ import {
     getColorAtInactiveRowNumber,
     getColorAtRepeatingDigits,
     getColorAtSequentialDigits,
+    getColorAtMultiplesOfFive,
     getColorAtErrorLines,
     getColorAtWarningLines,
     defaultCenterColorOfRainbow,
@@ -70,6 +71,14 @@ export async function updateColorAtSequentialDigits(set: string) {
 
 export async function updateColorAtSequentialDigitsForUser(set: string) {
   updateUserConfig("foregroundColorOfSequentialDigits", set);
+}
+
+export async function updateColorAtMultiplesOfFive(set: string) {
+  updateWorkspaceConfig("foregroundColorOfMultiplesOfFive", set);
+}
+
+export async function updateColorAtMultiplesOfFiveForUser(set: string) {
+  updateUserConfig("foregroundColorOfMultiplesOfFive", set);
 }
 
 export async function updateColorAtErrorLines(set: string) {
@@ -140,6 +149,24 @@ export async function getColorCodeAtSequentialDigitsForUser() {
     "",
     getColorAtSequentialDigits,
     updateColorAtSequentialDigitsForUser
+  );
+}
+
+export async function getColorCodeAtMultiplesOfFive() {
+  await getColorCode(
+    "Please input color code at multiples of five",
+    "",
+    getColorAtMultiplesOfFive,
+    updateColorAtMultiplesOfFive
+  );
+}
+
+export async function getColorCodeAtMultiplesOfFiveForUser() {
+  await getColorCode(
+    "Please input color code at multiples of five",
+    "",
+    getColorAtMultiplesOfFive,
+    updateColorAtMultiplesOfFiveForUser
   );
 }
 
@@ -255,6 +282,14 @@ export async function updateEnableSequentialDigits(set: boolean) {
 
 export async function updateEnableSequentialDigitsForUser(set: boolean) {
   updateUserConfig("enableSequentialDigits", set);
+}
+
+export async function updateEnableMultiplesOfFive(set: boolean) {
+  updateWorkspaceConfig("enableMultiplesOfFive", set);
+}
+
+export async function updateEnableMultiplesOfFiveForUser(set: boolean) {
+  updateUserConfig("enableMultiplesOfFive", set);
 }
 
 export async function updateEnableDiagnostics(set: boolean) {

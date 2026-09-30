@@ -90,6 +90,20 @@ export function getColorAtSequentialDigits() {
   );
 }
 
+export function getEnableMultiplesOfFive() {
+  return (
+    getPreviewToggle("enableMultiplesOfFive") ??
+    getConfig<boolean>("enableMultiplesOfFive", false)
+  );
+}
+
+export function getColorAtMultiplesOfFive() {
+  return (
+    getPreviewColor("foregroundColorOfMultiplesOfFive") ??
+    getConfig<string>("foregroundColorOfMultiplesOfFive", "")
+  );
+}
+
 export function getEnableDiagnostics() {
   return (
     getPreviewToggle("enableDiagnostics") ??

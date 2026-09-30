@@ -131,6 +131,24 @@ export class LineNumberDeco {
   }
 
   /**
+   * LineNumberDeco: Update color of multiples of five for workspace
+   */
+  static updateColorAtMultiplesOfFive(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.updateColorAtMultiplesOfFive', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Update color of multiples of five for user
+   */
+  static updateColorAtMultiplesOfFiveForUser(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.updateColorAtMultiplesOfFiveForUser', () =>
+      callback()
+    );
+  }
+
+  /**
    * LineNumberDeco: Enable relative line numbers for workspace
    */
   static enableRelativeLineNumbers(callback: Function) {
@@ -234,6 +252,42 @@ export class LineNumberDeco {
    */
   static disableSequentialDigitsForUser(callback: Function) {
     return vscode.commands.registerCommand('line-number-deco.disableSequentialDigitsForUser', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Enable multiples of five color for workspace
+   */
+  static enableMultiplesOfFive(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.enableMultiplesOfFive', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Disable multiples of five color for workspace
+   */
+  static disableMultiplesOfFive(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.disableMultiplesOfFive', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Enable multiples of five color for user
+   */
+  static enableMultiplesOfFiveForUser(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.enableMultiplesOfFiveForUser', () =>
+      callback()
+    );
+  }
+
+  /**
+   * LineNumberDeco: Disable multiples of five color for user
+   */
+  static disableMultiplesOfFiveForUser(callback: Function) {
+    return vscode.commands.registerCommand('line-number-deco.disableMultiplesOfFiveForUser', () =>
       callback()
     );
   }

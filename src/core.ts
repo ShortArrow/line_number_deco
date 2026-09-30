@@ -12,6 +12,8 @@ import {
   getColorAtRepeatingDigits,
   getEnableSequentialDigits,
   getColorAtSequentialDigits,
+  getEnableMultiplesOfFive,
+  getColorAtMultiplesOfFive,
   getInactiveLineNumberColor,
   getActiveLineNumberColor,
 } from "./config";
@@ -56,6 +58,8 @@ export async function updateRelativeLineNumbers(
     repeatingDigitsColor: getColorAtRepeatingDigits(),
     enableSequentialDigits: getEnableSequentialDigits(),
     sequentialDigitsColor: getColorAtSequentialDigits(),
+    enableMultiplesOfFive: getEnableMultiplesOfFive(),
+    multiplesOfFiveColor: getColorAtMultiplesOfFive(),
     enableDiagnostics: getEnableDiagnostics(),
     errorColor: getErrorLineNumberColor(),
     warningColor: getWarningLineNumberColor(),

@@ -7,6 +7,7 @@ const colorKeys = [
   'centerColorOfRainbow',
   'foregroundColorOfRepeatingDigits',
   'foregroundColorOfSequentialDigits',
+  'foregroundColorOfMultiplesOfFive',
   'activeForeground',
   'foreground',
   'errorForeground',
@@ -18,6 +19,7 @@ const toggleKeys = [
   'enableRainbow',
   'enableRepeatingDigits',
   'enableSequentialDigits',
+  'enableMultiplesOfFive',
   'enableDiagnostics',
 ];
 

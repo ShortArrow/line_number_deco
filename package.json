@@ -111,6 +111,14 @@
         "title": "LineNumberDeco: Update color of sequential digits for user"
       },
       {
+        "command": "line-number-deco.updateColorAtMultiplesOfFive",
+        "title": "LineNumberDeco: Update color of multiples of five for workspace"
+      },
+      {
+        "command": "line-number-deco.updateColorAtMultiplesOfFiveForUser",
+        "title": "LineNumberDeco: Update color of multiples of five for user"
+      },
+      {
         "command": "line-number-deco.enableRelativeLineNumbers",
         "title": "LineNumberDeco: Enable relative line numbers for workspace"
       },
@@ -157,6 +165,22 @@
       {
         "command": "line-number-deco.disableSequentialDigitsForUser",
         "title": "LineNumberDeco: Disable sequential digits color for user"
+      },
+      {
+        "command": "line-number-deco.enableMultiplesOfFive",
+        "title": "LineNumberDeco: Enable multiples of five color for workspace"
+      },
+      {
+        "command": "line-number-deco.disableMultiplesOfFive",
+        "title": "LineNumberDeco: Disable multiples of five color for workspace"
+      },
+      {
+        "command": "line-number-deco.enableMultiplesOfFiveForUser",
+        "title": "LineNumberDeco: Enable multiples of five color for user"
+      },
+      {
+        "command": "line-number-deco.disableMultiplesOfFiveForUser",
+        "title": "LineNumberDeco: Disable multiples of five color for user"
       },
       {
         "command": "line-number-deco.enableDiagnostics",
@@ -229,6 +253,12 @@
           "default": "#ffa500",
           "description": "Color of sequential-digit line numbers (123, 543, 10)"
         },
+        "LineNumberDeco.foregroundColorOfMultiplesOfFive": {
+          "type": "string",
+          "format": "color",
+          "default": "#c678dd",
+          "description": "Color of line numbers at multiples of five (5, 10, 15)"
+        },
         "LineNumberDeco.enableRainbow": {
           "type": "boolean",
           "default": false,
@@ -243,6 +273,11 @@
           "type": "boolean",
           "default": false,
           "description": "Give sequential-digit line numbers (123, 543, 10) their own color — the poker mode"
+        },
+        "LineNumberDeco.enableMultiplesOfFive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Give line numbers at multiples of five (5, 10, 15) their own color"
         },
         "LineNumberDeco.activeForeground": {
           "type": "string",

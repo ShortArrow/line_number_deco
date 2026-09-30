@@ -10,6 +10,8 @@ import {
   getColorCodeAtRepeatingDigitsForUser,
   getColorCodeAtSequentialDigits,
   getColorCodeAtSequentialDigitsForUser,
+  getColorCodeAtMultiplesOfFive,
+  getColorCodeAtMultiplesOfFiveForUser,
   getColorCodeAtErrorLines,
   getColorCodeAtErrorLinesForUser,
   getColorCodeAtWarningLines,
@@ -24,6 +26,8 @@ import {
   updateEnableRepeatingDigitsForUser,
   updateEnableSequentialDigits,
   updateEnableSequentialDigitsForUser,
+  updateEnableMultiplesOfFive,
+  updateEnableMultiplesOfFiveForUser,
 } from "./ui";
 import { updateRelativeLineNumbers } from "./core";
 import {
@@ -114,6 +118,12 @@ const commands = [
   LineNumberDeco.disableSequentialDigitsForUser(() => updateEnableSequentialDigitsForUser(false)),
   LineNumberDeco.updateColorAtSequentialDigits(getColorCodeAtSequentialDigits),
   LineNumberDeco.updateColorAtSequentialDigitsForUser(getColorCodeAtSequentialDigitsForUser),
+  LineNumberDeco.enableMultiplesOfFive(() => updateEnableMultiplesOfFive(true)),
+  LineNumberDeco.disableMultiplesOfFive(() => updateEnableMultiplesOfFive(false)),
+  LineNumberDeco.enableMultiplesOfFiveForUser(() => updateEnableMultiplesOfFiveForUser(true)),
+  LineNumberDeco.disableMultiplesOfFiveForUser(() => updateEnableMultiplesOfFiveForUser(false)),
+  LineNumberDeco.updateColorAtMultiplesOfFive(getColorCodeAtMultiplesOfFive),
+  LineNumberDeco.updateColorAtMultiplesOfFiveForUser(getColorCodeAtMultiplesOfFiveForUser),
   LineNumberDeco.enableDiagnostics(() => updateEnableDiagnostics(true)),
   LineNumberDeco.disableDiagnostics(() => updateEnableDiagnostics(false)),
   LineNumberDeco.enableDiagnosticsForUser(() => updateEnableDiagnosticsForUser(true)),

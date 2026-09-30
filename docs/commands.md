@@ -18,6 +18,8 @@ Every command of the extension, with the id to use from a keybinding or `init.lu
 | `line-number-deco.updateColorAtRepeatingDigitsForUser` | LineNumberDeco: Update color of repeating digits for user |
 | `line-number-deco.updateColorAtSequentialDigits` | LineNumberDeco: Update color of sequential digits for workspace |
 | `line-number-deco.updateColorAtSequentialDigitsForUser` | LineNumberDeco: Update color of sequential digits for user |
+| `line-number-deco.updateColorAtMultiplesOfFive` | LineNumberDeco: Update color of multiples of five for workspace |
+| `line-number-deco.updateColorAtMultiplesOfFiveForUser` | LineNumberDeco: Update color of multiples of five for user |
 | `line-number-deco.enableRelativeLineNumbers` | LineNumberDeco: Enable relative line numbers for workspace |
 | `line-number-deco.enableRelativeLineNumbersForUser` | LineNumberDeco: Enable relative line numbers for user |
 | `line-number-deco.disableRelativeLineNumbers` | LineNumberDeco: Disable relative line numbers for workspace |
@@ -30,6 +32,10 @@ Every command of the extension, with the id to use from a keybinding or `init.lu
 | `line-number-deco.disableSequentialDigits` | LineNumberDeco: Disable sequential digits color for workspace |
 | `line-number-deco.enableSequentialDigitsForUser` | LineNumberDeco: Enable sequential digits color for user |
 | `line-number-deco.disableSequentialDigitsForUser` | LineNumberDeco: Disable sequential digits color for user |
+| `line-number-deco.enableMultiplesOfFive` | LineNumberDeco: Enable multiples of five color for workspace |
+| `line-number-deco.disableMultiplesOfFive` | LineNumberDeco: Disable multiples of five color for workspace |
+| `line-number-deco.enableMultiplesOfFiveForUser` | LineNumberDeco: Enable multiples of five color for user |
+| `line-number-deco.disableMultiplesOfFiveForUser` | LineNumberDeco: Disable multiples of five color for user |
 | `line-number-deco.enableDiagnostics` | LineNumberDeco: Enable diagnostics color for workspace |
 | `line-number-deco.disableDiagnostics` | LineNumberDeco: Disable diagnostics color for workspace |
 | `line-number-deco.enableDiagnosticsForUser` | LineNumberDeco: Enable diagnostics color for user |
