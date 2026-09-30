@@ -23,6 +23,7 @@ const labels: { key: string; label: string }[] = [
   { key: "centerColorOfRainbow", label: "Rainbow center" },
   { key: "foregroundColorOfRepeatingDigits", label: "Repeating digits" },
   { key: "foregroundColorOfSequentialDigits", label: "Sequential digits" },
+  { key: "foregroundColorOfMultiplesOfFive", label: "Multiples of five" },
   { key: "activeForeground", label: "Active line number" },
   { key: "foreground", label: "Inactive line number" },
   { key: "errorForeground", label: "Error lines" },
@@ -36,6 +37,7 @@ const toggles: { key: string; label: string }[] = [
   { key: "enableRainbow", label: "Rainbow" },
   { key: "enableRepeatingDigits", label: "Repeating digits" },
   { key: "enableSequentialDigits", label: "Sequential digits" },
+  { key: "enableMultiplesOfFive", label: "Multiples of five" },
   { key: "enableDiagnostics", label: "Diagnostics" },
 ];
 

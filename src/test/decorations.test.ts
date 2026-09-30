@@ -6,6 +6,7 @@ import {
   DiagnosticMark,
   LineColor,
   buildLineDecorationSpecs,
+  isMultipleOfFive,
   markDiagnosticLines,
 } from '../decorations';
 
@@ -16,6 +17,7 @@ const sequentialColor = '#dddddd';
 const centerColor = '#0000ff';
 const errorColor = '#eeeeee';
 const warningColor = '#ffffff';
+const multiplesOfFiveColor = '#abcdef';
 
 /** The settings every case starts from: one active line, every mode off. */
 const settingsWith = (overrides: Partial<DecorationSettings> = {}): DecorationSettings => ({
@@ -29,6 +31,8 @@ const settingsWith = (overrides: Partial<DecorationSettings> = {}): DecorationSe
   repeatingDigitsColor: repeatingColor,
   enableSequentialDigits: false,
   sequentialDigitsColor: sequentialColor,
+  enableMultiplesOfFive: false,
+  multiplesOfFiveColor,
   enableDiagnostics: false,
   errorColor,
   warningColor,
@@ -199,5 +203,94 @@ describe('Test diagnostic colors on line numbers', () => {
     );
     const withoutMarks = buildLineDecorationSpecs(lineIndexes, settings, new Map());
     assert.deepStrictEqual(withMarks, withoutMarks);
+  });
+});
+
+describe('Test check multiples of five', () => {
+  const cases: [number, boolean][] = [
+    [0, false],
+    [1, false],
+    [4, false],
+    [5, true],
+    [10, true],
+    [15, true],
+    [23, false],
+    [100, true],
+  ];
+  cases.forEach(([distance, expected]) => {
+    it(`Must judge distance ${distance} as ${expected ? '' : 'not '}a multiple of five`, () => {
+      assert.strictEqual(isMultipleOfFive(distance), expected);
+    });
+  });
+});
+
+describe('Test multiples of five colors on line numbers', () => {
+  const fromTop = { activeLineNumber: 0, enableMultiplesOfFive: true };
+
+  it('Must color a line five away with the multiples of five color', () => {
+    assert.deepStrictEqual(colorsOf([5], fromTop), [multiplesOfFiveColor]);
+  });
+
+  it('Must let sequential digits win over a multiple of five', () => {
+    assert.deepStrictEqual(
+      colorsOf([10], { ...fromTop, enableSequentialDigits: true }),
+      [sequentialColor]
+    );
+    assert.deepStrictEqual(
+      colorsOf([10], { ...fromTop, enableSequentialDigits: false }),
+      [multiplesOfFiveColor]
+    );
+  });
+
+  it('Must let repeating digits win over a multiple of five', () => {
+    assert.deepStrictEqual(
+      colorsOf([55], { ...fromTop, enableRepeatingDigits: true }),
+      [repeatingColor]
+    );
+  });
+
+  it('Must let a multiple of five win over the rainbow', () => {
+    assert.deepStrictEqual(
+      colorsOf([15], { ...fromTop, enableRainbow: true }),
+      [multiplesOfFiveColor]
+    );
+  });
+
+  it('Must leave a line that is not a multiple of five to the rainbow', () => {
+    assert.deepStrictEqual(
+      colorsOf([7], { ...fromTop, enableRainbow: true }),
+      [shiftHue(centerColor, 7)]
+    );
+  });
+
+  it('Must keep the active color on the active line whose own label is a multiple of five', () => {
+    const [spec] = buildLineDecorationSpecs(
+      [9],
+      settingsWith({ activeLineNumber: 9, enableMultiplesOfFive: true })
+    );
+    assert.strictEqual(spec.label, '10');
+    assert.strictEqual(spec.color, activeColor);
+  });
+
+  it('Must color exactly as before while multiples of five are disabled', () => {
+    const lineIndexes = [0, 5, 7, 10, 15, 20];
+    const disabled = { activeLineNumber: 0, enableMultiplesOfFive: false };
+    assert.deepStrictEqual(
+      colorsOf(lineIndexes, disabled),
+      [activeColor, inactiveColor, inactiveColor, inactiveColor, inactiveColor, inactiveColor]
+    );
+    assert.deepStrictEqual(
+      colorsOf(lineIndexes, { ...disabled, enableRainbow: true }),
+      [activeColor, ...[5, 7, 10, 15, 20].map((distance) => shiftHue(centerColor, distance))]
+    );
+  });
+
+  it('Must let an error win over a multiple of five', () => {
+    const [spec] = buildLineDecorationSpecs(
+      [5],
+      settingsWith({ ...fromTop, enableDiagnostics: true }),
+      marks([[5, 'error']])
+    );
+    assert.strictEqual(spec.color, errorColor);
   });
 });

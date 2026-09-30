@@ -29,6 +29,8 @@ export interface DecorationSettings {
   repeatingDigitsColor: string;
   enableSequentialDigits: boolean;
   sequentialDigitsColor: string;
+  enableMultiplesOfFive: boolean;
+  multiplesOfFiveColor: string;
   enableDiagnostics: boolean;
   errorColor: LineColor;
   warningColor: LineColor;
@@ -94,6 +96,15 @@ export function isSequentialDigits(lineNumber: string): boolean {
 }
 
 /**
+ * check a multiple of five (5, 10, 15), which the current line never is
+ * @param distance lines between a line and the active one
+ * @returns true when the distance is a positive multiple of five
+ */
+export function isMultipleOfFive(distance: number): boolean {
+  return distance > 0 && distance % 5 === 0;
+}
+
+/**
  * The color one line's number is painted, by the first rule that claims it.
  *
  * A diagnostic outranks everything including the current line: a line the
@@ -127,6 +138,9 @@ function colorOfLine(
   }
   if (settings.enableSequentialDigits && isSequentialDigits(label)) {
     return settings.sequentialDigitsColor;
+  }
+  if (settings.enableMultiplesOfFive && isMultipleOfFive(distance)) {
+    return settings.multiplesOfFiveColor;
   }
   if (settings.enableRainbow) {
     return shiftHue(settings.centerColorOfRainbow, distance);
