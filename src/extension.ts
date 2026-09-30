@@ -41,7 +41,12 @@ import { LineNumberDeco } from "./generated/generated";
 
 const decorationType = vscode.window.createTextEditorDecorationType({});
 
-const UPDATE_DELAY_MS = 50;
+/**
+ * One frame at 60 Hz. A held j or k key repeats faster than this, so updates
+ * are coalesced to at most one per frame; an update costs about 0.15 ms on the
+ * extension host (pnpm bench), which leaves no reason to wait longer.
+ */
+const UPDATE_DELAY_MS = 16;
 const editorThrottles = new WeakMap<vscode.TextEditor, (editor: vscode.TextEditor) => void>();
 
 function scheduleUpdate(editor: vscode.TextEditor | undefined) {
