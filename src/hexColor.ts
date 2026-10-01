@@ -35,3 +35,15 @@ export function pickerColor(value: string): string {
   }
   return hexColorPattern.test(value) ? value.slice(0, 7) : "#000000";
 }
+
+/**
+ * The color a row's Apply writes, given the text in its hex field.
+ *
+ * Only a valid hex is written. The native input is never a fallback: on an
+ * untouched row it holds the theme color, or black, and saving that would
+ * pin the row to it instead of leaving the theme in force.
+ */
+export function colorToApply(fieldValue: string): string | undefined {
+  const typed = fieldValue.trim();
+  return isHexColor(typed) ? typed : undefined;
+}

@@ -10,7 +10,7 @@
  * input events while dragging, which become live previews here.
  */
 
-import { isHexColor, pickerColor } from "../hexColor";
+import { colorToApply, isHexColor, pickerColor } from "../hexColor";
 import { ScopeName, ScopeValues, displayForScope } from "../panelState";
 
 declare function acquireVsCodeApi(): {
@@ -192,21 +192,6 @@ document.querySelectorAll("[data-select-for]").forEach((element) => {
     vscode.postMessage({ type: "preview", key: key, value: value });
   });
 });
-/**
- * The color one row's Apply writes.
- *
- * The hex field is read first because it can hold an alpha channel the native
- * input cannot; the input is the fallback while the field holds no valid hex.
- */
-function colorToApply(key: string): string {
-  const field = hexFieldOf(key);
-  const typed = field ? field.value.trim() : "";
-  if (isHexColor(typed)) {
-    return typed;
-  }
-  const input = colorInputOf(key);
-  return input ? input.value : "";
-}
 document.querySelectorAll("button[data-apply]").forEach((element) => {
   const button = element as HTMLElement;
   button.addEventListener("click", () => {
@@ -221,10 +206,16 @@ document.querySelectorAll("button[data-apply]").forEach((element) => {
       });
       return;
     }
+    const field = hexFieldOf(key);
+    const color = colorToApply(field ? field.value : "");
+    if (color === undefined) {
+      field?.classList.toggle("invalid", field.value.trim() !== "");
+      return;
+    }
     vscode.postMessage({
       type: "apply",
       key: key,
-      value: colorToApply(key),
+      value: color,
       scope: scope(),
     });
   });
