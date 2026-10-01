@@ -49,20 +49,20 @@ describe('Test color panel view', () => {
       'resolved panel html has no apply all control'
     );
     assert.ok(
-      (html as string).includes('data-slider-for="foreground"'),
-      'resolved panel html has no sliders for foreground'
+      !(html as string).includes('data-slider-for='),
+      'resolved panel html still carries the custom sliders'
     );
     assert.ok(
-      (html as string).includes('hexToHsl'),
-      'resolved panel html does not carry the color conversions'
+      (html as string).includes('isHexColor'),
+      'resolved panel html does not carry the hex validation'
     );
     assert.ok(
       (html as string).includes('displayForScope'),
       'resolved panel html does not carry the pending merge'
     );
     assert.ok(
-      (html as string).includes('data-plane-for="foreground"'),
-      'resolved panel html has no picking plane for foreground'
+      !(html as string).includes('data-plane-for='),
+      'resolved panel html still carries the custom picking plane'
     );
     assert.ok(
       (html as string).includes('data-hex-for="foreground"'),

@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { panelCss, panelScript } from '../generated/webviewAssets';
-import { PanelRow, PanelSelect, PanelToggle, renderPanelHtml } from '../panelHtml';
+import { themeColorVariable, PanelRow, PanelSelect, PanelToggle, renderPanelHtml } from '../panelHtml';
 
 /** A triple holding one workspace value, the shape most rows are given here. */
 function inWorkspace<T>(value: T) {
@@ -24,7 +24,7 @@ function unset<T>() {
 
 const rows: PanelRow[] = [
   { key: 'centerColorOfRainbow', label: 'Rainbow center', values: inWorkspace('#8888ff') },
-  { key: 'foreground', label: 'Inactive line number', values: unset<string>() },
+  { key: 'foreground', label: 'Inactive line number', values: unset<string>(), themeColor: 'LineNumberDeco.foreground' },
 ];
 
 const sel: PanelSelect[] = [
@@ -150,6 +150,22 @@ describe('Test render the color panel html', () => {
     assert.ok(html.includes('data-apply-toggle="enableRainbow"'));
   });
 
+  it('Must offer the same reset control as a color row on every toggle row', () => {
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
+    const colorReset = /<button[^>]*data-reset="centerColorOfRainbow"[^>]*>[\s\S]*?<\/button>/.exec(html);
+    assert.ok(colorReset, 'no reset control on the color row');
+    for (const { key } of toggles) {
+      const row = rowMarkup(html, key);
+      const reset = new RegExp(`<button[^>]*data-reset="${key}"[^>]*>[\\s\\S]*?</button>`).exec(row);
+      assert.ok(reset, `no reset control for ${key}`);
+      assert.strictEqual(
+        (reset as RegExpExecArray)[0].replace(`data-reset="${key}"`, ''),
+        (colorReset as RegExpExecArray)[0].replace('data-reset="centerColorOfRainbow"', ''),
+        `the reset control for ${key} differs from the color row's`
+      );
+    }
+  });
+
   it('Must offer exactly one apply all control', () => {
     const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     const occurrences = html.split('data-apply-all=').length - 1;
@@ -164,28 +180,25 @@ describe('Test render the color panel html', () => {
     assert.ok(applyAll > lastApply, 'the apply all control is not below the colors');
   });
 
-  it('Must offer an hsl and an rgb slider per component of a color row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
-    for (const component of ['h', 's', 'l', 'r', 'g', 'b']) {
-      const slider = new RegExp(
-        '<input[^>]*data-slider-for="centerColorOfRainbow"[^>]*data-slider="' + component + '"'
-      );
-      assert.ok(slider.test(html), `no ${component} slider for centerColorOfRainbow`);
+  it('Must leave the color picking to the native input, with no picker of its own', () => {
+    const html = markupOf(renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:'));
+    for (const mark of ['data-slider-for', 'data-plane-for', 'data-mode-tab', 'class="swatch"']) {
+      assert.ok(!html.includes(mark), `the markup still carries ${mark}`);
     }
   });
 
-  it('Must hold the sliders of a color row inside a details element', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
-    const details = html.indexOf('<details');
-    const slider = html.indexOf('data-slider-for="centerColorOfRainbow"');
-    assert.ok(details >= 0, 'no details element');
-    assert.ok(details < slider, 'the sliders are not inside a details element');
-  });
-
-  it('Must offer both mode tabs for a color row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
-    assert.ok(html.includes('data-mode-tab="hsl"'));
-    assert.ok(html.includes('data-mode-tab="rgb"'));
+  it('Must offer a native input, a hex field, Apply and Reset for every color row', () => {
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
+    for (const { key } of rows) {
+      const row = rowMarkup(html, key);
+      assert.ok(
+        new RegExp(`<input type="color"[^>]*data-key="${key}"`).test(row),
+        `no native color input for ${key}`
+      );
+      assert.ok(row.includes(`data-hex-for="${key}"`), `no hex field for ${key}`);
+      assert.ok(row.includes(`data-apply="${key}"`), `no apply for ${key}`);
+      assert.ok(row.includes(`data-reset="${key}"`), `no reset for ${key}`);
+    }
   });
 
   it('Must embed the bundled script and stylesheet verbatim', () => {
@@ -209,28 +222,6 @@ describe('Test render the color panel html', () => {
       (field as RegExpExecArray)[0].includes('value="#8888ff"'),
       'the hex field does not carry the saved color'
     );
-  });
-
-  it('Must offer a picking plane with a marker per color row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
-    assert.ok(
-      html.includes('data-plane-for="centerColorOfRainbow"'),
-      'no picking plane for centerColorOfRainbow'
-    );
-    assert.ok(
-      html.includes('data-plane-marker="centerColorOfRainbow"'),
-      'the picking plane has no marker'
-    );
-  });
-
-  it('Must draw the picking plane inside the details above the mode tabs', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
-    const details = html.indexOf('<details');
-    const plane = html.indexOf('data-plane-for="centerColorOfRainbow"');
-    const tabs = html.indexOf('data-mode-tab="hsl"');
-    assert.ok(details >= 0, 'no details element');
-    assert.ok(details < plane, 'the picking plane is not inside the details element');
-    assert.ok(plane < tabs, 'the picking plane is not above the mode tabs');
   });
 
   it('Must offer a reset control drawn as an inline svg per color row', () => {
@@ -442,6 +433,28 @@ describe('Test the panel shows which scope a value comes from', () => {
     assert.ok(
       rowTag(html, 'editor.lineNumbers').includes('data-source="workspace"'),
       'the select row does not name its source'
+    );
+  });
+});
+
+describe('Test theme colors behind empty color rows', () => {
+  it('Must name the css variable VS Code gives a webview for a theme color', () => {
+    assert.strictEqual(
+      themeColorVariable('LineNumberDeco.repeatingDigitsForeground'),
+      '--vscode-LineNumberDeco-repeatingDigitsForeground'
+    );
+    assert.strictEqual(themeColorVariable('editorError.foreground'), '--vscode-editorError-foreground');
+  });
+
+  it('Must tell the native input which theme color fills an empty row', () => {
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
+    assert.ok(
+      html.includes('data-key="foreground" data-theme-var="--vscode-LineNumberDeco-foreground"'),
+      'the inactive row does not name its theme color variable'
+    );
+    assert.ok(
+      /data-key="centerColorOfRainbow" value=/.test(html),
+      'the rainbow row has no theme color and must not name one'
     );
   });
 });

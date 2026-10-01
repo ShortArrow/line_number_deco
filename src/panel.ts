@@ -19,15 +19,15 @@ import { updateUserConfig, updateWorkspaceConfig } from "./ui";
 
 const viewId = "lineNumberDeco.settings";
 
-const labels: { key: string; label: string }[] = [
+const labels: { key: string; label: string; themeColor?: string }[] = [
   { key: "centerColorOfRainbow", label: "Rainbow center" },
-  { key: "foregroundColorOfRepeatingDigits", label: "Repeating digits" },
-  { key: "foregroundColorOfSequentialDigits", label: "Sequential digits" },
-  { key: "foregroundColorOfMultiplesOfFive", label: "Multiples of five" },
-  { key: "activeForeground", label: "Active line number" },
-  { key: "foreground", label: "Inactive line number" },
-  { key: "errorForeground", label: "Error lines" },
-  { key: "warningForeground", label: "Warning lines" },
+  { key: "foregroundColorOfRepeatingDigits", label: "Repeating digits", themeColor: "LineNumberDeco.repeatingDigitsForeground" },
+  { key: "foregroundColorOfSequentialDigits", label: "Sequential digits", themeColor: "LineNumberDeco.sequentialDigitsForeground" },
+  { key: "foregroundColorOfMultiplesOfFive", label: "Multiples of five", themeColor: "LineNumberDeco.multiplesOfFiveForeground" },
+  { key: "activeForeground", label: "Active line number", themeColor: "LineNumberDeco.activeForeground" },
+  { key: "foreground", label: "Inactive line number", themeColor: "LineNumberDeco.foreground" },
+  { key: "errorForeground", label: "Error lines", themeColor: "editorError.foreground" },
+  { key: "warningForeground", label: "Warning lines", themeColor: "editorWarning.foreground" },
 ];
 
 // No fallback beside the label: inspect() reports the package.json default
@@ -92,14 +92,15 @@ function currentSelects(): PanelSelect[] {
 /**
  * The saved colors, read straight from the configuration.
  *
- * Previews deliberately do not show up here: the swatch is what Apply would
- * replace, so it has to keep showing the value that is actually stored.
+ * Previews deliberately do not show up here: these are the values Apply would
+ * replace, so they have to stay what is actually stored.
  */
 function currentRows(): PanelRow[] {
-  return labels.map(({ key, label }) => ({
+  return labels.map(({ key, label, themeColor }) => ({
     key,
     label,
     values: scopeValuesOf<string>(nameOfExtension, key),
+    themeColor,
   }));
 }
 
@@ -193,6 +194,7 @@ export async function handlePanelMessage(
   if (panelMessage.type === "resetRow") {
     if (
       !deps.isColorKey(panelMessage.key) &&
+      !deps.isToggleKey(panelMessage.key) &&
       !deps.isSelectKey(panelMessage.key)
     ) {
       return;

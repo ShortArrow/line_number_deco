@@ -3,11 +3,11 @@
  *
  * The panel used to read its compiled dependencies off disk on every resolve.
  * Bundling here removes those reads entirely, and a name the script imports
- * that does not exist fails this build rather than silently disabling a slider.
+ * that does not exist fails this build rather than silently disabling a control.
  *
  * Identifiers are deliberately left alone while whitespace and syntax are
  * squeezed: the rendered html is what the panel tests read, and a mangled
- * `hexToHsl` would make those assertions meaningless.
+ * `isHexColor` would make those assertions meaningless.
  */
 
 import { build } from "esbuild";

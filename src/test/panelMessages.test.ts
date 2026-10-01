@@ -235,6 +235,28 @@ describe('Test panel message handling', () => {
     assert.strictEqual(getPreviewColor('centerColorOfRainbow'), undefined);
   });
 
+  it('Must discard a staged switch on a reset of its row without saving', async () => {
+    const { deps, saves, counts } = recordingDeps();
+    setPreviewToggle('enableRainbow', true);
+    setPreviewColor('centerColorOfRainbow', '#123456');
+    await handlePanelMessage({ type: 'resetRow', key: 'enableRainbow' }, deps);
+    assert.strictEqual(getPreviewToggle('enableRainbow'), undefined);
+    assert.strictEqual(getPreviewColor('centerColorOfRainbow'), '#123456');
+    assert.deepStrictEqual(saves, []);
+    assert.strictEqual(counts.refresh, 1);
+    assert.strictEqual(counts.postState, 1);
+  });
+
+  it('Must ignore a reset of a key the panel does not offer', async () => {
+    const { deps, saves, counts } = recordingDeps();
+    setPreviewToggle('evil', true);
+    await handlePanelMessage({ type: 'resetRow', key: 'evil' }, deps);
+    assert.strictEqual(getPreviewToggle('evil'), true);
+    assert.deepStrictEqual(saves, []);
+    assert.strictEqual(counts.refresh, 0);
+    assert.strictEqual(counts.postState, 0);
+  });
+
   it('Must reset only the select row, leaving the other preview standing', async () => {
     const { deps, saves } = recordingDeps();
     setPreviewColor('editor.lineNumbers', 'interval');
