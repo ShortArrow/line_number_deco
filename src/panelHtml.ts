@@ -1,6 +1,6 @@
 import { panelCss, panelScript } from "./generated/webviewAssets";
 import { pickerColor } from "./hexColor";
-import { ScopeName, ScopedDisplay, ScopeValues, displayForScope } from "./panelState";
+import { ScopeName, ScopedDisplay, ScopeValues, displayForScope, inheritedTitle } from "./panelState";
 import { savedSwatchFill, savedSwatchLabel } from "./savedSwatch";
 
 /**
@@ -62,16 +62,17 @@ const sourceLabels: { [source: string]: string } = {
  * The source is an attribute rather than a class because the script rewrites it
  * on every radio flip, and a row whose value is written somewhere other than
  * the selected scope is dimmed: it is showing what it would inherit, not what
- * that scope holds.
+ * that scope holds, and its title says so in a sentence.
  */
 function scopeMarks<T extends string | boolean>(
   display: ScopedDisplay<T>,
   scope: ScopeName
 ): { classes: string; attribute: string; tag: string } {
   const inherited = display.source !== scope;
+  const title = inheritedTitle(scope, display.source);
   return {
     classes: inherited ? " inherited" : "",
-    attribute: ` data-source="${display.source}"`,
+    attribute: ` data-source="${display.source}"` + (title ? ` title="${escapeHtml(title)}"` : ""),
     tag: `<span class="source" data-source-tag="true">${sourceLabels[display.source]}</span>`,
   };
 }

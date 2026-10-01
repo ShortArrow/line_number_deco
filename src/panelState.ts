@@ -138,3 +138,36 @@ function savedForScope<T extends string | boolean>(
   }
   return { value: undefined, source: "none" };
 }
+
+/** The words the hover text uses for each place a value can be written. */
+const placeNames = {
+  workspace: "Workspace settings",
+  user: "User settings",
+  default: "the default",
+};
+
+/**
+ * The hover text of a row dimmed because its value is written elsewhere.
+ *
+ * It names the scope the radio selects and the one the value comes from; a
+ * row holding no value anywhere names the places it would have inherited
+ * from. A row showing the selected scope's own value is not dimmed and gets
+ * no text.
+ *
+ * @param selectedScope the scope the radio selects
+ * @param source where the shown value is written, from {@link displayForScope}
+ */
+export function inheritedTitle(
+  selectedScope: ScopeName,
+  source: ScopedDisplay<string | boolean>["source"]
+): string {
+  if (source === selectedScope) {
+    return "";
+  }
+  const unset = `Not set in ${placeNames[selectedScope]}`;
+  if (source !== "none") {
+    return `${unset}; showing the value from ${placeNames[source]}.`;
+  }
+  const inherits = selectedScope === "workspace" ? "User settings or the default" : "the default";
+  return `${unset}; nothing to inherit from ${inherits}.`;
+}

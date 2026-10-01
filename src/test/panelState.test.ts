@@ -1,6 +1,9 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { displayForScope, displayToggle, displayValue } from '../panelState';
+import type { ScopeName, ScopedDisplay } from '../panelState';
+
+type Source = ScopedDisplay<string>['source'];
+import { displayForScope, displayToggle, displayValue, inheritedTitle } from '../panelState';
 
 describe('Test panel display values', () => {
   it('Must show the saved value while nothing is pending', () => {
@@ -169,4 +172,21 @@ describe('Test panel display values per scope', () => {
       { value: '#w', source: 'workspace', pending: false }
     );
   });
+});
+
+describe('Test the hover text of a dimmed row', () => {
+  const cases: [ScopeName, Source, string][] = [
+    ['workspace', 'user', 'Not set in Workspace settings; showing the value from User settings.'],
+    ['workspace', 'default', 'Not set in Workspace settings; showing the value from the default.'],
+    ['workspace', 'none', 'Not set in Workspace settings; nothing to inherit from User settings or the default.'],
+    ['user', 'default', 'Not set in User settings; showing the value from the default.'],
+    ['user', 'none', 'Not set in User settings; nothing to inherit from the default.'],
+    ['workspace', 'workspace', ''],
+    ['user', 'user', ''],
+  ];
+  for (const [selected, source, title] of cases) {
+    it(`Must read ${JSON.stringify(title)} for ${source} under ${selected}`, () => {
+      assert.strictEqual(inheritedTitle(selected, source), title);
+    });
+  }
 });

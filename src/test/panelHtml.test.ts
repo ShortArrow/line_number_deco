@@ -393,6 +393,23 @@ describe('Test the panel shows which scope a value comes from', () => {
     );
   });
 
+  it('W2b Must explain a dimmed row on hover and leave an undimmed row without a title', () => {
+    const html = renderPanelHtml(
+      [{ key: 'enableRainbow', label: 'Rainbow', values: inWorkspace(true) }],
+      [],
+      [{ key: 'foreground', label: 'Inactive line number', values: inUser('#abcdef') }],
+      'n0nce',
+      'vscode-resource:'
+    );
+    assert.ok(
+      rowTag(html, 'foreground').includes(
+        'title="Not set in Workspace settings; showing the value from User settings."'
+      ),
+      `the dimmed row does not say why: ${rowTag(html, 'foreground')}`
+    );
+    assert.ok(!rowTag(html, 'enableRainbow').includes('title='), 'an undimmed row carries a title');
+  });
+
   it('W3 Must name the source in words beside the label', () => {
     const inherited = renderPanelHtml(
       toggles,

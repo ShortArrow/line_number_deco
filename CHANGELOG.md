@@ -96,3 +96,4 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - The settings panel picks colors with VS Code's built-in color picker (2-D surface, hue strip, HEX/RGB/HSL) instead of its own sliders and surface, and the hex field also accepts an alpha channel (`#rrggbbaa`)
 - Toggle rows in the settings panel gain the same Reset button as the color rows, discarding a switch flipped but not yet applied
 - Each color row in the settings panel shows the saved color in a small swatch beside the picker, so a staged color can be compared with what it replaces; an empty setting shows its theme color
+- A dimmed row in the settings panel explains itself on hover, naming the selected scope and where the value it shows comes from

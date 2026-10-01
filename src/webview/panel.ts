@@ -11,7 +11,7 @@
  */
 
 import { colorToApply, isHexColor, pickerColor } from "../hexColor";
-import { ScopeName, ScopeValues, displayForScope } from "../panelState";
+import { ScopeName, ScopedDisplay, ScopeValues, displayForScope, inheritedTitle } from "../panelState";
 import { savedSwatchFill, savedSwatchLabel } from "../savedSwatch";
 
 declare function acquireVsCodeApi(): {
@@ -111,10 +111,11 @@ const sourceLabels: { [source: string]: string } = {
  * Put the source of one row onto the row itself.
  *
  * A row whose value is written somewhere other than the selected scope is
- * dimmed and says so, which is the whole point of the radio: applying to
- * user has to be visible even while the workspace holds its own value.
+ * dimmed and says so, in its tag and in its title, which is the whole point
+ * of the radio: applying to user has to be visible even while the workspace
+ * holds its own value.
  */
-function markSource(key: string, source: string) {
+function markSource(key: string, source: ScopedDisplay<string | boolean>["source"]) {
   const row = document.querySelector(
     '[data-row="' + key + '"]'
   ) as HTMLElement | null;
@@ -123,6 +124,12 @@ function markSource(key: string, source: string) {
   }
   row.dataset.source = source;
   row.classList.toggle("inherited", source !== scope());
+  const title = inheritedTitle(scope(), source);
+  if (title) {
+    row.title = title;
+  } else {
+    row.removeAttribute("title");
+  }
   const tag = row.querySelector("[data-source-tag]");
   if (tag) {
     tag.textContent = sourceLabels[source] || "";
