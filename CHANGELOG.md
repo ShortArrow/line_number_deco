@@ -86,7 +86,7 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 
 - Line numbers on lines an error or a warning starts on take the diagnostic's color, ahead of every other rule including the current line ([#74](https://github.com/ShortArrow/line_number_deco/issues/74))
 - Line numbers whose distance from the cursor is a multiple of five (5, 10, 15) can get their own color, after sequential digits and ahead of the rainbow ([#75](https://github.com/ShortArrow/line_number_deco/issues/75))
-- Dependency advisories cleared: serialize-javascript, fast-uri, qs, diff and js-yaml move past their patched versions (mocha goes 10 to 11 along the way); the one advisory without a fix, extract-zip inside the UI-test harness, is dismissed with its reasoning recorded on the alert
+- Dependency advisories cleared: serialize-javascript, fast-uri, qs, diff, js-yaml, undici, markdown-it and brace-expansion move past their patched versions (mocha goes 10 to 11 along the way); the two advisories without a fix, both in extract-zip inside the UI-test harness, are dismissed with their reasoning recorded on the alerts
 - While a movement key is held, the numbers follow the cursor at up to one update per frame (16 ms) instead of one per 50 ms
 - The settings panel remembers the selected scope across a switch to another sidebar view, and asks the extension for the current state as soon as it is shown again
 - A Sponsor link to [github.com/sponsors/ShortArrow](https://github.com/sponsors/ShortArrow) appears on the Marketplace page and in the extension details header
