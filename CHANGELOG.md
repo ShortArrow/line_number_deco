@@ -89,5 +89,6 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Dependency advisories cleared: serialize-javascript, fast-uri, qs, diff, js-yaml, undici, markdown-it and brace-expansion move past their patched versions (mocha goes 10 to 11 along the way); the two advisories without a fix, both in extract-zip inside the UI-test harness, are dismissed with their reasoning recorded on the alerts
 - While a movement key is held, the numbers follow the cursor at up to one update per frame (16 ms) instead of one per 50 ms
 - The settings panel remembers the selected scope across a switch to another sidebar view, and asks the extension for the current state as soon as it is shown again
+- The extension stays enabled in Restricted Mode and in virtual workspaces, where VS Code used to switch it off because the manifest did not say it was safe there
 - A Sponsor link to [github.com/sponsors/ShortArrow](https://github.com/sponsors/ShortArrow) appears on the Marketplace page and in the extension details header
 - Command titles and setting descriptions are rewritten in consistent English (every id is unchanged); the README is reordered around the product, the contributor guide and decision records are brought up to date, and the missing 0.0.9 entry is restored to this file
