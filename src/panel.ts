@@ -19,15 +19,15 @@ import { updateUserConfig, updateWorkspaceConfig } from "./ui";
 
 const viewId = "lineNumberDeco.settings";
 
-const labels: { key: string; label: string }[] = [
+const labels: { key: string; label: string; themeColor?: string }[] = [
   { key: "centerColorOfRainbow", label: "Rainbow center" },
-  { key: "foregroundColorOfRepeatingDigits", label: "Repeating digits" },
-  { key: "foregroundColorOfSequentialDigits", label: "Sequential digits" },
-  { key: "foregroundColorOfMultiplesOfFive", label: "Multiples of five" },
-  { key: "activeForeground", label: "Active line number" },
-  { key: "foreground", label: "Inactive line number" },
-  { key: "errorForeground", label: "Error lines" },
-  { key: "warningForeground", label: "Warning lines" },
+  { key: "foregroundColorOfRepeatingDigits", label: "Repeating digits", themeColor: "LineNumberDeco.repeatingDigitsForeground" },
+  { key: "foregroundColorOfSequentialDigits", label: "Sequential digits", themeColor: "LineNumberDeco.sequentialDigitsForeground" },
+  { key: "foregroundColorOfMultiplesOfFive", label: "Multiples of five", themeColor: "LineNumberDeco.multiplesOfFiveForeground" },
+  { key: "activeForeground", label: "Active line number", themeColor: "LineNumberDeco.activeForeground" },
+  { key: "foreground", label: "Inactive line number", themeColor: "LineNumberDeco.foreground" },
+  { key: "errorForeground", label: "Error lines", themeColor: "editorError.foreground" },
+  { key: "warningForeground", label: "Warning lines", themeColor: "editorWarning.foreground" },
 ];
 
 // No fallback beside the label: inspect() reports the package.json default
@@ -96,10 +96,11 @@ function currentSelects(): PanelSelect[] {
  * replace, so they have to stay what is actually stored.
  */
 function currentRows(): PanelRow[] {
-  return labels.map(({ key, label }) => ({
+  return labels.map(({ key, label, themeColor }) => ({
     key,
     label,
     values: scopeValuesOf<string>(nameOfExtension, key),
+    themeColor,
   }));
 }
 

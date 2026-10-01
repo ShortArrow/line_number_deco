@@ -20,6 +20,23 @@ declare function acquireVsCodeApi(): {
 };
 
 const vscode = acquireVsCodeApi();
+
+/**
+ * The theme color an empty row stands for, as the native input can show it.
+ *
+ * VS Code sets every theme color as a css variable on the webview's root, so
+ * the color in force is read rather than guessed; a row without one, or a
+ * value the input cannot hold, shows black as before.
+ */
+function themeColorOf(input: HTMLInputElement): string {
+  const variable = input.dataset.themeVar;
+  if (!variable) {
+    return pickerColor("");
+  }
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+  return pickerColor(value);
+}
+
 function scope(): ScopeName {
   const checked = document.querySelector(
     'input[name="scope"]:checked'
@@ -303,7 +320,7 @@ function renderState() {
     markSource(row.key, entry.source);
     const input = colorInputOf(row.key);
     if (input) {
-      input.value = pickerColor(color);
+      input.value = color === "" ? themeColorOf(input) : pickerColor(color);
     }
     // The displayed value wins over whatever is being typed: a reset has
     // to reach a field the reader still has the caret in.

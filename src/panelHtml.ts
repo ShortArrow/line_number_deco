@@ -14,6 +14,16 @@ export interface PanelRow {
   key: string;
   label: string;
   values: ScopeValues<string>;
+  /** The theme color an empty setting falls back to, when there is one. */
+  themeColor?: string;
+}
+
+/**
+ * The css variable VS Code sets in a webview for one theme color: the id with
+ * its dots turned into dashes, behind `--vscode-`.
+ */
+export function themeColorVariable(id: string): string {
+  return `--vscode-${id.split(".").join("-")}`;
 }
 
 /**
@@ -86,8 +96,10 @@ function renderToggle(toggle: PanelToggle) {
             <span class="slider"></span>
           </span>
         </label>
-        <button data-apply-toggle="${key}">Apply</button>
-        ${resetButton(key)}
+        <span class="actions">
+          <button data-apply-toggle="${key}">Apply</button>
+          ${resetButton(key)}
+        </span>
       </div>`;
 }
 
@@ -149,18 +161,21 @@ ${options}
  *
  * The native input is the swatch and the picker at once; Chromium's own picker
  * opens from it and fires input events while dragging, so previews stay live.
- * A setting written nowhere shows an empty hex field and a black input, and the
- * source tag says the theme color is in force.
+ * A setting written nowhere shows an empty hex field, and the input shows the
+ * theme color in force, read by the script from the variable it names.
  */
 function renderRow(row: PanelRow) {
   const key = escapeHtml(row.key);
   const display = displayForScope(initialScope, row.key, row.values, {});
   const marks = scopeMarks(display, initialScope);
   const shown = display.value ?? "";
+  const themeVar = row.themeColor
+    ? ` data-theme-var="${escapeHtml(themeColorVariable(row.themeColor))}"`
+    : "";
   return `      <div class="row${marks.classes}" data-row="${key}"${marks.attribute}>
         <div class="label">${escapeHtml(row.label)}${marks.tag}</div>
         <div class="controls">
-          <input type="color" data-key="${key}" value="${escapeHtml(pickerColor(shown))}" />
+          <input type="color" data-key="${key}"${themeVar} value="${escapeHtml(pickerColor(shown))}" />
           <input type="text" class="hex" spellcheck="false" data-hex-for="${key}" value="${escapeHtml(shown)}" />
           <button data-apply="${key}">Apply</button>
           ${resetButton(key)}

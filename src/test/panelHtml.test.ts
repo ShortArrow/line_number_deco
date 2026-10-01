@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import { panelCss, panelScript } from '../generated/webviewAssets';
-import { PanelRow, PanelSelect, PanelToggle, renderPanelHtml } from '../panelHtml';
+import { themeColorVariable, PanelRow, PanelSelect, PanelToggle, renderPanelHtml } from '../panelHtml';
 
 /** A triple holding one workspace value, the shape most rows are given here. */
 function inWorkspace<T>(value: T) {
@@ -24,7 +24,7 @@ function unset<T>() {
 
 const rows: PanelRow[] = [
   { key: 'centerColorOfRainbow', label: 'Rainbow center', values: inWorkspace('#8888ff') },
-  { key: 'foreground', label: 'Inactive line number', values: unset<string>() },
+  { key: 'foreground', label: 'Inactive line number', values: unset<string>(), themeColor: 'LineNumberDeco.foreground' },
 ];
 
 const sel: PanelSelect[] = [
@@ -433,6 +433,28 @@ describe('Test the panel shows which scope a value comes from', () => {
     assert.ok(
       rowTag(html, 'editor.lineNumbers').includes('data-source="workspace"'),
       'the select row does not name its source'
+    );
+  });
+});
+
+describe('Test theme colors behind empty color rows', () => {
+  it('Must name the css variable VS Code gives a webview for a theme color', () => {
+    assert.strictEqual(
+      themeColorVariable('LineNumberDeco.repeatingDigitsForeground'),
+      '--vscode-LineNumberDeco-repeatingDigitsForeground'
+    );
+    assert.strictEqual(themeColorVariable('editorError.foreground'), '--vscode-editorError-foreground');
+  });
+
+  it('Must tell the native input which theme color fills an empty row', () => {
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
+    assert.ok(
+      html.includes('data-key="foreground" data-theme-var="--vscode-LineNumberDeco-foreground"'),
+      'the inactive row does not name its theme color variable'
+    );
+    assert.ok(
+      /data-key="centerColorOfRainbow" value=/.test(html),
+      'the rainbow row has no theme color and must not name one'
     );
   });
 });
