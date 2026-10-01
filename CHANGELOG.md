@@ -92,3 +92,4 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - The extension stays enabled in Restricted Mode and in virtual workspaces, where VS Code used to switch it off because the manifest did not say it was safe there
 - A Sponsor link to [github.com/sponsors/ShortArrow](https://github.com/sponsors/ShortArrow) appears on the Marketplace page and in the extension details header
 - Command titles and setting descriptions are rewritten in consistent English (every id is unchanged); the README is reordered around the product, the contributor guide and decision records are brought up to date, and the missing 0.0.9 entry is restored to this file
+- Repeating-digit, sequential-digit and multiples-of-five line numbers now take their color from the theme, so they stay readable on light themes; dark themes look the same, and a color you set yourself is kept

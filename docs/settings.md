@@ -6,9 +6,9 @@ Every configuration key of the extension. All of them are also editable from the
 | --- | --- | --- | --- |
 | `LineNumberDeco.enableRelativeLine` | boolean | `true` | Show relative line numbers |
 | `LineNumberDeco.centerColorOfRainbow` | color | `#0000ff` | Color at the center of the rainbow, on the current line |
-| `LineNumberDeco.foregroundColorOfRepeatingDigits` | color | `#00ff00` | Color of repeating-digit line numbers (11, 22, 333) |
-| `LineNumberDeco.foregroundColorOfSequentialDigits` | color | `#ffa500` | Color of sequential-digit line numbers (123, 543, 10) |
-| `LineNumberDeco.foregroundColorOfMultiplesOfFive` | color | `#c678dd` | Color of line numbers at multiples of five (5, 10, 15) |
+| `LineNumberDeco.foregroundColorOfRepeatingDigits` | color | (theme color) | Color of repeating-digit line numbers (11, 22, 333); empty uses the theme color |
+| `LineNumberDeco.foregroundColorOfSequentialDigits` | color | (theme color) | Color of sequential-digit line numbers (123, 543, 10); empty uses the theme color |
+| `LineNumberDeco.foregroundColorOfMultiplesOfFive` | color | (theme color) | Color of line numbers at multiples of five (5, 10, 15); empty uses the theme color |
 | `LineNumberDeco.enableRainbow` | boolean | `false` | Color each line number by its distance from the cursor |
 | `LineNumberDeco.enableRepeatingDigits` | boolean | `false` | Give repeating-digit line numbers (11, 22, 333) their own color |
 | `LineNumberDeco.enableSequentialDigits` | boolean | `false` | Give sequential-digit line numbers (123, 543, 10) their own color — the poker mode |

@@ -250,20 +250,20 @@
         "LineNumberDeco.foregroundColorOfRepeatingDigits": {
           "type": "string",
           "format": "color",
-          "default": "#00ff00",
-          "description": "Color of repeating-digit line numbers (11, 22, 333)"
+          "default": "",
+          "description": "Color of repeating-digit line numbers (11, 22, 333); empty uses the theme color"
         },
         "LineNumberDeco.foregroundColorOfSequentialDigits": {
           "type": "string",
           "format": "color",
-          "default": "#ffa500",
-          "description": "Color of sequential-digit line numbers (123, 543, 10)"
+          "default": "",
+          "description": "Color of sequential-digit line numbers (123, 543, 10); empty uses the theme color"
         },
         "LineNumberDeco.foregroundColorOfMultiplesOfFive": {
           "type": "string",
           "format": "color",
-          "default": "#c678dd",
-          "description": "Color of line numbers at multiples of five (5, 10, 15)"
+          "default": "",
+          "description": "Color of line numbers at multiples of five (5, 10, 15); empty uses the theme color"
         },
         "LineNumberDeco.enableRainbow": {
           "type": "boolean",
@@ -335,6 +335,36 @@
           "light": "editorLineNumber.foreground",
           "highContrast": "editorLineNumber.foreground",
           "highContrastLight": "editorLineNumber.foreground"
+        }
+      },
+      {
+        "id": "LineNumberDeco.repeatingDigitsForeground",
+        "description": "Color of repeating-digit line numbers",
+        "defaults": {
+          "dark": "#00ff00",
+          "light": "#1a7f37",
+          "highContrast": "#00ff00",
+          "highContrastLight": "#1a7f37"
+        }
+      },
+      {
+        "id": "LineNumberDeco.sequentialDigitsForeground",
+        "description": "Color of sequential-digit line numbers",
+        "defaults": {
+          "dark": "#ffa500",
+          "light": "#a15c00",
+          "highContrast": "#ffa500",
+          "highContrastLight": "#a15c00"
+        }
+      },
+      {
+        "id": "LineNumberDeco.multiplesOfFiveForeground",
+        "description": "Color of line numbers at multiples of five",
+        "defaults": {
+          "dark": "#c678dd",
+          "light": "#8250df",
+          "highContrast": "#c678dd",
+          "highContrastLight": "#8250df"
         }
       }
     ]

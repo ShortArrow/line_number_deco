@@ -69,11 +69,19 @@ export function getEnableRepeatingDigits() {
   );
 }
 
+export function getRepeatingDigitsLineNumberColor() {
+  const preview = getPreviewColor("foregroundColorOfRepeatingDigits");
+  if (preview !== undefined) {
+    return preview;
+  }
+  const config = getConfig<string>("foregroundColorOfRepeatingDigits", "");
+  return config !== ""
+    ? config
+    : new vscode.ThemeColor("LineNumberDeco.repeatingDigitsForeground");
+}
+
 export function getColorAtRepeatingDigits() {
-  return (
-    getPreviewColor("foregroundColorOfRepeatingDigits") ??
-    getConfig<string>("foregroundColorOfRepeatingDigits", "")
-  );
+  return getConfig<string>("foregroundColorOfRepeatingDigits", "");
 }
 
 export function getEnableSequentialDigits() {
@@ -83,11 +91,19 @@ export function getEnableSequentialDigits() {
   );
 }
 
+export function getSequentialDigitsLineNumberColor() {
+  const preview = getPreviewColor("foregroundColorOfSequentialDigits");
+  if (preview !== undefined) {
+    return preview;
+  }
+  const config = getConfig<string>("foregroundColorOfSequentialDigits", "");
+  return config !== ""
+    ? config
+    : new vscode.ThemeColor("LineNumberDeco.sequentialDigitsForeground");
+}
+
 export function getColorAtSequentialDigits() {
-  return (
-    getPreviewColor("foregroundColorOfSequentialDigits") ??
-    getConfig<string>("foregroundColorOfSequentialDigits", "")
-  );
+  return getConfig<string>("foregroundColorOfSequentialDigits", "");
 }
 
 export function getEnableMultiplesOfFive() {
@@ -97,11 +113,19 @@ export function getEnableMultiplesOfFive() {
   );
 }
 
+export function getMultiplesOfFiveLineNumberColor() {
+  const preview = getPreviewColor("foregroundColorOfMultiplesOfFive");
+  if (preview !== undefined) {
+    return preview;
+  }
+  const config = getConfig<string>("foregroundColorOfMultiplesOfFive", "");
+  return config !== ""
+    ? config
+    : new vscode.ThemeColor("LineNumberDeco.multiplesOfFiveForeground");
+}
+
 export function getColorAtMultiplesOfFive() {
-  return (
-    getPreviewColor("foregroundColorOfMultiplesOfFive") ??
-    getConfig<string>("foregroundColorOfMultiplesOfFive", "")
-  );
+  return getConfig<string>("foregroundColorOfMultiplesOfFive", "");
 }
 
 export function getEnableDiagnostics() {
