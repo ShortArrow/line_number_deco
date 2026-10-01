@@ -343,6 +343,12 @@ document.querySelectorAll('input[name="scope"]').forEach((radio) => {
     renderState();
   });
 });
+// A theme switch sends no state message: VS Code only rewrites the color
+// variables in the root's style attribute, so empty rows re-read them here.
+new MutationObserver(renderState).observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ["style"],
+});
 // Last, and after the listener above: the baked values are as old as the
 // last resolve, and the answer to this must not arrive unheard.
 vscode.postMessage({ type: "ready" });
