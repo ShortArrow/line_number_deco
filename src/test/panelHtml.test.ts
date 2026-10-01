@@ -150,6 +150,22 @@ describe('Test render the color panel html', () => {
     assert.ok(html.includes('data-apply-toggle="enableRainbow"'));
   });
 
+  it('Must offer the same reset control as a color row on every toggle row', () => {
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
+    const colorReset = /<button[^>]*data-reset="centerColorOfRainbow"[^>]*>[\s\S]*?<\/button>/.exec(html);
+    assert.ok(colorReset, 'no reset control on the color row');
+    for (const { key } of toggles) {
+      const row = rowMarkup(html, key);
+      const reset = new RegExp(`<button[^>]*data-reset="${key}"[^>]*>[\\s\\S]*?</button>`).exec(row);
+      assert.ok(reset, `no reset control for ${key}`);
+      assert.strictEqual(
+        (reset as RegExpExecArray)[0].replace(`data-reset="${key}"`, ''),
+        (colorReset as RegExpExecArray)[0].replace('data-reset="centerColorOfRainbow"', ''),
+        `the reset control for ${key} differs from the color row's`
+      );
+    }
+  });
+
   it('Must offer exactly one apply all control', () => {
     const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     const occurrences = html.split('data-apply-all=').length - 1;

@@ -87,6 +87,7 @@ function renderToggle(toggle: PanelToggle) {
           </span>
         </label>
         <button data-apply-toggle="${key}">Apply</button>
+        ${resetButton(key)}
       </div>`;
 }
 
@@ -102,6 +103,15 @@ const discardGlyph =
   '<path fill="currentColor" d="M8 3a5 5 0 1 1-4.546 2.914l1.09.502A3.8 3.8 0 1 0 8 4.2V3z"/>' +
   '<path fill="currentColor" d="M8.75 1.4v3.2L5.6 3z"/>' +
   "</svg>";
+
+/**
+ * The control that discards one row's unapplied change, the same on every row.
+ *
+ * @param key the row's configuration key, already escaped
+ */
+function resetButton(key: string) {
+  return `<button class="icon" title="Reset" aria-label="Reset" data-reset="${key}">${discardGlyph}</button>`;
+}
 
 /**
  * One enumerated setting as a segmented control.
@@ -129,7 +139,7 @@ function renderSelect(select: PanelSelect) {
 ${options}
           </div>
           <button data-apply="${key}">Apply</button>
-          <button class="icon" title="Reset" aria-label="Reset" data-reset="${key}">${discardGlyph}</button>
+          ${resetButton(key)}
         </div>
       </div>`;
 }
@@ -153,7 +163,7 @@ function renderRow(row: PanelRow) {
           <input type="color" data-key="${key}" value="${escapeHtml(pickerColor(shown))}" />
           <input type="text" class="hex" spellcheck="false" data-hex-for="${key}" value="${escapeHtml(shown)}" />
           <button data-apply="${key}">Apply</button>
-          <button class="icon" title="Reset" aria-label="Reset" data-reset="${key}">${discardGlyph}</button>
+          ${resetButton(key)}
         </div>
       </div>`;
 }

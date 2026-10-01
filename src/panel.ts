@@ -193,6 +193,7 @@ export async function handlePanelMessage(
   if (panelMessage.type === "resetRow") {
     if (
       !deps.isColorKey(panelMessage.key) &&
+      !deps.isToggleKey(panelMessage.key) &&
       !deps.isSelectKey(panelMessage.key)
     ) {
       return;
