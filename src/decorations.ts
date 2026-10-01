@@ -26,11 +26,11 @@ export interface DecorationSettings {
   enableRainbow: boolean;
   centerColorOfRainbow: string;
   enableRepeatingDigits: boolean;
-  repeatingDigitsColor: string;
+  repeatingDigitsColor: LineColor;
   enableSequentialDigits: boolean;
-  sequentialDigitsColor: string;
+  sequentialDigitsColor: LineColor;
   enableMultiplesOfFive: boolean;
-  multiplesOfFiveColor: string;
+  multiplesOfFiveColor: LineColor;
   enableDiagnostics: boolean;
   errorColor: LineColor;
   warningColor: LineColor;

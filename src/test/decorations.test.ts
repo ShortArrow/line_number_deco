@@ -119,6 +119,44 @@ describe('Test build line decoration specs', () => {
     );
     assert.strictEqual(spec.color, themeColor);
   });
+
+  const highlightCases: {
+    rule: string;
+    lineIndex: number;
+    label: string;
+    overrides: (color: LineColor) => Partial<DecorationSettings>;
+  }[] = [
+    {
+      rule: 'repeating',
+      lineIndex: 11,
+      label: '11',
+      overrides: (color) => ({ enableRepeatingDigits: true, repeatingDigitsColor: color }),
+    },
+    {
+      rule: 'sequential',
+      lineIndex: 12,
+      label: '12',
+      overrides: (color) => ({ enableSequentialDigits: true, sequentialDigitsColor: color }),
+    },
+    {
+      rule: 'multiples of five',
+      lineIndex: 5,
+      label: '5',
+      overrides: (color) => ({ enableMultiplesOfFive: true, multiplesOfFiveColor: color }),
+    },
+  ];
+
+  for (const { rule, lineIndex, label, overrides } of highlightCases) {
+    it(`Must pass a ${rule} theme color through by identity`, () => {
+      const themeColor = { themeColor: rule };
+      const [spec] = buildLineDecorationSpecs(
+        [lineIndex],
+        settingsWith({ activeLineNumber: 0, ...overrides(themeColor) })
+      );
+      assert.strictEqual(spec.label, label);
+      assert.strictEqual(spec.color, themeColor);
+    });
+  }
 });
 
 describe('Test mark diagnostic lines', () => {
