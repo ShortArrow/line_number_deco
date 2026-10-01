@@ -446,6 +446,33 @@ describe('Test theme colors behind empty color rows', () => {
     assert.strictEqual(themeColorVariable('editorError.foreground'), '--vscode-editorError-foreground');
   });
 
+  it('Must put exactly one saved-color swatch before the native input of every color row', () => {
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
+    for (const row of rows) {
+      const markup = rowMarkup(html, row.key);
+      const swatches = markup.match(/data-saved-for="[^"]*"/g) || [];
+      assert.deepStrictEqual(swatches, [`data-saved-for="${row.key}"`], `swatches of ${row.key}`);
+      assert.ok(
+        markup.indexOf('data-saved-for=') < markup.indexOf('<input type="color"'),
+        `the swatch of ${row.key} is not left of its native input`
+      );
+    }
+  });
+
+  it('Must fill the saved-color swatch from the saved value or the theme color', () => {
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
+    assert.ok(
+      /data-saved-for="centerColorOfRainbow"[^>]*style="background: #8888ff"/.test(html),
+      'the rainbow swatch does not show its saved color'
+    );
+    assert.ok(
+      /data-saved-for="foreground"[^>]*aria-label="Saved: theme color"[^>]*style="background: var\(--vscode-LineNumberDeco-foreground\)"/.test(
+        html
+      ),
+      'the empty row swatch does not show its theme color'
+    );
+  });
+
   it('Must tell the native input which theme color fills an empty row', () => {
     const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(

@@ -95,3 +95,4 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Repeating-digit, sequential-digit and multiples-of-five line numbers now take their color from the theme, so they stay readable on light themes; dark themes look the same, and a color you set yourself is kept
 - The settings panel picks colors with VS Code's built-in color picker (2-D surface, hue strip, HEX/RGB/HSL) instead of its own sliders and surface, and the hex field also accepts an alpha channel (`#rrggbbaa`)
 - Toggle rows in the settings panel gain the same Reset button as the color rows, discarding a switch flipped but not yet applied
+- Each color row in the settings panel shows the saved color in a small swatch beside the picker, so a staged color can be compared with what it replaces; an empty setting shows its theme color

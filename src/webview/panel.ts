@@ -12,6 +12,7 @@
 
 import { colorToApply, isHexColor, pickerColor } from "../hexColor";
 import { ScopeName, ScopeValues, displayForScope } from "../panelState";
+import { savedSwatchFill, savedSwatchLabel } from "../savedSwatch";
 
 declare function acquireVsCodeApi(): {
   postMessage(message: unknown): void;
@@ -131,6 +132,25 @@ function colorInputOf(key: string): HTMLInputElement | null {
   return document.querySelector(
     'input[type="color"][data-key="' + key + '"]'
   ) as HTMLInputElement | null;
+}
+/**
+ * Fill one row's saved swatch with what the selected scope holds.
+ *
+ * The fill is cleared first, so a saved value the browser rejects as a color
+ * leaves the swatch empty rather than showing the previous scope's color.
+ */
+function showSaved(key: string, saved: string, themeVariable: string | undefined) {
+  const swatch = document.querySelector(
+    '[data-saved-for="' + key + '"]'
+  ) as HTMLElement | null;
+  if (!swatch) {
+    return;
+  }
+  const label = savedSwatchLabel(saved, themeVariable);
+  swatch.style.background = "";
+  swatch.style.background = savedSwatchFill(saved, themeVariable);
+  swatch.setAttribute("aria-label", label);
+  swatch.title = label;
 }
 function hexFieldOf(key: string): HTMLInputElement | null {
   return document.querySelector(
@@ -313,6 +333,8 @@ function renderState() {
     if (input) {
       input.value = color === "" ? themeColorOf(input) : pickerColor(color);
     }
+    const saved = shownForScope(row.key, row.values, {}).value;
+    showSaved(row.key, saved === undefined ? "" : String(saved), input?.dataset.themeVar);
     // The displayed value wins over whatever is being typed: a reset has
     // to reach a field the reader still has the caret in.
     const field = hexFieldOf(row.key);
