@@ -3,7 +3,7 @@ import { describe, it } from 'mocha';
 import type { ScopeName, ScopedDisplay } from '../panelState';
 
 type Source = ScopedDisplay<string>['source'];
-import { displayForScope, displayToggle, displayValue, inheritedTitle } from '../panelState';
+import { displayForScope, displayToggle, displayValue, inheritedTitle, stagePending } from '../panelState';
 
 describe('Test panel display values', () => {
   it('Must show the saved value while nothing is pending', () => {
@@ -189,4 +189,35 @@ describe('Test the hover text of a dimmed row', () => {
       assert.strictEqual(inheritedTitle(selected, source), title);
     });
   }
+});
+
+describe('Test staging a value in the webview', () => {
+  it('S1 Must make a staged color show over the saved one at the next render', () => {
+    const staged = stagePending({}, 'c', '#123abc');
+    assert.deepStrictEqual(
+      displayForScope('user', 'c', { defaultValue: undefined, userValue: '#000000', workspaceValue: undefined }, staged),
+      { value: '#123abc', source: 'user', pending: true }
+    );
+  });
+
+  it('S2 Must make a staged switch show over the saved one at the next render', () => {
+    const staged = stagePending({}, 'enableRainbow', true);
+    assert.deepStrictEqual(
+      displayForScope('workspace', 'enableRainbow', { defaultValue: false, userValue: undefined, workspaceValue: undefined }, staged),
+      { value: true, source: 'default', pending: true }
+    );
+  });
+
+  it('S3 Must replace an earlier staged value of the same key and keep the others', () => {
+    assert.deepStrictEqual(stagePending({ c: '#111111', d: '#222222' }, 'c', '#333333'), {
+      c: '#333333',
+      d: '#222222',
+    });
+  });
+
+  it('S4 Must leave the map it was given untouched', () => {
+    const before = { d: '#222222' };
+    stagePending(before, 'c', '#333333');
+    assert.deepStrictEqual(before, { d: '#222222' });
+  });
 });

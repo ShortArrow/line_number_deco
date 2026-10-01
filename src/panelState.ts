@@ -14,6 +14,27 @@ export interface PendingMap {
   [key: string]: string | boolean;
 }
 
+/**
+ * The staged values once one more is staged in the webview.
+ *
+ * The webview records what it posts as a preview here, because the extension
+ * does not answer a color or switch preview with a state message; without the
+ * entry, the next local redraw would paint the saved value over the staged one.
+ * A later state message still replaces the whole map. The given map is not
+ * changed.
+ *
+ * @param pending what was staged before
+ * @param key the configuration name being staged
+ * @param value the value posted as its preview
+ */
+export function stagePending(
+  pending: PendingMap,
+  key: string,
+  value: string | boolean
+): PendingMap {
+  return { ...pending, [key]: value };
+}
+
 /** One value to display, and whether it is staged rather than saved. */
 export interface DisplayEntry {
   value: string;

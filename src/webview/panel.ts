@@ -11,7 +11,7 @@
  */
 
 import { colorToApply, isHexColor, pickerColor } from "../hexColor";
-import { ScopeName, ScopedDisplay, ScopeValues, displayForScope, inheritedTitle } from "../panelState";
+import { ScopeName, ScopedDisplay, ScopeValues, displayForScope, inheritedTitle, stagePending } from "../panelState";
 import { savedSwatchFill, savedSwatchLabel } from "../savedSwatch";
 
 declare function acquireVsCodeApi(): {
@@ -85,11 +85,7 @@ document
     const input = element as HTMLInputElement;
     input.addEventListener("change", () => {
       markPending(input.dataset.toggle as string, true);
-      vscode.postMessage({
-        type: "previewToggle",
-        key: input.dataset.toggle,
-        value: input.checked,
-      });
+      postStaged("previewToggle", input.dataset.toggle as string, input.checked);
     });
   });
 /** What one row shows for the selected scope, over whatever is staged. */
@@ -180,11 +176,7 @@ document.querySelectorAll('input[type="color"]').forEach((element) => {
   input.addEventListener("input", () => {
     markPending(input.dataset.key as string, true);
     showInHexField(input.dataset.key as string, input.value);
-    vscode.postMessage({
-      type: "preview",
-      key: input.dataset.key,
-      value: input.value,
-    });
+    postStaged("preview", input.dataset.key as string, input.value);
   });
 });
 /** The option a select row is currently showing, staged or saved alike. */
@@ -275,7 +267,7 @@ document.querySelectorAll("[data-hex-for]").forEach((element) => {
     if (input) {
       input.value = pickerColor(hex);
     }
-    vscode.postMessage({ type: "preview", key: key, value: hex });
+    postStaged("preview", key, hex);
   });
 });
 document.querySelectorAll("button[data-reset]").forEach((element) => {
@@ -312,6 +304,17 @@ let state: {
   rows: StateEntry[];
   pending: { [key: string]: string | boolean };
 } = { toggles: [], selects: [], rows: [], pending: {} };
+/**
+ * Stage one value and send it to the extension as a preview.
+ *
+ * The extension answers a color or switch preview with no state message, so
+ * the value is kept here too; otherwise a radio flip, a theme change or a
+ * state message about another row would redraw this one from the saved value.
+ */
+function postStaged(type: "preview" | "previewToggle", key: string, value: string | boolean) {
+  state.pending = stagePending(state.pending, key, value);
+  vscode.postMessage({ type: type, key: key, value: value });
+}
 /** Draw every row for the scope now selected, over whatever is staged. */
 function renderState() {
   const pending = state.pending || {};

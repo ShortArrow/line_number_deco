@@ -97,3 +97,4 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Toggle rows in the settings panel gain the same Reset button as the color rows, discarding a switch flipped but not yet applied
 - Each color row in the settings panel shows the saved color in a small swatch beside the picker, so a staged color can be compared with what it replaces; an empty setting shows its theme color
 - A dimmed row in the settings panel explains itself on hover, naming the selected scope and where the value it shows comes from
+- Staged colors and switches in the settings panel survive a scope flip, a theme change, or another row's Apply/Reset, and Apply after a scope flip writes the staged color instead of the saved one
