@@ -177,7 +177,7 @@ function savedSwatch(key: string, saved: string, themeVariable?: string) {
 
 /**
  * One color setting: the saved swatch, the native color input, a hex field,
- * Apply and Reset.
+ * Apply and Reset, the last two wrapping as a pair in a narrow sidebar.
  *
  * The native input is the swatch and the picker at once; Chromium's own picker
  * opens from it and fires input events while dragging, so previews stay live.
@@ -197,8 +197,10 @@ function renderRow(row: PanelRow) {
           ${savedSwatch(key, shown, variable)}
           <input type="color" data-key="${key}"${themeVar} value="${escapeHtml(pickerColor(shown))}" />
           <input type="text" class="hex" spellcheck="false" data-hex-for="${key}" value="${escapeHtml(shown)}" />
-          <button data-apply="${key}">Apply</button>
-          ${resetButton(key)}
+          <span class="actions">
+            <button data-apply="${key}">Apply</button>
+            ${resetButton(key)}
+          </span>
         </div>
       </div>`;
 }

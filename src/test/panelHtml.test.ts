@@ -476,6 +476,18 @@ describe('Test theme colors behind empty color rows', () => {
     }
   });
 
+  it('Must group Apply and Reset of every color row so they wrap as a pair', () => {
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
+    for (const row of rows) {
+      assert.ok(
+        new RegExp(
+          `<span class="actions">\\s*<button data-apply="${row.key}">Apply</button>\\s*<button[^>]*data-reset="${row.key}"`
+        ).test(rowMarkup(html, row.key)),
+        `Apply and Reset of ${row.key} are not grouped`
+      );
+    }
+  });
+
   it('Must fill the saved-color swatch from the saved value or the theme color', () => {
     const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
     assert.ok(
