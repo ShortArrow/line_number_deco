@@ -4,7 +4,7 @@
  * A state message names what is saved, and separately what the panel is still
  * proposing; the two are merged here so the webview and the unit tests reach
  * the same answer instead of two implementations that agree until they drift.
- * Like the color conversions, the module imports nothing and stays inside
+ * Like the hex rule, the module imports nothing and stays inside
  * ES2020: its compiled CommonJS is inlined into the webview script, where
  * there is no module loader and no node standard library.
  */

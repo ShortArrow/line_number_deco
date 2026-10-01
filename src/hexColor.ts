@@ -1,0 +1,33 @@
+/**
+ * The hex colors the settings panel accepts, and the subset a native color
+ * input can hold.
+ *
+ * Like panelState, the module imports nothing and stays inside ES2020: it is
+ * bundled into the webview script and also used by the extension, so the hex
+ * field and the rendered markup agree on one rule.
+ */
+
+const hexColorPattern = /^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+
+const opaqueHexPattern = /^#[0-9a-fA-F]{6}$/;
+
+/**
+ * Whether the hex field may preview this text.
+ *
+ * Both `#rrggbb` and `#rrggbbaa` pass, in either case: Chromium's picker can
+ * produce an alpha channel, and a decoration accepts any css color.
+ */
+export function isHexColor(value: string): boolean {
+  return hexColorPattern.test(value);
+}
+
+/**
+ * The value a native color input is given for one saved color.
+ *
+ * The input holds `#rrggbb` only, so anything else — an empty setting that
+ * leaves the theme color in force, an alpha hex, a css name — shows as black,
+ * and the row's source tag says where the value really comes from.
+ */
+export function pickerColor(value: string): string {
+  return opaqueHexPattern.test(value) ? value : "#000000";
+}

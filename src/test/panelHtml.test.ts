@@ -164,28 +164,25 @@ describe('Test render the color panel html', () => {
     assert.ok(applyAll > lastApply, 'the apply all control is not below the colors');
   });
 
-  it('Must offer an hsl and an rgb slider per component of a color row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
-    for (const component of ['h', 's', 'l', 'r', 'g', 'b']) {
-      const slider = new RegExp(
-        '<input[^>]*data-slider-for="centerColorOfRainbow"[^>]*data-slider="' + component + '"'
-      );
-      assert.ok(slider.test(html), `no ${component} slider for centerColorOfRainbow`);
+  it('Must leave the color picking to the native input, with no picker of its own', () => {
+    const html = markupOf(renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:'));
+    for (const mark of ['data-slider-for', 'data-plane-for', 'data-mode-tab', 'class="swatch"']) {
+      assert.ok(!html.includes(mark), `the markup still carries ${mark}`);
     }
   });
 
-  it('Must hold the sliders of a color row inside a details element', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
-    const details = html.indexOf('<details');
-    const slider = html.indexOf('data-slider-for="centerColorOfRainbow"');
-    assert.ok(details >= 0, 'no details element');
-    assert.ok(details < slider, 'the sliders are not inside a details element');
-  });
-
-  it('Must offer both mode tabs for a color row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
-    assert.ok(html.includes('data-mode-tab="hsl"'));
-    assert.ok(html.includes('data-mode-tab="rgb"'));
+  it('Must offer a native input, a hex field, Apply and Reset for every color row', () => {
+    const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
+    for (const { key } of rows) {
+      const row = rowMarkup(html, key);
+      assert.ok(
+        new RegExp(`<input type="color"[^>]*data-key="${key}"`).test(row),
+        `no native color input for ${key}`
+      );
+      assert.ok(row.includes(`data-hex-for="${key}"`), `no hex field for ${key}`);
+      assert.ok(row.includes(`data-apply="${key}"`), `no apply for ${key}`);
+      assert.ok(row.includes(`data-reset="${key}"`), `no reset for ${key}`);
+    }
   });
 
   it('Must embed the bundled script and stylesheet verbatim', () => {
@@ -209,28 +206,6 @@ describe('Test render the color panel html', () => {
       (field as RegExpExecArray)[0].includes('value="#8888ff"'),
       'the hex field does not carry the saved color'
     );
-  });
-
-  it('Must offer a picking plane with a marker per color row', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
-    assert.ok(
-      html.includes('data-plane-for="centerColorOfRainbow"'),
-      'no picking plane for centerColorOfRainbow'
-    );
-    assert.ok(
-      html.includes('data-plane-marker="centerColorOfRainbow"'),
-      'the picking plane has no marker'
-    );
-  });
-
-  it('Must draw the picking plane inside the details above the mode tabs', () => {
-    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
-    const details = html.indexOf('<details');
-    const plane = html.indexOf('data-plane-for="centerColorOfRainbow"');
-    const tabs = html.indexOf('data-mode-tab="hsl"');
-    assert.ok(details >= 0, 'no details element');
-    assert.ok(details < plane, 'the picking plane is not inside the details element');
-    assert.ok(plane < tabs, 'the picking plane is not above the mode tabs');
   });
 
   it('Must offer a reset control drawn as an inline svg per color row', () => {

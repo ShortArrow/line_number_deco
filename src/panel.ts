@@ -92,8 +92,8 @@ function currentSelects(): PanelSelect[] {
 /**
  * The saved colors, read straight from the configuration.
  *
- * Previews deliberately do not show up here: the swatch is what Apply would
- * replace, so it has to keep showing the value that is actually stored.
+ * Previews deliberately do not show up here: these are the values Apply would
+ * replace, so they have to stay what is actually stored.
  */
 function currentRows(): PanelRow[] {
   return labels.map(({ key, label }) => ({

@@ -1,4 +1,5 @@
 import { panelCss, panelScript } from "./generated/webviewAssets";
+import { pickerColor } from "./hexColor";
 import { ScopeName, ScopedDisplay, ScopeValues, displayForScope } from "./panelState";
 
 /**
@@ -73,13 +74,6 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-const colorPattern = /^#[0-9a-fA-F]{6}$/;
-
-/** A picker needs a well-formed value; anything else falls back to black. */
-function pickerValue(savedColor: string) {
-  return colorPattern.test(savedColor) ? savedColor : "#000000";
-}
-
 function renderToggle(toggle: PanelToggle) {
   const key = escapeHtml(toggle.key);
   const display = displayForScope(initialScope, toggle.key, toggle.values, {});
@@ -94,53 +88,6 @@ function renderToggle(toggle: PanelToggle) {
         </label>
         <button data-apply-toggle="${key}">Apply</button>
       </div>`;
-}
-
-/** One range input, carrying the row it edits and which component it moves. */
-function renderSlider(key: string, component: string, max: number) {
-  return `            <label class="slider-line" data-slider-line="${component}"><span class="slider-name">${component.toUpperCase()}</span><input type="range" min="0" max="${max}" data-slider-for="${key}" data-slider="${component}" /><span class="slider-readout" data-readout-for="${key}" data-readout="${component}"></span></label>`;
-}
-
-/**
- * The saturation and value surface of a row, with the marker that reads it.
- *
- * The gradients are painted in css and only the hue underneath is set from
- * script, so dragging the marker repaints nothing but one background color.
- */
-function renderPlane(key: string) {
-  return `          <div class="plane" data-plane-for="${key}">
-            <div class="plane-marker" data-plane-marker="${key}"></div>
-          </div>`;
-}
-
-/**
- * The two slider triples of a row, folded away until the reader asks for them.
- *
- * The plane comes first because it is the coarse control: the sliders and the
- * mode tabs below it are for correcting one component once the color is close.
- * Both slider models stay in the document and the mode tabs only choose which
- * one is shown, so a value typed into either is already converted when it
- * reappears.
- */
-function renderSliders(key: string) {
-  return `        <details class="editor">
-          <summary>Sliders</summary>
-${renderPlane(key)}
-          <div class="modes">
-            <button class="mode active" data-mode-tab="hsl" data-mode-for="${key}">HSL</button>
-            <button class="mode" data-mode-tab="rgb" data-mode-for="${key}">RGB</button>
-          </div>
-          <div class="sliders" data-mode-panel="hsl" data-mode-for="${key}">
-${renderSlider(key, "h", 360)}
-${renderSlider(key, "s", 100)}
-${renderSlider(key, "l", 100)}
-          </div>
-          <div class="sliders hidden" data-mode-panel="rgb" data-mode-for="${key}">
-${renderSlider(key, "r", 255)}
-${renderSlider(key, "g", 255)}
-${renderSlider(key, "b", 255)}
-          </div>
-        </details>`;
 }
 
 /**
@@ -187,24 +134,27 @@ ${options}
       </div>`;
 }
 
+/**
+ * One color setting: the native color input, a hex field, Apply and Reset.
+ *
+ * The native input is the swatch and the picker at once; Chromium's own picker
+ * opens from it and fires input events while dragging, so previews stay live.
+ * A setting written nowhere shows an empty hex field and a black input, and the
+ * source tag says the theme color is in force.
+ */
 function renderRow(row: PanelRow) {
   const key = escapeHtml(row.key);
   const display = displayForScope(initialScope, row.key, row.values, {});
   const marks = scopeMarks(display, initialScope);
-  // A setting written nowhere shows an empty field over the neutral swatch,
-  // exactly as an empty saved color always has: there is no color to show.
   const shown = display.value ?? "";
-  const saved = escapeHtml(shown);
   return `      <div class="row${marks.classes}" data-row="${key}"${marks.attribute}>
         <div class="label">${escapeHtml(row.label)}${marks.tag}</div>
         <div class="controls">
-          <span class="swatch" data-swatch="${key}" style="background:${saved}" title="${saved}"></span>
-          <input type="color" data-key="${key}" value="${escapeHtml(pickerValue(shown))}" />
-          <input type="text" class="hex" spellcheck="false" data-hex-for="${key}" value="${saved}" />
+          <input type="color" data-key="${key}" value="${escapeHtml(pickerColor(shown))}" />
+          <input type="text" class="hex" spellcheck="false" data-hex-for="${key}" value="${escapeHtml(shown)}" />
           <button data-apply="${key}">Apply</button>
           <button class="icon" title="Reset" aria-label="Reset" data-reset="${key}">${discardGlyph}</button>
         </div>
-${renderSliders(key)}
       </div>`;
 }
 
@@ -234,8 +184,8 @@ ${renderSliders(key)}
  * rendering, because VS Code draws those numbers itself.
  *
  * The script and the stylesheet are bundled at build time from src/webview, so
- * nothing is read off disk here and the conversions the sliders run are the
- * very ones the unit tests cover.
+ * nothing is read off disk here and the hex rule the field runs is the very
+ * one the unit tests cover.
  */
 export function renderPanelHtml(
   toggles: PanelToggle[],
