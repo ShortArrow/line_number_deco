@@ -24,10 +24,14 @@ export function isHexColor(value: string): boolean {
 /**
  * The value a native color input is given for one saved color.
  *
- * The input holds `#rrggbb` only, so anything else — an empty setting that
- * leaves the theme color in force, an alpha hex, a css name — shows as black,
- * and the row's source tag says where the value really comes from.
+ * The input holds `#rrggbb` only. An alpha hex shows its color without the
+ * alpha; anything else — an empty setting that leaves the theme color in
+ * force, a css name — shows as black, and the row's source tag says where
+ * the value really comes from.
  */
 export function pickerColor(value: string): string {
-  return opaqueHexPattern.test(value) ? value : "#000000";
+  if (opaqueHexPattern.test(value)) {
+    return value;
+  }
+  return hexColorPattern.test(value) ? value.slice(0, 7) : "#000000";
 }

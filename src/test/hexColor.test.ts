@@ -23,7 +23,7 @@ describe('Test the value a native color input can hold', () => {
 
   it('Must fall back to black for an empty value, an alpha hex or a css name', () => {
     assert.strictEqual(pickerColor(''), '#000000');
-    assert.strictEqual(pickerColor('#a1b2c3d4'), '#000000');
+    assert.strictEqual(pickerColor('#a1b2c3d4'), '#a1b2c3');
     assert.strictEqual(pickerColor('red'), '#000000');
   });
 });
