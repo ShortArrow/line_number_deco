@@ -393,6 +393,23 @@ describe('Test the panel shows which scope a value comes from', () => {
     );
   });
 
+  it('W2b Must explain a dimmed row on hover and leave an undimmed row without a title', () => {
+    const html = renderPanelHtml(
+      [{ key: 'enableRainbow', label: 'Rainbow', values: inWorkspace(true) }],
+      [],
+      [{ key: 'foreground', label: 'Inactive line number', values: inUser('#abcdef') }],
+      'n0nce',
+      'vscode-resource:'
+    );
+    assert.ok(
+      rowTag(html, 'foreground').includes(
+        'title="Not set in Workspace settings; showing the value from User settings."'
+      ),
+      `the dimmed row does not say why: ${rowTag(html, 'foreground')}`
+    );
+    assert.ok(!rowTag(html, 'enableRainbow').includes('title='), 'an undimmed row carries a title');
+  });
+
   it('W3 Must name the source in words beside the label', () => {
     const inherited = renderPanelHtml(
       toggles,
@@ -444,6 +461,45 @@ describe('Test theme colors behind empty color rows', () => {
       '--vscode-LineNumberDeco-repeatingDigitsForeground'
     );
     assert.strictEqual(themeColorVariable('editorError.foreground'), '--vscode-editorError-foreground');
+  });
+
+  it('Must put exactly one saved-color swatch before the native input of every color row', () => {
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
+    for (const row of rows) {
+      const markup = rowMarkup(html, row.key);
+      const swatches = markup.match(/data-saved-for="[^"]*"/g) || [];
+      assert.deepStrictEqual(swatches, [`data-saved-for="${row.key}"`], `swatches of ${row.key}`);
+      assert.ok(
+        markup.indexOf('data-saved-for=') < markup.indexOf('<input type="color"'),
+        `the swatch of ${row.key} is not left of its native input`
+      );
+    }
+  });
+
+  it('Must group Apply and Reset of every color row so they wrap as a pair', () => {
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
+    for (const row of rows) {
+      assert.ok(
+        new RegExp(
+          `<span class="actions">\\s*<button data-apply="${row.key}">Apply</button>\\s*<button[^>]*data-reset="${row.key}"`
+        ).test(rowMarkup(html, row.key)),
+        `Apply and Reset of ${row.key} are not grouped`
+      );
+    }
+  });
+
+  it('Must fill the saved-color swatch from the saved value or the theme color', () => {
+    const html = renderPanelHtml(toggles, [], rows, 'n0nce', 'vscode-resource:');
+    assert.ok(
+      /data-saved-for="centerColorOfRainbow"[^>]*style="background: #8888ff"/.test(html),
+      'the rainbow swatch does not show its saved color'
+    );
+    assert.ok(
+      /data-saved-for="foreground"[^>]*aria-label="Saved: theme color"[^>]*style="background: var\(--vscode-LineNumberDeco-foreground\)"/.test(
+        html
+      ),
+      'the empty row swatch does not show its theme color'
+    );
   });
 
   it('Must tell the native input which theme color fills an empty row', () => {

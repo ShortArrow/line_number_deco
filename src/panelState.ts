@@ -14,6 +14,27 @@ export interface PendingMap {
   [key: string]: string | boolean;
 }
 
+/**
+ * The staged values once one more is staged in the webview.
+ *
+ * The webview records what it posts as a preview here, because the extension
+ * does not answer a color or switch preview with a state message; without the
+ * entry, the next local redraw would paint the saved value over the staged one.
+ * A later state message still replaces the whole map. The given map is not
+ * changed.
+ *
+ * @param pending what was staged before
+ * @param key the configuration name being staged
+ * @param value the value posted as its preview
+ */
+export function stagePending(
+  pending: PendingMap,
+  key: string,
+  value: string | boolean
+): PendingMap {
+  return { ...pending, [key]: value };
+}
+
 /** One value to display, and whether it is staged rather than saved. */
 export interface DisplayEntry {
   value: string;
@@ -137,4 +158,37 @@ function savedForScope<T extends string | boolean>(
     return { value: values.defaultValue, source: "default" };
   }
   return { value: undefined, source: "none" };
+}
+
+/** The words the hover text uses for each place a value can be written. */
+const placeNames = {
+  workspace: "Workspace settings",
+  user: "User settings",
+  default: "the default",
+};
+
+/**
+ * The hover text of a row dimmed because its value is written elsewhere.
+ *
+ * It names the scope the radio selects and the one the value comes from; a
+ * row holding no value anywhere names the places it would have inherited
+ * from. A row showing the selected scope's own value is not dimmed and gets
+ * no text.
+ *
+ * @param selectedScope the scope the radio selects
+ * @param source where the shown value is written, from {@link displayForScope}
+ */
+export function inheritedTitle(
+  selectedScope: ScopeName,
+  source: ScopedDisplay<string | boolean>["source"]
+): string {
+  if (source === selectedScope) {
+    return "";
+  }
+  const unset = `Not set in ${placeNames[selectedScope]}`;
+  if (source !== "none") {
+    return `${unset}; showing the value from ${placeNames[source]}.`;
+  }
+  const inherits = selectedScope === "workspace" ? "User settings or the default" : "the default";
+  return `${unset}; nothing to inherit from ${inherits}.`;
 }

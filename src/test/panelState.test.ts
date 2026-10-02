@@ -1,6 +1,9 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { displayForScope, displayToggle, displayValue } from '../panelState';
+import type { ScopeName, ScopedDisplay } from '../panelState';
+
+type Source = ScopedDisplay<string>['source'];
+import { displayForScope, displayToggle, displayValue, inheritedTitle, stagePending } from '../panelState';
 
 describe('Test panel display values', () => {
   it('Must show the saved value while nothing is pending', () => {
@@ -168,5 +171,53 @@ describe('Test panel display values per scope', () => {
       ),
       { value: '#w', source: 'workspace', pending: false }
     );
+  });
+});
+
+describe('Test the hover text of a dimmed row', () => {
+  const cases: [ScopeName, Source, string][] = [
+    ['workspace', 'user', 'Not set in Workspace settings; showing the value from User settings.'],
+    ['workspace', 'default', 'Not set in Workspace settings; showing the value from the default.'],
+    ['workspace', 'none', 'Not set in Workspace settings; nothing to inherit from User settings or the default.'],
+    ['user', 'default', 'Not set in User settings; showing the value from the default.'],
+    ['user', 'none', 'Not set in User settings; nothing to inherit from the default.'],
+    ['workspace', 'workspace', ''],
+    ['user', 'user', ''],
+  ];
+  for (const [selected, source, title] of cases) {
+    it(`Must read ${JSON.stringify(title)} for ${source} under ${selected}`, () => {
+      assert.strictEqual(inheritedTitle(selected, source), title);
+    });
+  }
+});
+
+describe('Test staging a value in the webview', () => {
+  it('S1 Must make a staged color show over the saved one at the next render', () => {
+    const staged = stagePending({}, 'c', '#123abc');
+    assert.deepStrictEqual(
+      displayForScope('user', 'c', { defaultValue: undefined, userValue: '#000000', workspaceValue: undefined }, staged),
+      { value: '#123abc', source: 'user', pending: true }
+    );
+  });
+
+  it('S2 Must make a staged switch show over the saved one at the next render', () => {
+    const staged = stagePending({}, 'enableRainbow', true);
+    assert.deepStrictEqual(
+      displayForScope('workspace', 'enableRainbow', { defaultValue: false, userValue: undefined, workspaceValue: undefined }, staged),
+      { value: true, source: 'default', pending: true }
+    );
+  });
+
+  it('S3 Must replace an earlier staged value of the same key and keep the others', () => {
+    assert.deepStrictEqual(stagePending({ c: '#111111', d: '#222222' }, 'c', '#333333'), {
+      c: '#333333',
+      d: '#222222',
+    });
+  });
+
+  it('S4 Must leave the map it was given untouched', () => {
+    const before = { d: '#222222' };
+    stagePending(before, 'c', '#333333');
+    assert.deepStrictEqual(before, { d: '#222222' });
   });
 });

@@ -11,7 +11,8 @@
  */
 
 import { colorToApply, isHexColor, pickerColor } from "../hexColor";
-import { ScopeName, ScopeValues, displayForScope } from "../panelState";
+import { ScopeName, ScopedDisplay, ScopeValues, displayForScope, inheritedTitle, stagePending } from "../panelState";
+import { savedSwatchFill, savedSwatchLabel } from "../savedSwatch";
 
 declare function acquireVsCodeApi(): {
   postMessage(message: unknown): void;
@@ -84,11 +85,7 @@ document
     const input = element as HTMLInputElement;
     input.addEventListener("change", () => {
       markPending(input.dataset.toggle as string, true);
-      vscode.postMessage({
-        type: "previewToggle",
-        key: input.dataset.toggle,
-        value: input.checked,
-      });
+      postStaged("previewToggle", input.dataset.toggle as string, input.checked);
     });
   });
 /** What one row shows for the selected scope, over whatever is staged. */
@@ -110,10 +107,11 @@ const sourceLabels: { [source: string]: string } = {
  * Put the source of one row onto the row itself.
  *
  * A row whose value is written somewhere other than the selected scope is
- * dimmed and says so, which is the whole point of the radio: applying to
- * user has to be visible even while the workspace holds its own value.
+ * dimmed and says so, in its tag and in its title, which is the whole point
+ * of the radio: applying to user has to be visible even while the workspace
+ * holds its own value.
  */
-function markSource(key: string, source: string) {
+function markSource(key: string, source: ScopedDisplay<string | boolean>["source"]) {
   const row = document.querySelector(
     '[data-row="' + key + '"]'
   ) as HTMLElement | null;
@@ -122,6 +120,12 @@ function markSource(key: string, source: string) {
   }
   row.dataset.source = source;
   row.classList.toggle("inherited", source !== scope());
+  const title = inheritedTitle(scope(), source);
+  if (title) {
+    row.title = title;
+  } else {
+    row.removeAttribute("title");
+  }
   const tag = row.querySelector("[data-source-tag]");
   if (tag) {
     tag.textContent = sourceLabels[source] || "";
@@ -131,6 +135,25 @@ function colorInputOf(key: string): HTMLInputElement | null {
   return document.querySelector(
     'input[type="color"][data-key="' + key + '"]'
   ) as HTMLInputElement | null;
+}
+/**
+ * Fill one row's saved swatch with what the selected scope holds.
+ *
+ * The fill is cleared first, so a saved value the browser rejects as a color
+ * leaves the swatch empty rather than showing the previous scope's color.
+ */
+function showSaved(key: string, saved: string, themeVariable: string | undefined) {
+  const swatch = document.querySelector(
+    '[data-saved-for="' + key + '"]'
+  ) as HTMLElement | null;
+  if (!swatch) {
+    return;
+  }
+  const label = savedSwatchLabel(saved, themeVariable);
+  swatch.style.background = "";
+  swatch.style.background = savedSwatchFill(saved, themeVariable);
+  swatch.setAttribute("aria-label", label);
+  swatch.title = label;
 }
 function hexFieldOf(key: string): HTMLInputElement | null {
   return document.querySelector(
@@ -153,11 +176,7 @@ document.querySelectorAll('input[type="color"]').forEach((element) => {
   input.addEventListener("input", () => {
     markPending(input.dataset.key as string, true);
     showInHexField(input.dataset.key as string, input.value);
-    vscode.postMessage({
-      type: "preview",
-      key: input.dataset.key,
-      value: input.value,
-    });
+    postStaged("preview", input.dataset.key as string, input.value);
   });
 });
 /** The option a select row is currently showing, staged or saved alike. */
@@ -248,7 +267,7 @@ document.querySelectorAll("[data-hex-for]").forEach((element) => {
     if (input) {
       input.value = pickerColor(hex);
     }
-    vscode.postMessage({ type: "preview", key: key, value: hex });
+    postStaged("preview", key, hex);
   });
 });
 document.querySelectorAll("button[data-reset]").forEach((element) => {
@@ -285,6 +304,17 @@ let state: {
   rows: StateEntry[];
   pending: { [key: string]: string | boolean };
 } = { toggles: [], selects: [], rows: [], pending: {} };
+/**
+ * Stage one value and send it to the extension as a preview.
+ *
+ * The extension answers a color or switch preview with no state message, so
+ * the value is kept here too; otherwise a radio flip, a theme change or a
+ * state message about another row would redraw this one from the saved value.
+ */
+function postStaged(type: "preview" | "previewToggle", key: string, value: string | boolean) {
+  state.pending = stagePending(state.pending, key, value);
+  vscode.postMessage({ type: type, key: key, value: value });
+}
 /** Draw every row for the scope now selected, over whatever is staged. */
 function renderState() {
   const pending = state.pending || {};
@@ -313,6 +343,8 @@ function renderState() {
     if (input) {
       input.value = color === "" ? themeColorOf(input) : pickerColor(color);
     }
+    const saved = shownForScope(row.key, row.values, {}).value;
+    showSaved(row.key, saved === undefined ? "" : String(saved), input?.dataset.themeVar);
     // The displayed value wins over whatever is being typed: a reset has
     // to reach a field the reader still has the caret in.
     const field = hexFieldOf(row.key);

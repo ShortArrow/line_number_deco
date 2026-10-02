@@ -1,6 +1,7 @@
 import { panelCss, panelScript } from "./generated/webviewAssets";
 import { pickerColor } from "./hexColor";
-import { ScopeName, ScopedDisplay, ScopeValues, displayForScope } from "./panelState";
+import { ScopeName, ScopedDisplay, ScopeValues, displayForScope, inheritedTitle } from "./panelState";
+import { savedSwatchFill, savedSwatchLabel } from "./savedSwatch";
 
 /**
  * One color setting as the panel shows it: what each scope holds, beside a
@@ -61,16 +62,17 @@ const sourceLabels: { [source: string]: string } = {
  * The source is an attribute rather than a class because the script rewrites it
  * on every radio flip, and a row whose value is written somewhere other than
  * the selected scope is dimmed: it is showing what it would inherit, not what
- * that scope holds.
+ * that scope holds, and its title says so in a sentence.
  */
 function scopeMarks<T extends string | boolean>(
   display: ScopedDisplay<T>,
   scope: ScopeName
 ): { classes: string; attribute: string; tag: string } {
   const inherited = display.source !== scope;
+  const title = inheritedTitle(scope, display.source);
   return {
     classes: inherited ? " inherited" : "",
-    attribute: ` data-source="${display.source}"`,
+    attribute: ` data-source="${display.source}"` + (title ? ` title="${escapeHtml(title)}"` : ""),
     tag: `<span class="source" data-source-tag="true">${sourceLabels[display.source]}</span>`,
   };
 }
@@ -157,7 +159,25 @@ ${options}
 }
 
 /**
- * One color setting: the native color input, a hex field, Apply and Reset.
+ * The display-only swatch of what one color row has saved.
+ *
+ * The frame carries the border and a checkerboard, so a transparent or alpha
+ * value reads as such; the inner span carries the fill, which the script
+ * rewrites on every state message.
+ *
+ * @param key the row's configuration key, already escaped
+ * @param saved the value the selected scope holds, or `""`
+ * @param themeVariable the css variable of the row's theme fallback
+ */
+function savedSwatch(key: string, saved: string, themeVariable?: string) {
+  const label = escapeHtml(savedSwatchLabel(saved, themeVariable));
+  const fill = escapeHtml(savedSwatchFill(saved, themeVariable));
+  return `<span class="saved-frame"><span class="saved" data-saved-for="${key}" role="img" aria-label="${label}" title="${label}" style="background: ${fill}"></span></span>`;
+}
+
+/**
+ * One color setting: the saved swatch, the native color input, a hex field,
+ * Apply and Reset, the last two wrapping as a pair in a narrow sidebar.
  *
  * The native input is the swatch and the picker at once; Chromium's own picker
  * opens from it and fires input events while dragging, so previews stay live.
@@ -169,16 +189,18 @@ function renderRow(row: PanelRow) {
   const display = displayForScope(initialScope, row.key, row.values, {});
   const marks = scopeMarks(display, initialScope);
   const shown = display.value ?? "";
-  const themeVar = row.themeColor
-    ? ` data-theme-var="${escapeHtml(themeColorVariable(row.themeColor))}"`
-    : "";
+  const variable = row.themeColor ? themeColorVariable(row.themeColor) : undefined;
+  const themeVar = variable ? ` data-theme-var="${escapeHtml(variable)}"` : "";
   return `      <div class="row${marks.classes}" data-row="${key}"${marks.attribute}>
         <div class="label">${escapeHtml(row.label)}${marks.tag}</div>
         <div class="controls">
+          ${savedSwatch(key, shown, variable)}
           <input type="color" data-key="${key}"${themeVar} value="${escapeHtml(pickerColor(shown))}" />
           <input type="text" class="hex" spellcheck="false" data-hex-for="${key}" value="${escapeHtml(shown)}" />
-          <button data-apply="${key}">Apply</button>
-          ${resetButton(key)}
+          <span class="actions">
+            <button data-apply="${key}">Apply</button>
+            ${resetButton(key)}
+          </span>
         </div>
       </div>`;
 }
