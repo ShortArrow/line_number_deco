@@ -108,3 +108,5 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - A value just staged in the settings panel is no longer undone by a state update that crossed it on the way, and a line number mode chosen in the panel stays shown through a scope flip or another row's update
 - A row's Apply, and Apply all, are disabled while their save is running, so a double click saves once
 - What is being typed in a color row's hex field is no longer overwritten while the field has focus; a reset of the row still reaches it
+- With no folder open, the settings panel opens on User and its Workspace radio is disabled with a hover saying why, instead of offering a scope that cannot be written; the radio follows a folder being opened or closed
+- Switching the sidebar to another view no longer discards what is staged in the settings panel; the staged values keep previewing in the editor until applied or reset

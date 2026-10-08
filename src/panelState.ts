@@ -161,6 +161,26 @@ export interface ScopeValues<T> {
 export type ScopeName = "workspace" | "user";
 
 /**
+ * The scope the panel opens on.
+ *
+ * Without a folder there are no Workspace settings to write, so the panel
+ * opens on User whatever it remembers; with one, it reopens on the scope the
+ * reader left it on, and on Workspace when it remembers nothing usable.
+ *
+ * @param remembered the scope the webview state holds, not to be trusted
+ * @param hasWorkspace whether a folder is open
+ */
+export function initialScope(remembered: unknown, hasWorkspace: boolean): ScopeName {
+  if (!hasWorkspace) {
+    return "user";
+  }
+  return remembered === "user" ? "user" : "workspace";
+}
+
+/** Why the Workspace radio is disabled while no folder is open. */
+export const noFolderTitle = "Open a folder to edit Workspace settings";
+
+/**
  * One row's display: the value, where that value is written, and whether the
  * panel is only proposing it.
  *

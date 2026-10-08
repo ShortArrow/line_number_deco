@@ -37,3 +37,4 @@
       .hex { width: 72px; font-family: var(--vscode-editor-font-family, monospace); color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-panel-border); padding: 1px 4px; }
       .hex.invalid { border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground)); }
       button.icon { display: inline-flex; align-items: center; padding: 2px 4px; }
+      .scope label.disabled { opacity: 0.5; }

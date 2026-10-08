@@ -1,7 +1,8 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
 import * as vscode from 'vscode';
-import { buildPanelStateForTest, getResolvedPanelHtml } from '../panel';
+import { buildPanelStateForTest, getResolvedPanelHtml, isSettingsPanelVisible } from '../panel';
+import { clearPreview, getPendingPreview, setPreviewColor } from '../preview';
 
 const colorKeys = [
   'centerColorOfRainbow',
@@ -160,4 +161,39 @@ describe('Test color panel view', () => {
       }
     }
   });
+
+  it('Must keep a staged value when the view is hidden', async () => {
+    await vscode.commands.executeCommand('lineNumberDeco.settings.focus');
+    await waitFor(() => isSettingsPanelVisible(), 'the settings view never showed');
+    setPreviewColor('foreground', '#123456');
+    try {
+      await vscode.commands.executeCommand('workbench.view.explorer');
+      await waitFor(() => !isSettingsPanelVisible(), 'the settings view never hid');
+      assert.strictEqual(getPendingPreview('foreground'), '#123456', 'hiding the view discarded the staged color');
+    } finally {
+      clearPreview('foreground');
+    }
+  });
+
+  it('Must open on User with the Workspace radio disabled when no folder is open', async function () {
+    if ((vscode.workspace.workspaceFolders ?? []).length > 0) {
+      this.skip();
+    }
+    await vscode.commands.executeCommand('lineNumberDeco.settings.focus');
+    await waitFor(() => getResolvedPanelHtml() !== undefined, 'the color panel view never resolved');
+    const html = getResolvedPanelHtml() as string;
+    const workspace = html.match(/<input[^>]*name="scope"[^>]*value="workspace"[^>]*>/)?.[0] ?? '';
+    const user = html.match(/<input[^>]*name="scope"[^>]*value="user"[^>]*>/)?.[0] ?? '';
+    assert.ok(/\sdisabled\b/.test(workspace), `the Workspace radio is not disabled: ${workspace}`);
+    assert.ok(/\schecked\b/.test(user), `the User radio is not checked: ${user}`);
+  });
 });
+
+/** Poll a condition for up to 5 s, the budget the other view tests use. */
+async function waitFor(condition: () => boolean, message: string): Promise<void> {
+  const deadline = Date.now() + 5000;
+  while (!condition() && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  assert.ok(condition(), message);
+}

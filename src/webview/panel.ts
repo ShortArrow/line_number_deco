@@ -32,6 +32,8 @@ import {
   displayForScope,
   hexFieldText,
   inheritedTitle,
+  initialScope,
+  noFolderTitle,
   overlayEdits,
   unacknowledged,
 } from "../panelState";
@@ -78,23 +80,48 @@ function scope(): ScopeName {
   const checked = document.querySelector(
     'input[name="scope"]:checked'
   ) as HTMLInputElement | null;
-  return checked ? (checked.value as ScopeName) : "workspace";
+  return checked ? (checked.value as ScopeName) : "user";
+}
+function scopeRadio(name: ScopeName): HTMLInputElement | null {
+  return document.querySelector(
+    'input[name="scope"][value="' + name + '"]'
+  ) as HTMLInputElement | null;
 }
 /**
  * Put the radio back where the reader left it.
  *
  * The iframe is destroyed whenever the view is hidden and the script
- * re-runs from the baked html, which always checks workspace. Setting
- * checked from script fires no change event, so nothing is redrawn here:
- * the redraw comes with the state the ready message asks for.
+ * re-runs from the baked html, which checks Workspace, or User with the
+ * Workspace radio disabled when no folder is open. Setting checked from
+ * script fires no change event, so nothing is redrawn here: the redraw comes
+ * with the state the ready message asks for.
  */
-const persisted = vscode.getState();
-if (persisted && (persisted.scope === "user" || persisted.scope === "workspace")) {
-  const restored = document.querySelector(
-    'input[name="scope"][value="' + persisted.scope + '"]'
-  ) as HTMLInputElement | null;
-  if (restored) {
-    restored.checked = true;
+const opening = scopeRadio(
+  initialScope(vscode.getState()?.scope, scopeRadio("workspace")?.disabled !== true)
+);
+if (opening) {
+  opening.checked = true;
+}
+/**
+ * Enable the Workspace radio when a folder is open and disable it when none
+ * is, moving the selection to User if it was on Workspace.
+ */
+function showWorkspaceAvailable(available: boolean) {
+  const radio = scopeRadio("workspace");
+  const label = radio?.closest("label");
+  if (!radio || !label) {
+    return;
+  }
+  radio.disabled = !available;
+  label.classList.toggle("disabled", !available);
+  if (available) {
+    label.removeAttribute("title");
+    return;
+  }
+  label.title = noFolderTitle;
+  const user = scopeRadio("user");
+  if (radio.checked && user) {
+    user.checked = true;
   }
 }
 function markPending(key: string, pending: boolean) {
@@ -423,6 +450,7 @@ window.addEventListener("message", (event) => {
     rows: message.rows || [],
     pending: message.pending || {},
   };
+  showWorkspaceAvailable(message.hasWorkspace !== false);
   renderState();
 });
 // The radio chooses what the rows show, not only where Apply writes: the

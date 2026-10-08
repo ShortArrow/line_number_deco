@@ -68,6 +68,11 @@ function scopeValuesOf<T>(section: string, name: string): ScopeValues<T> {
   };
 }
 
+/** Whether a folder is open, without which there are no Workspace settings to write. */
+function hasWorkspace(): boolean {
+  return (vscode.workspace.workspaceFolders ?? []).length > 0;
+}
+
 /** The saved state of every mode, in each scope that may hold one. */
 function currentToggles(): PanelToggle[] {
   return toggles.map(({ key, label }) => ({
@@ -408,17 +413,12 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
       currentSelects(),
       currentRows(),
       nonce,
-      webviewView.webview.cspSource
+      webviewView.webview.cspSource,
+      hasWorkspace()
     );
     resolvedHtml = webviewView.webview.html;
     webviewView.webview.onDidReceiveMessage((message: unknown) => {
       void this.receive(message);
-    });
-    webviewView.onDidChangeVisibility(() => {
-      if (!webviewView.visible) {
-        clearAllPreviews();
-        this.refresh();
-      }
     });
     webviewView.onDidDispose(() => {
       this.view = undefined;
@@ -447,6 +447,7 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
     this.view?.webview.postMessage({
       type: "state",
       ack: this.acknowledged,
+      hasWorkspace: hasWorkspace(),
       toggles: currentToggles(),
       selects: currentSelects(),
       rows: currentRows(),
@@ -532,6 +533,7 @@ export function registerColorPanel(
         provider.postState();
       }
     }),
+    vscode.workspace.onDidChangeWorkspaceFolders(() => provider.postState()),
   ];
   context.subscriptions.push(...disposables);
   return vscode.Disposable.from(...disposables);

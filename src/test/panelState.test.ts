@@ -3,7 +3,7 @@ import { describe, it } from 'mocha';
 import type { ScopeName, ScopedDisplay } from '../panelState';
 
 type Source = ScopedDisplay<string>['source'];
-import { acknowledgedSeq, displayForScope, displayToggle, displayValue, hexFieldText, inheritedTitle, overlayEdits, unacknowledged } from '../panelState';
+import { acknowledgedSeq, displayForScope, displayToggle, displayValue, hexFieldText, inheritedTitle, initialScope, overlayEdits, unacknowledged } from '../panelState';
 
 describe('Test panel display values', () => {
   it('Must show the saved value while nothing is pending', () => {
@@ -248,5 +248,22 @@ describe('Test the hex field under focus', () => {
 
   it('H3 Must rewrite a focused field when its row now shows something else', () => {
     assert.strictEqual(hexFieldText(true, '#123456', '#000000'), '#000000');
+  });
+});
+
+describe('Test the scope the panel opens on', () => {
+  it('O1 Must open on the remembered scope while a folder is open', () => {
+    assert.strictEqual(initialScope('user', true), 'user');
+    assert.strictEqual(initialScope('workspace', true), 'workspace');
+  });
+
+  it('O2 Must open on Workspace with a folder open and nothing remembered', () => {
+    assert.strictEqual(initialScope(undefined, true), 'workspace');
+    assert.strictEqual(initialScope('sideways', true), 'workspace');
+  });
+
+  it('O3 Must open on User with no folder open, whatever was remembered', () => {
+    assert.strictEqual(initialScope('workspace', false), 'user');
+    assert.strictEqual(initialScope(undefined, false), 'user');
   });
 });
