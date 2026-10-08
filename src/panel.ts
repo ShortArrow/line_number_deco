@@ -11,6 +11,8 @@ import { ScopeValues } from "./panelState";
 import {
   clearAllPreviews,
   clearPreview,
+  clearPreviewIfStaged,
+  getPendingPreview,
   getPendingPreviews,
   setPreviewColor,
   setPreviewToggle,
@@ -106,9 +108,9 @@ function currentRows(): PanelRow[] {
 
 type PanelMessage =
   | { type: "preview"; key: string; value: string }
-  | { type: "apply"; key: string; value: string; scope: string }
+  | { type: "apply"; key: string; scope: string }
   | { type: "previewToggle"; key: string; value: boolean }
-  | { type: "applyToggle"; key: string; value: boolean; scope: string }
+  | { type: "applyToggle"; key: string; scope: string }
   | { type: "applyAll"; scope: string }
   | { type: "resetRow"; key: string }
   | { type: "resetAll" }
@@ -146,6 +148,10 @@ export interface PanelMessageDeps {
   save(key: string, value: string | boolean, scope: string): Promise<void>;
   refresh(): void;
   postState(): void;
+  /** Tell the reader something went wrong, without waiting for them to dismiss it. */
+  showError(message: string): void;
+  /** The keys whose save is in flight, shared by every message of one panel. */
+  saving: Set<string>;
 }
 
 /**
@@ -154,6 +160,11 @@ export interface PanelMessageDeps {
  * Unknown keys and malformed messages are dropped without any effect at all,
  * so a webview that has drifted from the extension cannot write a setting the
  * panel does not offer.
+ *
+ * Apply writes the value staged in the extension, which is the one source of
+ * truth for unapplied values, and writes nothing for a key that is not staged.
+ * The handler stays correct while another one is waiting on a save, whatever
+ * order the saves settle in: see {@link saveStaged}.
  *
  * @param message whatever the webview posted, which is not to be trusted
  * @param deps the key vocabulary and the effects to perform
@@ -166,6 +177,8 @@ export async function handlePanelMessage(
     return;
   }
   const panelMessage = message as PanelMessage;
+  const isPanelKey = (key: string) =>
+    deps.isColorKey(key) || deps.isToggleKey(key) || deps.isSelectKey(key);
   if (panelMessage.type === "ready") {
     // A hidden webview drops what is posted to it and its iframe is destroyed
     // when the view is hidden, so a re-shown panel has to ask rather than wait.
@@ -173,14 +186,10 @@ export async function handlePanelMessage(
     return;
   }
   if (panelMessage.type === "applyAll") {
-    for (const { key, value } of getPendingPreviews()) {
-      if (deps.isColorKey(key) || deps.isToggleKey(key) || deps.isSelectKey(key)) {
-        await deps.save(key, value, panelMessage.scope);
-      }
-    }
-    clearAllPreviews();
-    deps.refresh();
-    deps.postState();
+    const keys = getPendingPreviews()
+      .map((entry) => entry.key)
+      .filter(isPanelKey);
+    await saveStaged(keys, panelMessage.scope, deps);
     return;
   }
   if (panelMessage.type === "resetAll") {
@@ -192,11 +201,7 @@ export async function handlePanelMessage(
     return;
   }
   if (panelMessage.type === "resetRow") {
-    if (
-      !deps.isColorKey(panelMessage.key) &&
-      !deps.isToggleKey(panelMessage.key) &&
-      !deps.isSelectKey(panelMessage.key)
-    ) {
+    if (!isPanelKey(panelMessage.key)) {
       return;
     }
     clearPreview(panelMessage.key);
@@ -204,57 +209,90 @@ export async function handlePanelMessage(
     deps.postState();
     return;
   }
-  if (
-    panelMessage.type === "previewToggle" ||
-    panelMessage.type === "applyToggle"
-  ) {
+  if (panelMessage.type === "apply" || panelMessage.type === "applyToggle") {
+    if (!isPanelKey(panelMessage.key)) {
+      return;
+    }
+    await saveStaged([panelMessage.key], panelMessage.scope, deps);
+    return;
+  }
+  if (panelMessage.type === "previewToggle") {
     if (!deps.isToggleKey(panelMessage.key)) {
       return;
     }
-    const value = panelMessage.value === true;
-    if (panelMessage.type === "previewToggle") {
-      setPreviewToggle(panelMessage.key, value);
-      deps.refresh();
-      return;
-    }
-    clearPreview(panelMessage.key);
-    await deps.save(panelMessage.key, value, panelMessage.scope);
+    setPreviewToggle(panelMessage.key, panelMessage.value === true);
     deps.refresh();
-    deps.postState();
+    return;
+  }
+  if (panelMessage.type !== "preview") {
     return;
   }
   if (deps.isSelectKey(panelMessage.key)) {
-    // Nothing is repainted either way: VS Code renders these numbers itself,
-    // so the panel can only stage the value and let a real write change it.
+    // Nothing is repainted: VS Code renders these numbers itself, so the
+    // panel can only stage the value and let a real write change it.
     if (!deps.isValidSelectValue(panelMessage.key, panelMessage.value)) {
       return;
     }
-    if (panelMessage.type === "preview") {
-      setPreviewColor(panelMessage.key, panelMessage.value);
-      deps.postState();
-      return;
-    }
-    if (panelMessage.type === "apply") {
-      await deps.save(panelMessage.key, panelMessage.value, panelMessage.scope);
-      clearPreview(panelMessage.key);
-      deps.postState();
-    }
+    setPreviewColor(panelMessage.key, panelMessage.value);
+    deps.postState();
     return;
   }
   if (!deps.isColorKey(panelMessage.key)) {
     return;
   }
-  if (panelMessage.type === "preview") {
-    setPreviewColor(panelMessage.key, panelMessage.value);
-    deps.refresh();
-    return;
+  setPreviewColor(panelMessage.key, panelMessage.value);
+  deps.refresh();
+}
+
+/**
+ * Write the staged value of each key to one scope, each on its own.
+ *
+ * The values are read when the click is handled, and a key leaves the store
+ * only once its own write has succeeded and only if it still holds the value
+ * written; a value staged during the write is newer and stays staged. A key
+ * already being saved is skipped and stays staged, so two writes of one key
+ * are never in flight together and cannot land out of order. A failed write
+ * leaves its key staged and is reported by name, without stopping the others.
+ *
+ * @param keys the keys to write, of which only the staged ones are written
+ * @param scope where the scope radio points
+ * @param deps the effects to perform
+ */
+async function saveStaged(
+  keys: string[],
+  scope: string,
+  deps: PanelMessageDeps
+): Promise<void> {
+  const writes = keys.flatMap((key) => {
+    const value = getPendingPreview(key);
+    return value === undefined || deps.saving.has(key) ? [] : [{ key, value }];
+  });
+  writes.forEach(({ key }) => deps.saving.add(key));
+  const outcomes = await Promise.all(
+    writes.map(async ({ key, value }) => {
+      try {
+        await deps.save(key, value, scope);
+        clearPreviewIfStaged(key, value);
+        return undefined;
+      } catch (error) {
+        return { key, reason: error instanceof Error ? error.message : String(error) };
+      } finally {
+        deps.saving.delete(key);
+      }
+    })
+  );
+  const failed = outcomes.flatMap((outcome) => (outcome ? [outcome] : []));
+  if (failed.length > 0) {
+    deps.showError(
+      `LineNumberDeco could not save ${failed.map((failure) => failure.key).join(", ")} ` +
+        `to ${scope} settings: ${failed[0].reason}`
+    );
   }
-  if (panelMessage.type === "apply") {
-    clearPreview(panelMessage.key);
-    await deps.save(panelMessage.key, panelMessage.value, panelMessage.scope);
+  // The editor draws its own line numbers, so a select alone repaints nothing.
+  if (writes.some(({ key }) => !deps.isSelectKey(key))) {
     deps.refresh();
-    deps.postState();
   }
+  deps.postState();
 }
 
 let resolvedHtml: string | undefined;
@@ -319,6 +357,7 @@ export async function toggleSettingsPanel(): Promise<void> {
 
 class ColorPanelProvider implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | undefined;
+  private readonly saving = new Set<string>();
 
   constructor(private readonly refresh: () => void) {}
 
@@ -409,6 +448,10 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
       save: (key, value, scope) => this.save(key, value, scope),
       refresh: () => this.refresh(),
       postState: () => this.postState(),
+      showError: (message) => {
+        void vscode.window.showErrorMessage(message);
+      },
+      saving: this.saving,
     });
   }
 }

@@ -26,6 +26,7 @@ interface SaveCall {
 function recordingDeps() {
   const saves: SaveCall[] = [];
   const counts = { refresh: 0, postState: 0 };
+  const errors: string[] = [];
   const deps: PanelMessageDeps = {
     isColorKey: (key) => colorKeys.includes(key),
     isToggleKey: (key) => toggleKeys.includes(key),
@@ -41,8 +42,12 @@ function recordingDeps() {
     postState: () => {
       counts.postState += 1;
     },
+    showError: (message) => {
+      errors.push(message);
+    },
+    saving: new Set<string>(),
   };
-  return { deps, saves, counts };
+  return { deps, saves, counts, errors };
 }
 
 const byKey = (calls: SaveCall[]) =>
@@ -201,24 +206,61 @@ describe('Test panel message handling', () => {
     const { deps, saves, counts } = recordingDeps();
     setPreviewColor('editor.lineNumbers', 'relative');
     await handlePanelMessage(
-      { type: 'apply', key: 'editor.lineNumbers', value: 'off', scope: 'user' },
+      { type: 'apply', key: 'editor.lineNumbers', scope: 'user' },
       deps
     );
     assert.deepStrictEqual(saves, [
-      { key: 'editor.lineNumbers', value: 'off', scope: 'user' },
+      { key: 'editor.lineNumbers', value: 'relative', scope: 'user' },
     ]);
     assert.strictEqual(getPreviewColor('editor.lineNumbers'), undefined);
     assert.strictEqual(counts.refresh, 0);
   });
 
-  it('Must refuse to apply a select value the setting does not offer', async () => {
-    const { deps, saves } = recordingDeps();
+  it('Must write nothing for an Apply of a row that is not staged', async () => {
+    const { deps, saves, counts } = recordingDeps();
     await handlePanelMessage(
-      { type: 'apply', key: 'editor.lineNumbers', value: 'diagonal', scope: 'user' },
+      { type: 'apply', key: 'editor.lineNumbers', scope: 'user' },
+      deps
+    );
+    await handlePanelMessage(
+      { type: 'applyToggle', key: 'enableRainbow', scope: 'user' },
       deps
     );
     assert.deepStrictEqual(saves, []);
-    assert.strictEqual(getPreviewColor('editor.lineNumbers'), undefined);
+    assert.strictEqual(counts.postState, 2);
+  });
+
+  it('Must write the staged value, not the one an Apply message names', async () => {
+    const { deps, saves } = recordingDeps();
+    setPreviewColor('foreground', '#123456');
+    await handlePanelMessage(
+      { type: 'apply', key: 'foreground', value: '#000000', scope: 'user' },
+      deps
+    );
+    assert.deepStrictEqual(saves, [{ key: 'foreground', value: '#123456', scope: 'user' }]);
+  });
+
+  it('Must leave a row staged and name it in an error when its save fails', async () => {
+    const { deps, errors, counts } = recordingDeps();
+    setPreviewToggle('enableRainbow', true);
+    await handlePanelMessage(
+      { type: 'applyToggle', key: 'enableRainbow', scope: 'workspace' },
+      { ...deps, save: async () => { throw new Error('no folder'); } }
+    );
+    assert.strictEqual(getPreviewToggle('enableRainbow'), true);
+    assert.strictEqual(errors.length, 1);
+    assert.ok(errors[0].includes('enableRainbow') && errors[0].includes('no folder'), errors[0]);
+    assert.strictEqual(counts.postState, 1);
+  });
+
+  it('Must write nothing for a row whose save is already in flight', async () => {
+    const { deps, saves } = recordingDeps();
+    setPreviewColor('foreground', '#123456');
+    deps.saving.add('foreground');
+    await handlePanelMessage({ type: 'apply', key: 'foreground', scope: 'user' }, deps);
+    await handlePanelMessage({ type: 'applyAll', scope: 'user' }, deps);
+    assert.deepStrictEqual(saves, []);
+    assert.strictEqual(getPreviewColor('foreground'), '#123456');
   });
 
   it('Must save a pending select along with the colors on apply all', async () => {

@@ -10,8 +10,9 @@ export interface PendingPreview {
  * The panel writes here while a picker is being dragged or a switch is flipped,
  * and the config getters read an override before the configuration itself, so
  * the editors render the candidate without anything being written to settings.
- * Applying one row, applying all of them, or hiding the panel clears what is
- * pending and the configured values take over again.
+ * A key leaves the store when it is reset, when the panel is closed, or once a
+ * save of exactly its staged value has succeeded; the configured value takes
+ * over again from there.
  */
 const previews = new Map<string, string | boolean>();
 
@@ -30,6 +31,21 @@ export function clearPreview(key: string) {
 /** The name the color rows have always used for {@link clearPreview}. */
 export const clearPreviewColor = clearPreview;
 
+/**
+ * Clear a key, but only while it still holds the value that was just written.
+ *
+ * A value staged again while the save was in flight is newer than the save,
+ * so it stays staged rather than being lost to the write that preceded it.
+ *
+ * @param key the configuration name that was saved
+ * @param written the value the save wrote
+ */
+export function clearPreviewIfStaged(key: string, written: string | boolean) {
+  if (previews.get(key) === written) {
+    previews.delete(key);
+  }
+}
+
 export function clearAllPreviews() {
   previews.clear();
 }
@@ -42,6 +58,11 @@ export function getPreviewColor(key: string) {
 export function getPreviewToggle(key: string) {
   const value = previews.get(key);
   return typeof value === "boolean" ? value : undefined;
+}
+
+/** The value staged for one key, of whichever type, or undefined. */
+export function getPendingPreview(key: string): string | boolean | undefined {
+  return previews.get(key);
 }
 
 /** Everything pending, so one action can commit all of it. */

@@ -98,3 +98,10 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Each color row in the settings panel shows the saved color in a small swatch beside the picker, so a staged color can be compared with what it replaces; an empty setting shows its theme color
 - A dimmed row in the settings panel explains itself on hover, naming the selected scope and where the value it shows comes from
 - Staged colors and switches in the settings panel survive a scope flip, a theme change, or another row's Apply/Reset, and Apply after a scope flip writes the staged color instead of the saved one
+
+## 0.0.13
+
+- Apply all in the settings panel no longer discards a color, switch or line number mode staged while its saves are running, and a row staged again during its own Apply keeps the newer value
+- A row being applied keeps showing the staged value until the save completes, instead of flashing back to the old one
+- A save that fails (for example to Workspace settings with no folder open) leaves the value staged and shows an error naming the setting, instead of losing it silently; within Apply all, the other settings are still saved
+- Apply on a row with nothing staged writes nothing
