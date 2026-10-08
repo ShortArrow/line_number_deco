@@ -3,7 +3,7 @@ import { describe, it } from 'mocha';
 import type { ScopeName, ScopedDisplay } from '../panelState';
 
 type Source = ScopedDisplay<string>['source'];
-import { displayForScope, displayToggle, displayValue, inheritedTitle, stagePending } from '../panelState';
+import { acknowledgedSeq, displayForScope, displayToggle, displayValue, hexFieldText, inheritedTitle, overlayEdits, unacknowledged } from '../panelState';
 
 describe('Test panel display values', () => {
   it('Must show the saved value while nothing is pending', () => {
@@ -191,33 +191,62 @@ describe('Test the hover text of a dimmed row', () => {
   }
 });
 
-describe('Test staging a value in the webview', () => {
-  it('S1 Must make a staged color show over the saved one at the next render', () => {
-    const staged = stagePending({}, 'c', '#123abc');
+describe('Test edits the extension has not acknowledged yet', () => {
+  it('A1 Must show a local stage over the staged values a state message carries', () => {
+    const pending = overlayEdits({ d: '#222222' }, { c: { value: '#123abc', seq: 4 } });
+    assert.deepStrictEqual(pending, { c: '#123abc', d: '#222222' });
     assert.deepStrictEqual(
-      displayForScope('user', 'c', { defaultValue: undefined, userValue: '#000000', workspaceValue: undefined }, staged),
+      displayForScope('user', 'c', { defaultValue: undefined, userValue: '#000000', workspaceValue: undefined }, pending),
       { value: '#123abc', source: 'user', pending: true }
     );
   });
 
-  it('S2 Must make a staged switch show over the saved one at the next render', () => {
-    const staged = stagePending({}, 'enableRainbow', true);
+  it('A2 Must let a local stage replace the value the extension still holds for that key', () => {
+    assert.deepStrictEqual(overlayEdits({ c: '#111111' }, { c: { value: '#333333', seq: 2 } }), { c: '#333333' });
+  });
+
+  it('A3 Must let a local reset hide the value the extension still holds for that key', () => {
     assert.deepStrictEqual(
-      displayForScope('workspace', 'enableRainbow', { defaultValue: false, userValue: undefined, workspaceValue: undefined }, staged),
-      { value: true, source: 'default', pending: true }
+      overlayEdits({ c: '#111111', enableRainbow: true }, { c: { value: undefined, seq: 2 } }),
+      { enableRainbow: true }
     );
   });
 
-  it('S3 Must replace an earlier staged value of the same key and keep the others', () => {
-    assert.deepStrictEqual(stagePending({ c: '#111111', d: '#222222' }, 'c', '#333333'), {
-      c: '#333333',
-      d: '#222222',
-    });
+  it('A4 Must leave the maps it was given untouched', () => {
+    const pending = { d: '#222222' };
+    const edits = { d: { value: undefined, seq: 1 } };
+    overlayEdits(pending, edits);
+    assert.deepStrictEqual(pending, { d: '#222222' });
+    assert.deepStrictEqual(edits, { d: { value: undefined, seq: 1 } });
   });
 
-  it('S4 Must leave the map it was given untouched', () => {
-    const before = { d: '#222222' };
-    stagePending(before, 'c', '#333333');
-    assert.deepStrictEqual(before, { d: '#222222' });
+  it('A5 Must keep only the entries numbered past the acknowledgement', () => {
+    const entries = { a: { seq: 3 }, b: { seq: 4 }, c: { seq: 5 } };
+    assert.deepStrictEqual(unacknowledged(entries, 4), { c: { seq: 5 } });
+    assert.deepStrictEqual(entries, { a: { seq: 3 }, b: { seq: 4 }, c: { seq: 5 } });
+  });
+
+  it('A6 Must read the acknowledged number of this webview instance', () => {
+    assert.strictEqual(acknowledgedSeq({ instance: 'i1', seq: 7 }, 'i1'), 7);
+  });
+
+  it('A7 Must read nothing acknowledged from another instance, or from no acknowledgement', () => {
+    assert.strictEqual(acknowledgedSeq({ instance: 'old', seq: 70 }, 'i1'), 0);
+    assert.strictEqual(acknowledgedSeq(undefined, 'i1'), 0);
+    assert.strictEqual(acknowledgedSeq({ instance: 'i1', seq: 'x' }, 'i1'), 0);
+  });
+});
+
+describe('Test the hex field under focus', () => {
+  it('H1 Must write the shown value into a field without focus', () => {
+    assert.strictEqual(hexFieldText(false, '#111111', '#111111'), '#111111');
+  });
+
+  it('H2 Must leave a focused field alone while its row shows what it showed before', () => {
+    assert.strictEqual(hexFieldText(true, '#111111', '#111111'), undefined);
+  });
+
+  it('H3 Must rewrite a focused field when its row now shows something else', () => {
+    assert.strictEqual(hexFieldText(true, '#123456', '#000000'), '#000000');
   });
 });

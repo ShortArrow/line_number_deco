@@ -321,7 +321,7 @@ describe('Test render the color panel html', () => {
   it('Must register the message listener before announcing readiness', () => {
     const html = renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:');
     const listener = html.search(/addEventListener\(['"]message/);
-    const ready = html.search(/postMessage\(\{\s*type:\s*['"]ready['"]/);
+    const ready = html.search(/post(?:Message)?\(\{\s*type:\s*['"]ready['"]/);
     assert.ok(listener >= 0, 'the script listens for no state message');
     assert.ok(ready >= 0, 'the script never posts a ready message');
     assert.ok(listener < ready, 'the ready post can outrun the listener');

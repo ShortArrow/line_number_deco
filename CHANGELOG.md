@@ -105,3 +105,6 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - A row being applied keeps showing the staged value until the save completes, instead of flashing back to the old one
 - A save that fails (for example to Workspace settings with no folder open) leaves the value staged and shows an error naming the setting, instead of losing it silently; within Apply all, the other settings are still saved
 - Apply on a row with nothing staged writes nothing
+- A value just staged in the settings panel is no longer undone by a state update that crossed it on the way, and a line number mode chosen in the panel stays shown through a scope flip or another row's update
+- A row's Apply, and Apply all, are disabled while their save is running, so a double click saves once
+- What is being typed in a color row's hex field is no longer overwritten while the field has focus; a reset of the row still reaches it

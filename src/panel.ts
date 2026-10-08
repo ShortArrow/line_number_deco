@@ -296,6 +296,33 @@ async function saveStaged(
   deps.postState();
 }
 
+/** How far the extension has got in one webview instance's numbered messages. */
+interface Acknowledgement {
+  instance: string;
+  seq: number;
+}
+
+/** The instance id and number a webview message carries, when it carries both. */
+function acknowledgementOf(message: unknown): Acknowledgement | undefined {
+  if (!message || typeof message !== "object") {
+    return undefined;
+  }
+  const { instance, seq } = message as { instance?: unknown; seq?: unknown };
+  return typeof instance === "string" && typeof seq === "number"
+    ? { instance, seq }
+    : undefined;
+}
+
+/**
+ * Whether a message is a color or switch preview, which the webview already
+ * shows and which arrives once per frame while a picker is dragged, so it is
+ * the one kind of message not answered with a state message.
+ */
+function isQuietPreview(message: unknown): boolean {
+  const type = (message as { type?: unknown } | undefined)?.type;
+  return type === "preview" || type === "previewToggle";
+}
+
 let resolvedHtml: string | undefined;
 let resolvedView: vscode.WebviewView | undefined;
 
@@ -359,6 +386,7 @@ export async function toggleSettingsPanel(): Promise<void> {
 class ColorPanelProvider implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | undefined;
   private readonly saving = new Set<string>();
+  private acknowledged: Acknowledgement | undefined;
   /**
    * Hand each webview message to its handler only once the previous one has
    * finished, so handlers never interleave even while a save is in flight.
@@ -410,10 +438,15 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
    * Each setting travels as what all three scopes hold rather than as the one
    * value in force, so the radio can change what the rows show without asking
    * the extension again.
+   *
+   * The acknowledgement names the last webview message whose handler has
+   * finished, so the webview can tell which of its own edits this state
+   * already reflects.
    */
   postState() {
     this.view?.webview.postMessage({
       type: "state",
+      ack: this.acknowledged,
       toggles: currentToggles(),
       selects: currentSelects(),
       rows: currentRows(),
@@ -448,7 +481,13 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  /**
+   * Handle one message, then answer it with a state message carrying its
+   * acknowledgement; a state the handler asks for is posted at that point too,
+   * so it carries the acknowledgement of the message that caused it.
+   */
   private async handle(message: unknown) {
+    let answer = !isQuietPreview(message);
     await handlePanelMessage(message, {
       isColorKey: isKnownKey,
       isToggleKey: isKnownToggle,
@@ -456,12 +495,18 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
       isValidSelectValue: isKnownSelectValue,
       save: (key, value, scope) => this.save(key, value, scope),
       refresh: () => this.refresh(),
-      postState: () => this.postState(),
-      showError: (message) => {
-        void vscode.window.showErrorMessage(message);
+      postState: () => {
+        answer = true;
+      },
+      showError: (text) => {
+        void vscode.window.showErrorMessage(text);
       },
       saving: this.saving,
     });
+    this.acknowledged = acknowledgementOf(message) ?? this.acknowledged;
+    if (answer) {
+      this.postState();
+    }
   }
 }
 

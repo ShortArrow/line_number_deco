@@ -15,24 +15,97 @@ export interface PendingMap {
 }
 
 /**
- * The staged values once one more is staged in the webview.
- *
- * The webview records what it posts as a preview here, because the extension
- * does not answer a color or switch preview with a state message; without the
- * entry, the next local redraw would paint the saved value over the staged one.
- * A later state message still replaces the whole map. The given map is not
- * changed.
- *
- * @param pending what was staged before
- * @param key the configuration name being staged
- * @param value the value posted as its preview
+ * A stage or a reset made in the webview, and the number of the message that
+ * carried it to the extension. A reset has no value.
  */
-export function stagePending(
-  pending: PendingMap,
-  key: string,
-  value: string | boolean
-): PendingMap {
-  return { ...pending, [key]: value };
+export interface LocalEdit {
+  value: string | boolean | undefined;
+  seq: number;
+}
+
+/** The webview's own edits, keyed by configuration name. */
+export interface LocalEdits {
+  [key: string]: LocalEdit;
+}
+
+/**
+ * The staged values to display: what a state message carried, with the
+ * webview's own unacknowledged edits laid over it.
+ *
+ * A state message can be posted before the extension has handled an edit the
+ * webview already sent, and would then carry the value from before it; the
+ * edit wins until a state message acknowledges it. Neither map is changed.
+ *
+ * @param pending the staged values a state message carried
+ * @param edits the webview's edits the extension has not acknowledged yet
+ */
+export function overlayEdits(pending: PendingMap, edits: LocalEdits): PendingMap {
+  const shown: PendingMap = { ...pending };
+  for (const key of Object.keys(edits)) {
+    const value = edits[key].value;
+    if (value === undefined) {
+      delete shown[key];
+    } else {
+      shown[key] = value;
+    }
+  }
+  return shown;
+}
+
+/**
+ * The entries numbered past an acknowledgement, which the extension has not
+ * finished handling yet. The given map is not changed.
+ *
+ * @param entries anything the webview tracks per key by message number
+ * @param acknowledged the number of the last message the extension handled
+ */
+export function unacknowledged<T extends { seq: number }>(
+  entries: { [key: string]: T },
+  acknowledged: number
+): { [key: string]: T } {
+  const kept: { [key: string]: T } = {};
+  for (const key of Object.keys(entries)) {
+    if (entries[key].seq > acknowledged) {
+      kept[key] = entries[key];
+    }
+  }
+  return kept;
+}
+
+/**
+ * The number of the last message of this webview instance the extension has
+ * handled, as a state message acknowledges it; 0 when the acknowledgement is
+ * missing or belongs to another instance, such as the one a hidden view
+ * destroyed, whose numbering has nothing to do with this one's.
+ *
+ * @param ack the acknowledgement a state message carried, not to be trusted
+ * @param instance the id this webview instance sends with every message
+ */
+export function acknowledgedSeq(ack: unknown, instance: string): number {
+  if (!ack || typeof ack !== "object") {
+    return 0;
+  }
+  const { instance: from, seq } = ack as { instance?: unknown; seq?: unknown };
+  return from === instance && typeof seq === "number" ? seq : 0;
+}
+
+/**
+ * What to write into a row's hex field at a render, or undefined to leave it.
+ *
+ * A field the reader has focus in keeps what they are typing while the row
+ * shows the same value as at the previous render; only a change of the shown
+ * value, such as a reset, reaches it.
+ *
+ * @param focused whether the reader has focus in the field
+ * @param previouslyShown the value the row showed at the previous render
+ * @param shown the value the row shows now
+ */
+export function hexFieldText(
+  focused: boolean,
+  previouslyShown: string | undefined,
+  shown: string
+): string | undefined {
+  return !focused || previouslyShown !== shown ? shown : undefined;
 }
 
 /** One value to display, and whether it is staged rather than saved. */
