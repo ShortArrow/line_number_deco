@@ -8,6 +8,7 @@ import {
   renderPanelHtml,
 } from "./panelHtml";
 import { ScopeValues } from "./panelState";
+import { serially } from "./serially";
 import {
   clearAllPreviews,
   clearPreview,
@@ -358,6 +359,14 @@ export async function toggleSettingsPanel(): Promise<void> {
 class ColorPanelProvider implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | undefined;
   private readonly saving = new Set<string>();
+  /**
+   * Hand each webview message to its handler only once the previous one has
+   * finished, so handlers never interleave even while a save is in flight.
+   */
+  private readonly receive = serially<unknown>(
+    (message) => this.handle(message),
+    (error) => console.error("LineNumberDeco panel message failed", error)
+  );
 
   constructor(private readonly refresh: () => void) {}
 
@@ -374,9 +383,9 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
       webviewView.webview.cspSource
     );
     resolvedHtml = webviewView.webview.html;
-    webviewView.webview.onDidReceiveMessage((message: PanelMessage) =>
-      this.handle(message)
-    );
+    webviewView.webview.onDidReceiveMessage((message: unknown) => {
+      void this.receive(message);
+    });
     webviewView.onDidChangeVisibility(() => {
       if (!webviewView.visible) {
         clearAllPreviews();
@@ -439,7 +448,7 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async handle(message: PanelMessage) {
+  private async handle(message: unknown) {
     await handlePanelMessage(message, {
       isColorKey: isKnownKey,
       isToggleKey: isKnownToggle,
