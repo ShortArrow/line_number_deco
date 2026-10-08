@@ -1,6 +1,6 @@
 # Staging and applying in the settings panel
 
-The settings panel lets a value be tried before it is written. A value chosen in the panel is staged: the editors render it at once, but nothing reaches the configuration until Apply or Apply all writes it. This document states what the panel holds, what each control does to it, and the invariants the implementation keeps. `src/test/panelStaging.test.ts` checks the invariants I1 to I4 against every short sequence of operations.
+The settings panel lets a value be tried before it is written. A value chosen in the panel is staged: the editors render it at once, but nothing reaches the configuration until Apply or Apply all writes it. This document states what the panel holds, what each control does to it, and the invariants the implementation keeps. `src/test/panelStaging.test.ts` checks I1 to I4, and the extension's half of I5, against every sequence of up to four operations and every order in which their saves settle.
 
 ## State
 
