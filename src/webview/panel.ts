@@ -8,10 +8,35 @@
  * Picking a color is left to the native color input: Chromium's own picker
  * already offers a 2-D surface, a hue strip and HEX/RGB/HSL entry, and fires
  * input events while dragging, which become live previews here.
+ *
+ * Every message carries this instance's id and a number one higher than the
+ * message before it, and every state message acknowledges the last message
+ * the extension finished handling. A stage or reset made here is kept as a
+ * local edit and laid over the staged values each state message carries until
+ * a state message acknowledges it, so a state posted before the extension saw
+ * the edit cannot undo it. An Apply marks its row busy, and Apply all every
+ * staged row, until the state message that acknowledges the click; a busy
+ * row's Apply and, while any row is busy, Apply all are disabled. The instance
+ * id keeps acknowledgements meant for an iframe that a hidden view destroyed
+ * from being read as this one's.
  */
 
 import { colorToApply, isHexColor, pickerColor } from "../hexColor";
-import { ScopeName, ScopedDisplay, ScopeValues, displayForScope, inheritedTitle, stagePending } from "../panelState";
+import {
+  LocalEdits,
+  PendingMap,
+  ScopeName,
+  ScopedDisplay,
+  ScopeValues,
+  acknowledgedSeq,
+  displayForScope,
+  hexFieldText,
+  inheritedTitle,
+  initialScope,
+  noFolderTitle,
+  overlayEdits,
+  unacknowledged,
+} from "../panelState";
 import { savedSwatchFill, savedSwatchLabel } from "../savedSwatch";
 
 declare function acquireVsCodeApi(): {
@@ -21,6 +46,19 @@ declare function acquireVsCodeApi(): {
 };
 
 const vscode = acquireVsCodeApi();
+
+const instance = String(Date.now()) + "-" + Math.random().toString(36).slice(2);
+let lastSeq = 0;
+/** Post one message, numbered, and return its number. */
+function post(message: { type: string; [field: string]: unknown }): number {
+  lastSeq += 1;
+  vscode.postMessage({ ...message, instance: instance, seq: lastSeq });
+  return lastSeq;
+}
+/** Stages and resets made here that no state message has acknowledged yet. */
+let edits: LocalEdits = {};
+/** Rows whose Apply, or an Apply all covering them, no state message has acknowledged yet. */
+let busy: { [key: string]: { seq: number } } = {};
 
 /**
  * The theme color an empty row stands for, as the native input can show it.
@@ -42,23 +80,48 @@ function scope(): ScopeName {
   const checked = document.querySelector(
     'input[name="scope"]:checked'
   ) as HTMLInputElement | null;
-  return checked ? (checked.value as ScopeName) : "workspace";
+  return checked ? (checked.value as ScopeName) : "user";
+}
+function scopeRadio(name: ScopeName): HTMLInputElement | null {
+  return document.querySelector(
+    'input[name="scope"][value="' + name + '"]'
+  ) as HTMLInputElement | null;
 }
 /**
  * Put the radio back where the reader left it.
  *
  * The iframe is destroyed whenever the view is hidden and the script
- * re-runs from the baked html, which always checks workspace. Setting
- * checked from script fires no change event, so nothing is redrawn here:
- * the redraw comes with the state the ready message asks for.
+ * re-runs from the baked html, which checks Workspace, or User with the
+ * Workspace radio disabled when no folder is open. Setting checked from
+ * script fires no change event, so nothing is redrawn here: the redraw comes
+ * with the state the ready message asks for.
  */
-const persisted = vscode.getState();
-if (persisted && (persisted.scope === "user" || persisted.scope === "workspace")) {
-  const restored = document.querySelector(
-    'input[name="scope"][value="' + persisted.scope + '"]'
-  ) as HTMLInputElement | null;
-  if (restored) {
-    restored.checked = true;
+const opening = scopeRadio(
+  initialScope(vscode.getState()?.scope, scopeRadio("workspace")?.disabled !== true)
+);
+if (opening) {
+  opening.checked = true;
+}
+/**
+ * Enable the Workspace radio when a folder is open and disable it when none
+ * is, moving the selection to User if it was on Workspace.
+ */
+function showWorkspaceAvailable(available: boolean) {
+  const radio = scopeRadio("workspace");
+  const label = radio?.closest("label");
+  if (!radio || !label) {
+    return;
+  }
+  radio.disabled = !available;
+  label.classList.toggle("disabled", !available);
+  if (available) {
+    label.removeAttribute("title");
+    return;
+  }
+  label.title = noFolderTitle;
+  const user = scopeRadio("user");
+  if (radio.checked && user) {
+    user.checked = true;
   }
 }
 function markPending(key: string, pending: boolean) {
@@ -206,50 +269,32 @@ document.querySelectorAll("[data-select-for]").forEach((element) => {
     const value = segment.dataset.value;
     markSelected(key, value);
     markPending(key, true);
-    // No local rendering: VS Code draws these numbers itself, so the
-    // panel can only stage the value and wait for a real write.
-    vscode.postMessage({ type: "preview", key: key, value: value });
+    // Nothing is rendered in the editor: VS Code draws these numbers itself,
+    // so the panel can only stage the value and wait for a real write.
+    postStaged("preview", key, value as string);
   });
 });
 document.querySelectorAll("button[data-apply]").forEach((element) => {
   const button = element as HTMLElement;
   button.addEventListener("click", () => {
     const key = button.dataset.apply as string;
-    const selected = selectedValue(key);
-    if (selected !== undefined) {
-      vscode.postMessage({
-        type: "apply",
-        key: key,
-        value: selected,
-        scope: scope(),
-      });
-      return;
+    if (selectedValue(key) === undefined) {
+      const field = hexFieldOf(key);
+      if (colorToApply(field ? field.value : "") === undefined) {
+        field?.classList.toggle("invalid", field.value.trim() !== "");
+        return;
+      }
     }
-    const field = hexFieldOf(key);
-    const color = colorToApply(field ? field.value : "");
-    if (color === undefined) {
-      field?.classList.toggle("invalid", field.value.trim() !== "");
-      return;
-    }
-    vscode.postMessage({
-      type: "apply",
-      key: key,
-      value: color,
-      scope: scope(),
-    });
+    // The extension writes the value it has staged, which is the one this
+    // row shows: every stage was posted before this click.
+    markBusy([key], post({ type: "apply", key: key, scope: scope() }));
   });
 });
 document.querySelectorAll("button[data-apply-toggle]").forEach((element) => {
   const button = element as HTMLElement;
   button.addEventListener("click", () => {
     const key = button.dataset.applyToggle as string;
-    const box = switchOf(key) as HTMLInputElement;
-    vscode.postMessage({
-      type: "applyToggle",
-      key: key,
-      value: box.checked,
-      scope: scope(),
-    });
+    markBusy([key], post({ type: "applyToggle", key: key, scope: scope() }));
   });
 });
 document.querySelectorAll("[data-hex-for]").forEach((element) => {
@@ -267,23 +312,33 @@ document.querySelectorAll("[data-hex-for]").forEach((element) => {
     if (input) {
       input.value = pickerColor(hex);
     }
+    field.dataset.shown = hex;
     postStaged("preview", key, hex);
   });
 });
 document.querySelectorAll("button[data-reset]").forEach((element) => {
   const button = element as HTMLElement;
   button.addEventListener("click", () => {
-    vscode.postMessage({ type: "resetRow", key: button.dataset.reset });
+    const key = button.dataset.reset as string;
+    const seq = post({ type: "resetRow", key: key });
+    edits = { ...edits, [key]: { value: undefined, seq: seq } };
+    renderState();
   });
 });
 document.querySelectorAll("button[data-apply-all]").forEach((button) => {
   button.addEventListener("click", () => {
-    vscode.postMessage({ type: "applyAll", scope: scope() });
+    markBusy(Object.keys(shownPending()), post({ type: "applyAll", scope: scope() }));
   });
 });
 document.querySelectorAll("button[data-reset-all]").forEach((button) => {
   button.addEventListener("click", () => {
-    vscode.postMessage({ type: "resetAll" });
+    const seq = post({ type: "resetAll" });
+    const reset: LocalEdits = {};
+    Object.keys(shownPending()).forEach((key) => {
+      reset[key] = { value: undefined, seq: seq };
+    });
+    edits = { ...edits, ...reset };
+    renderState();
   });
 });
 /** One setting as a state message carries it: what each scope holds. */
@@ -307,17 +362,41 @@ let state: {
 /**
  * Stage one value and send it to the extension as a preview.
  *
- * The extension answers a color or switch preview with no state message, so
- * the value is kept here too; otherwise a radio flip, a theme change or a
- * state message about another row would redraw this one from the saved value.
+ * The value is kept as a local edit until a state message acknowledges it;
+ * otherwise a radio flip, a theme change or a state message posted before the
+ * extension saw the preview would redraw this row from the saved value.
  */
 function postStaged(type: "preview" | "previewToggle", key: string, value: string | boolean) {
-  state.pending = stagePending(state.pending, key, value);
-  vscode.postMessage({ type: type, key: key, value: value });
+  const seq = post({ type: type, key: key, value: value });
+  edits = { ...edits, [key]: { value: value, seq: seq } };
+}
+/** The staged values as this panel shows them: the extension's, under the local edits. */
+function shownPending(): PendingMap {
+  return overlayEdits(state.pending || {}, edits);
+}
+/** Mark rows busy from one Apply or Apply all click until it is acknowledged. */
+function markBusy(keys: string[], seq: number) {
+  keys.forEach((key) => {
+    busy = { ...busy, [key]: { seq: seq } };
+  });
+  renderBusy();
+}
+/** Disable the Apply of every busy row, and Apply all while any row is busy. */
+function renderBusy() {
+  document
+    .querySelectorAll("button[data-apply], button[data-apply-toggle]")
+    .forEach((element) => {
+      const button = element as HTMLButtonElement;
+      const key = button.dataset.apply ?? button.dataset.applyToggle ?? "";
+      button.disabled = busy[key] !== undefined;
+    });
+  document.querySelectorAll("button[data-apply-all]").forEach((element) => {
+    (element as HTMLButtonElement).disabled = Object.keys(busy).length > 0;
+  });
 }
 /** Draw every row for the scope now selected, over whatever is staged. */
 function renderState() {
-  const pending = state.pending || {};
+  const pending = shownPending();
   (state.toggles || []).forEach((toggle) => {
     const entry = shownForScope(toggle.key, toggle.values, pending);
     const box = switchOf(toggle.key);
@@ -345,26 +424,33 @@ function renderState() {
     }
     const saved = shownForScope(row.key, row.values, {}).value;
     showSaved(row.key, saved === undefined ? "" : String(saved), input?.dataset.themeVar);
-    // The displayed value wins over whatever is being typed: a reset has
-    // to reach a field the reader still has the caret in.
     const field = hexFieldOf(row.key);
     if (field) {
-      field.value = color;
-      field.classList.remove("invalid");
+      const text = hexFieldText(field === document.activeElement, field.dataset.shown, color);
+      if (text !== undefined) {
+        field.value = text;
+        field.classList.remove("invalid");
+      }
+      field.dataset.shown = color;
     }
   });
+  renderBusy();
 }
 window.addEventListener("message", (event) => {
   const message = event.data;
   if (!message || message.type !== "state") {
     return;
   }
+  const acknowledged = acknowledgedSeq(message.ack, instance);
+  edits = unacknowledged(edits, acknowledged);
+  busy = unacknowledged(busy, acknowledged);
   state = {
     toggles: message.toggles || [],
     selects: message.selects || [],
     rows: message.rows || [],
     pending: message.pending || {},
   };
+  showWorkspaceAvailable(message.hasWorkspace !== false);
   renderState();
 });
 // The radio chooses what the rows show, not only where Apply writes: the
@@ -383,6 +469,6 @@ new MutationObserver(renderState).observe(document.documentElement, {
 });
 // Last, and after the listener above: the baked values are as old as the
 // last resolve, and the answer to this must not arrive unheard.
-vscode.postMessage({ type: "ready" });
+post({ type: "ready" });
 
 export {};

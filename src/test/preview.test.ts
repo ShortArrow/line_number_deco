@@ -8,6 +8,8 @@ import {
   setPreviewToggle,
   getPreviewToggle,
   getPendingPreviews,
+  getPendingPreview,
+  clearPreviewIfStaged,
 } from '../preview';
 import {
   getColorAtCenterOfRainbow,
@@ -16,6 +18,20 @@ import {
 } from '../config';
 
 describe('Test preview color overrides', () => {
+  it('Must clear a key whose staged value is still the one written', () => {
+    clearAllPreviews();
+    setPreviewColor('foreground', '#123456');
+    clearPreviewIfStaged('foreground', '#123456');
+    assert.strictEqual(getPendingPreview('foreground'), undefined);
+  });
+
+  it('Must keep a key staged again at another value while it was written', () => {
+    clearAllPreviews();
+    setPreviewToggle('enableRainbow', false);
+    clearPreviewIfStaged('enableRainbow', true);
+    assert.strictEqual(getPendingPreview('enableRainbow'), false);
+  });
+
   it('Must become an unset key to undefined', () => {
     clearAllPreviews();
     assert.strictEqual(getPreviewColor('centerColorOfRainbow'), undefined);

@@ -26,7 +26,7 @@ Five optional decorations color the numbers further. The rainbow colors each num
 
 ![The settings panel](./images/panel.png)
 
-The LineNumberDeco icon in the activity bar opens a panel for every setting of this extension, and for `editor.lineNumbers` itself. Changes preview in the editor at once; nothing is saved until Apply. The radio at the top picks the scope you are editing, and the scope the rows show. Closing the panel discards anything unapplied.
+The LineNumberDeco icon in the activity bar opens a panel for every setting of this extension, and for `editor.lineNumbers` itself. Changes preview in the editor at once; nothing is saved until Apply. The radio at the top picks the scope you are editing, and the scope the rows show; with no folder open, only User can be picked. Unapplied changes stay staged while you switch to another sidebar view, and are discarded when the panel is closed.
 
 ## Settings
 

@@ -98,3 +98,15 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Each color row in the settings panel shows the saved color in a small swatch beside the picker, so a staged color can be compared with what it replaces; an empty setting shows its theme color
 - A dimmed row in the settings panel explains itself on hover, naming the selected scope and where the value it shows comes from
 - Staged colors and switches in the settings panel survive a scope flip, a theme change, or another row's Apply/Reset, and Apply after a scope flip writes the staged color instead of the saved one
+
+## 0.0.13
+
+- Apply all in the settings panel no longer discards a color, switch or line number mode staged while its saves are running, and a row staged again during its own Apply keeps the newer value
+- A row being applied keeps showing the staged value until the save completes, instead of flashing back to the old one
+- A save that fails (for example to Workspace settings with no folder open) leaves the value staged and shows an error naming the setting, instead of losing it silently; within Apply all, the other settings are still saved
+- Apply on a row with nothing staged writes nothing
+- A value just staged in the settings panel is no longer undone by a state update that crossed it on the way, and a line number mode chosen in the panel stays shown through a scope flip or another row's update
+- A row's Apply, and Apply all, are disabled while their save is running, so a double click saves once
+- What is being typed in a color row's hex field is no longer overwritten while the field has focus; a reset of the row still reaches it
+- With no folder open, the settings panel opens on User and its Workspace radio is disabled with a hover saying why, instead of offering a scope that cannot be written; the radio follows a folder being opened or closed
+- Switching the sidebar to another view no longer discards what is staged in the settings panel; the staged values keep previewing in the editor until applied or reset

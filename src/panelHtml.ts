@@ -1,6 +1,6 @@
 import { panelCss, panelScript } from "./generated/webviewAssets";
 import { pickerColor } from "./hexColor";
-import { ScopeName, ScopedDisplay, ScopeValues, displayForScope, inheritedTitle } from "./panelState";
+import { ScopeName, ScopedDisplay, ScopeValues, displayForScope, inheritedTitle, noFolderTitle } from "./panelState";
 import { savedSwatchFill, savedSwatchLabel } from "./savedSwatch";
 
 /**
@@ -234,12 +234,26 @@ function renderRow(row: PanelRow) {
  * nothing is read off disk here and the hex rule the field runs is the very
  * one the unit tests cover.
  */
+/**
+ * The scope radio. With no folder open there are no Workspace settings to
+ * write, so that radio is disabled, its label says why, and User is checked.
+ */
+function renderScopeRadios(hasWorkspace: boolean): string {
+  if (hasWorkspace) {
+    return `      <label><input type="radio" name="scope" value="workspace" checked /> Workspace</label>
+      <label><input type="radio" name="scope" value="user" /> User</label>`;
+  }
+  return `      <label class="disabled" title="${noFolderTitle}"><input type="radio" name="scope" value="workspace" disabled /> Workspace</label>
+      <label><input type="radio" name="scope" value="user" checked /> User</label>`;
+}
+
 export function renderPanelHtml(
   toggles: PanelToggle[],
   selects: PanelSelect[],
   rows: PanelRow[],
   nonce: string,
-  cspSource: string
+  cspSource: string,
+  hasWorkspace: boolean
 ): string {
   const safeNonce = escapeHtml(nonce);
   const safeCspSource = escapeHtml(cspSource);
@@ -255,8 +269,7 @@ ${panelCss}
   </head>
   <body>
     <div class="scope">
-      <label><input type="radio" name="scope" value="workspace" checked /> Workspace</label>
-      <label><input type="radio" name="scope" value="user" /> User</label>
+${renderScopeRadios(hasWorkspace)}
     </div>
     <div class="section">
       <h2>Decorations</h2>
