@@ -8,8 +8,8 @@ const frameTimeoutMs = 30000;
 /** A sidebar dragged wide enough for every row to fit on one line. */
 const wideWidth = 640;
 
-/** A sidebar dragged narrow, close to the 170 px VS Code allows, where no row fits on one line. */
-const narrowWidth = 200;
+/** A sidebar dragged to the 170 px VS Code allows at the least, where no row fits on one line. */
+const narrowWidth = 170;
 
 /** The rows whose label sits apart from their controls, one of each kind. */
 const rows = ["centerColorOfRainbow", "editor.lineNumbers"];
@@ -20,6 +20,7 @@ interface Placement {
   labelBottom: number;
   controlsTop: number;
   overflow: number;
+  widest: string;
 }
 
 describe("settings panel rows follow the sidebar width", function () {
@@ -58,7 +59,15 @@ describe("settings panel rows follow the sidebar width", function () {
       const label = row.querySelector(':scope > .label').getBoundingClientRect();
       const controls = row.querySelector(':scope > .controls').getBoundingClientRect();
       const overflow = document.documentElement.scrollWidth - document.documentElement.clientWidth;
-      return { labelTop: label.top, labelBottom: label.bottom, controlsTop: controls.top, overflow };
+      const edge = document.documentElement.clientWidth;
+      const widest = [...document.body.querySelectorAll('*')]
+        .map((e) => ({ e, right: e.getBoundingClientRect().right }))
+        .filter(({ right }) => right > edge)
+        .sort((a, b) => b.right - a.right)
+        .slice(0, 3)
+        .map(({ e, right }) => e.tagName.toLowerCase() + '.' + [...e.classList].join('.') + ' ' + (e.textContent || '').trim().slice(0, 20) + ' @' + Math.round(right))
+        .join(', ');
+      return { labelTop: label.top, labelBottom: label.bottom, controlsTop: controls.top, overflow, widest };
       `,
       key
     ), 5000);
@@ -95,7 +104,7 @@ describe("settings panel rows follow the sidebar width", function () {
         placed.controlsTop >= placed.labelBottom,
         `the controls start at ${placed.controlsTop}, beside the label ending at ${placed.labelBottom}`
       );
-      assert.strictEqual(placed.overflow, 0, `the panel scrolls sideways by ${placed.overflow}px`);
+      assert.strictEqual(placed.overflow, 0, `the panel scrolls sideways by ${placed.overflow}px past ${placed.widest}`);
     });
   }
 });
