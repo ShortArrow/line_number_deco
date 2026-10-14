@@ -501,7 +501,7 @@ describe('Test theme colors behind empty color rows', () => {
     for (const row of rows) {
       assert.ok(
         new RegExp(
-          `<span class="actions">\\s*<button data-apply="${row.key}">Apply</button>\\s*<button[^>]*data-reset="${row.key}"`
+          `<span class="actions">\\s*<button[^>]*data-apply="${row.key}">Apply</button>\\s*<button[^>]*data-reset="${row.key}"`
         ).test(rowMarkup(html, row.key)),
         `Apply and Reset of ${row.key} are not grouped`
       );
@@ -532,5 +532,38 @@ describe('Test theme colors behind empty color rows', () => {
       /data-key="centerColorOfRainbow" value=/.test(html),
       'the rainbow row has no theme color and must not name one'
     );
+  });
+});
+
+describe('Test the panel weighs its buttons like VS Code', () => {
+  const html = markupOf(renderPanelHtml(toggles, sel, rows, 'n0nce', 'vscode-resource:', true));
+  const buttons = html.match(/<button\b[^>]*>/g) ?? [];
+
+  /** The opening tags of the buttons carrying one data attribute. */
+  function tagsWith(attribute: string) {
+    const tags = buttons.filter((tag) => new RegExp(`\\s${attribute}=`).test(tag));
+    assert.ok(tags.length > 0, `no button carries ${attribute}`);
+    return tags;
+  }
+
+  it('Must keep Apply all as the only primary button', () => {
+    const primaries = buttons.filter((tag) => !/\bclass="[^"]*\b(secondary|icon|segment)\b/.test(tag));
+    assert.deepStrictEqual(primaries, tagsWith('data-apply-all'));
+  });
+
+  it('Must group Apply and Reset of a select row so they wrap as a pair', () => {
+    const select = sel[0].key;
+    assert.ok(
+      new RegExp(
+        `<span class="actions">\\s*<button[^>]*data-apply="${select}">Apply</button>\\s*<button[^>]*data-reset="${select}"`
+      ).test(html),
+      `Apply and Reset of ${select} are not grouped`
+    );
+  });
+
+  it('Must draw every row Apply and Reset all as secondary buttons', () => {
+    for (const tag of [...tagsWith('data-apply'), ...tagsWith('data-apply-toggle'), ...tagsWith('data-reset-all')]) {
+      assert.ok(/\bclass="[^"]*\bsecondary\b/.test(tag), `not secondary: ${tag}`);
+    }
   });
 });

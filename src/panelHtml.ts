@@ -99,7 +99,7 @@ function renderToggle(toggle: PanelToggle) {
           </span>
         </label>
         <span class="actions">
-          <button data-apply-toggle="${key}">Apply</button>
+          <button class="secondary" data-apply-toggle="${key}">Apply</button>
           ${resetButton(key)}
         </span>
       </div>`;
@@ -113,7 +113,7 @@ function renderToggle(toggle: PanelToggle) {
  * arrowhead turning back counter-clockwise onto it.
  */
 const discardGlyph =
-  '<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
+  '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
   '<path fill="currentColor" d="M8 3a5 5 0 1 1-4.546 2.914l1.09.502A3.8 3.8 0 1 0 8 4.2V3z"/>' +
   '<path fill="currentColor" d="M8.75 1.4v3.2L5.6 3z"/>' +
   "</svg>";
@@ -152,8 +152,10 @@ function renderSelect(select: PanelSelect) {
           <div class="segmented" role="group" aria-label="${escapeHtml(select.label)}">
 ${options}
           </div>
-          <button data-apply="${key}">Apply</button>
-          ${resetButton(key)}
+          <span class="actions">
+            <button class="secondary" data-apply="${key}">Apply</button>
+            ${resetButton(key)}
+          </span>
         </div>
       </div>`;
 }
@@ -198,7 +200,7 @@ function renderRow(row: PanelRow) {
           <input type="color" data-key="${key}"${themeVar} value="${escapeHtml(pickerColor(shown))}" />
           <input type="text" class="hex" spellcheck="false" data-hex-for="${key}" value="${escapeHtml(shown)}" />
           <span class="actions">
-            <button data-apply="${key}">Apply</button>
+            <button class="secondary" data-apply="${key}">Apply</button>
             ${resetButton(key)}
           </span>
         </div>
@@ -285,7 +287,7 @@ ${rows.map(renderRow).join("\n")}
     </div>
     <div class="footer">
       <button data-apply-all="1">Apply all</button>
-      <button data-reset-all="1">Reset all</button>
+      <button class="secondary" data-reset-all="1">Reset all</button>
     </div>
     <script nonce="${safeNonce}">
 ${panelScript}
