@@ -2,7 +2,30 @@ import * as vscode from "vscode";
 import { getPreviewColor, getPreviewToggle } from "./preview";
 
 export const nameOfExtension = "LineNumberDeco";
-export const defaultCenterColorOfRainbow = "#8888ff";
+
+/**
+ * What each setting falls back to when the manifest does not supply it. The
+ * manifest test holds these to the defaults the manifest declares.
+ */
+export const settingDefaults = {
+  enableRelativeLine: true,
+  centerColorOfRainbow: "#0000ff",
+  foregroundColorOfRepeatingDigits: "",
+  foregroundColorOfSequentialDigits: "",
+  foregroundColorOfMultiplesOfFive: "",
+  enableRainbow: false,
+  rainbowMinimumContrast: "4.5",
+  enableRepeatingDigits: false,
+  enableSequentialDigits: false,
+  enableMultiplesOfFive: false,
+  activeForeground: "",
+  foreground: "",
+  enableDiagnostics: false,
+  errorForeground: "",
+  warningForeground: "",
+};
+
+type Setting = keyof typeof settingDefaults;
 
 /**
  * get is dark theme
@@ -12,9 +35,9 @@ function getIsDark() {
   return vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark;
 }
 
-export function getConfig<T>(key: string, defaultValue: T) {
+export function getConfig<K extends Setting>(key: K) {
   const config = vscode.workspace.getConfiguration(nameOfExtension);
-  return config.get<T>(key, defaultValue);
+  return config.get(key, settingDefaults[key]);
 }
 
 export function getInactiveLineNumberColor() {
@@ -22,7 +45,7 @@ export function getInactiveLineNumberColor() {
   if (preview !== undefined) {
     return preview;
   }
-  const config = getConfig<string>("foreground", "");
+  const config = getConfig("foreground");
   return config !== ""
     ? config
     : new vscode.ThemeColor("LineNumberDeco.foreground");
@@ -33,7 +56,7 @@ export function getActiveLineNumberColor() {
   if (preview !== undefined) {
     return preview;
   }
-  const config = getConfig<string>("activeForeground", "");
+  const config = getConfig("activeForeground");
 
   return config !== ""
     ? config
@@ -43,22 +66,22 @@ export function getActiveLineNumberColor() {
 export function getColorAtCenterOfRainbow() {
   return (
     getPreviewColor("centerColorOfRainbow") ??
-    getConfig<string>("centerColorOfRainbow", defaultCenterColorOfRainbow)
+    getConfig("centerColorOfRainbow")
   );
 }
 
 export function getColorAtActiveRowNumber() {
-  return getConfig<string>("activeForeground", "");
+  return getConfig("activeForeground");
 }
 
 export function getColorAtInactiveRowNumber() {
-  return getConfig<string>("foreground", "");
+  return getConfig("foreground");
 }
 
 export function getEnableRainbow() {
   return (
     getPreviewToggle("enableRainbow") ??
-    getConfig<boolean>("enableRainbow", false)
+    getConfig("enableRainbow")
   );
 }
 
@@ -69,14 +92,14 @@ export function getEnableRainbow() {
 export function getRainbowMinimumContrast() {
   return (
     getPreviewColor(`${nameOfExtension}.rainbowMinimumContrast`) ??
-    getConfig<string>("rainbowMinimumContrast", "4.5")
+    getConfig("rainbowMinimumContrast")
   );
 }
 
 export function getEnableRepeatingDigits() {
   return (
     getPreviewToggle("enableRepeatingDigits") ??
-    getConfig<boolean>("enableRepeatingDigits", false)
+    getConfig("enableRepeatingDigits")
   );
 }
 
@@ -85,20 +108,20 @@ export function getRepeatingDigitsLineNumberColor() {
   if (preview !== undefined) {
     return preview;
   }
-  const config = getConfig<string>("foregroundColorOfRepeatingDigits", "");
+  const config = getConfig("foregroundColorOfRepeatingDigits");
   return config !== ""
     ? config
     : new vscode.ThemeColor("LineNumberDeco.repeatingDigitsForeground");
 }
 
 export function getColorAtRepeatingDigits() {
-  return getConfig<string>("foregroundColorOfRepeatingDigits", "");
+  return getConfig("foregroundColorOfRepeatingDigits");
 }
 
 export function getEnableSequentialDigits() {
   return (
     getPreviewToggle("enableSequentialDigits") ??
-    getConfig<boolean>("enableSequentialDigits", false)
+    getConfig("enableSequentialDigits")
   );
 }
 
@@ -107,20 +130,20 @@ export function getSequentialDigitsLineNumberColor() {
   if (preview !== undefined) {
     return preview;
   }
-  const config = getConfig<string>("foregroundColorOfSequentialDigits", "");
+  const config = getConfig("foregroundColorOfSequentialDigits");
   return config !== ""
     ? config
     : new vscode.ThemeColor("LineNumberDeco.sequentialDigitsForeground");
 }
 
 export function getColorAtSequentialDigits() {
-  return getConfig<string>("foregroundColorOfSequentialDigits", "");
+  return getConfig("foregroundColorOfSequentialDigits");
 }
 
 export function getEnableMultiplesOfFive() {
   return (
     getPreviewToggle("enableMultiplesOfFive") ??
-    getConfig<boolean>("enableMultiplesOfFive", false)
+    getConfig("enableMultiplesOfFive")
   );
 }
 
@@ -129,20 +152,20 @@ export function getMultiplesOfFiveLineNumberColor() {
   if (preview !== undefined) {
     return preview;
   }
-  const config = getConfig<string>("foregroundColorOfMultiplesOfFive", "");
+  const config = getConfig("foregroundColorOfMultiplesOfFive");
   return config !== ""
     ? config
     : new vscode.ThemeColor("LineNumberDeco.multiplesOfFiveForeground");
 }
 
 export function getColorAtMultiplesOfFive() {
-  return getConfig<string>("foregroundColorOfMultiplesOfFive", "");
+  return getConfig("foregroundColorOfMultiplesOfFive");
 }
 
 export function getEnableDiagnostics() {
   return (
     getPreviewToggle("enableDiagnostics") ??
-    getConfig<boolean>("enableDiagnostics", false)
+    getConfig("enableDiagnostics")
   );
 }
 
@@ -151,7 +174,7 @@ export function getErrorLineNumberColor() {
   if (preview !== undefined) {
     return preview;
   }
-  const config = getConfig<string>("errorForeground", "");
+  const config = getConfig("errorForeground");
   return config !== ""
     ? config
     : new vscode.ThemeColor("editorError.foreground");
@@ -162,23 +185,23 @@ export function getWarningLineNumberColor() {
   if (preview !== undefined) {
     return preview;
   }
-  const config = getConfig<string>("warningForeground", "");
+  const config = getConfig("warningForeground");
   return config !== ""
     ? config
     : new vscode.ThemeColor("editorWarning.foreground");
 }
 
 export function getColorAtErrorLines() {
-  return getConfig<string>("errorForeground", "");
+  return getConfig("errorForeground");
 }
 
 export function getColorAtWarningLines() {
-  return getConfig<string>("warningForeground", "");
+  return getConfig("warningForeground");
 }
 
 export function getEnableRelativeLine() {
   return (
     getPreviewToggle("enableRelativeLine") ??
-    getConfig<boolean>("enableRelativeLine", true)
+    getConfig("enableRelativeLine")
   );
 }

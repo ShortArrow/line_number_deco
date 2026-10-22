@@ -9,7 +9,7 @@ import {
     getColorAtMultiplesOfFive,
     getColorAtErrorLines,
     getColorAtWarningLines,
-    defaultCenterColorOfRainbow,
+    settingDefaults,
 } from "./config";
     
 const vsCodeGlobal = vscode.ConfigurationTarget
@@ -209,7 +209,7 @@ export async function getColorCodeAtWarningLinesForUser() {
 export async function getColorCodeAtCenterOfRainbow() {
   await getColorCode(
     "Please input color code at center of rainbow",
-    defaultCenterColorOfRainbow,
+    settingDefaults.centerColorOfRainbow,
     getColorAtCenterOfRainbow,
     updateColorAtCenterOfRainbow
   );
@@ -218,7 +218,7 @@ export async function getColorCodeAtCenterOfRainbow() {
 export async function getColorCodeAtCenterOfRainbowForUser() {
   await getColorCode(
     "Please input color code at center of rainbow",
-    defaultCenterColorOfRainbow,
+    settingDefaults.centerColorOfRainbow,
     getColorAtCenterOfRainbow,
     updateColorAtCenterOfRainbowForUser
   );

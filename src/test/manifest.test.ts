@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it } from 'mocha';
 import { contrastRatio } from '../colors';
+import { nameOfExtension, settingDefaults } from '../config';
 
 // VS Code disables an extension in Restricted Mode, and hides it from virtual
 // workspaces, unless the manifest says it is safe there. This one reads no
@@ -23,6 +24,22 @@ describe('Test manifest capabilities', () => {
   it('Must run in a virtual workspace', () => {
     assert.strictEqual(manifest.capabilities?.virtualWorkspaces, true);
   });
+});
+
+// The code falls back to a default of its own when a setting is absent, and
+// that default must be the one the manifest declares.
+
+describe('Test manifest setting defaults', () => {
+  for (const [setting, fallback] of Object.entries(settingDefaults)) {
+    it(`${nameOfExtension}.${setting} must fall back to the manifest default`, () => {
+      assert.strictEqual(
+        fallback,
+        manifest.contributes.configuration.properties[
+          `${nameOfExtension}.${setting}`
+        ]?.default
+      );
+    });
+  }
 });
 
 // Three highlight colors resolve through theme colors when their setting is
