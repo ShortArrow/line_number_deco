@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { describe,it } from 'mocha';
-import { colorCodeFromHsl, shiftHue } from '../colors';
+import { colorCodeFromHsl, contrastRatio, hslFromRgb, relativeLuminance, rgbFromColorCode, shiftHue, withMinimumContrast } from '../colors';
 
 describe('Test make color code from hsl value', () => {
     const testCases = [
@@ -48,3 +48,33 @@ describe('Test make color code from hsl value with shift', () => {
   });
 });
    
+describe('Test keep a color readable against a background', () => {
+  const hueOf = (color: string) => hslFromRgb(...(rgbFromColorCode(color) as [number, number, number]))[0];
+
+  it('Must leave a color that already reaches the ratio untouched', () => {
+    assert.strictEqual(withMinimumContrast('#0000ff', '#ffffff', 4.5), '#0000ff');
+  });
+
+  it('Must darken yellow on white just enough, keeping its hue', () => {
+    const adjusted = withMinimumContrast('#ffff00', '#ffffff', 4.5);
+    const ratio = contrastRatio(adjusted, '#ffffff');
+    assert.ok(ratio >= 4.5 && ratio < 4.8, `${adjusted} is ${ratio.toFixed(2)}:1`);
+    assert.ok(Math.abs(hueOf(adjusted) - 60) < 2, `${adjusted} has hue ${hueOf(adjusted)}`);
+  });
+
+  it('Must lighten blue on a dark background rather than darken it', () => {
+    const adjusted = withMinimumContrast('#0000ff', '#1e1e1e', 4.5);
+    assert.ok(contrastRatio(adjusted, '#1e1e1e') >= 4.5, `${adjusted}`);
+    assert.ok(relativeLuminance(adjusted) > relativeLuminance('#0000ff'), `${adjusted} is not lighter`);
+  });
+
+  for (const background of ['#ffffff', '#1e1e1e', '#000000']) {
+    it(`Must bring every step of the default rainbow to 4.5:1 on ${background}`, () => {
+      for (let step = 0; step < 16; step++) {
+        const adjusted = withMinimumContrast(shiftHue('#0000ff', step), background, 4.5);
+        const ratio = contrastRatio(adjusted, background);
+        assert.ok(ratio >= 4.5, `step ${step}: ${adjusted} is ${ratio.toFixed(2)}:1`);
+      }
+    });
+  }
+});

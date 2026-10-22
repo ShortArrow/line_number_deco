@@ -1,12 +1,13 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { shiftHue } from '../colors';
+import { contrastRatio, shiftHue } from '../colors';
 import {
   DecorationSettings,
   DiagnosticMark,
   LineColor,
   buildLineDecorationSpecs,
   isMultipleOfFive,
+  rainbowBackgroundOf,
   markDiagnosticLines,
 } from '../decorations';
 
@@ -27,6 +28,7 @@ const settingsWith = (overrides: Partial<DecorationSettings> = {}): DecorationSe
   inactiveColor,
   enableRainbow: false,
   centerColorOfRainbow: centerColor,
+  rainbowBackground: undefined,
   enableRepeatingDigits: false,
   repeatingDigitsColor: repeatingColor,
   enableSequentialDigits: false,
@@ -108,6 +110,15 @@ describe('Test build line decoration specs', () => {
       settingsWith({ activeLineNumber: 0, enableRainbow: true })
     );
     assert.strictEqual(specs[0].color, shiftHue(centerColor, 3));
+  });
+
+  it('Must keep every rainbow line readable against the background it is given', () => {
+    const lineIndexes = Array.from({ length: 16 }, (_, index) => index + 1);
+    const colors = colorsOf(lineIndexes, { activeLineNumber: 0, enableRainbow: true, rainbowBackground: '#ffffff' });
+    colors.forEach((color, index) => {
+      const ratio = contrastRatio(color as string, '#ffffff');
+      assert.ok(ratio >= 4.5, `line ${index + 1}: ${color} is ${ratio.toFixed(2)}:1`);
+    });
   });
 
   it('Must fall back to the inactive color, passing a theme color through by identity', () => {
@@ -331,4 +342,18 @@ describe('Test multiples of five colors on line numbers', () => {
     );
     assert.strictEqual(spec.color, errorColor);
   });
+});
+
+describe('Test the background the rainbow is kept readable against', () => {
+  const cases: [string, number, string][] = [
+    ['light', 1, '#ffffff'],
+    ['dark', 2, '#1e1e1e'],
+    ['high contrast', 3, '#000000'],
+    ['high contrast light', 4, '#ffffff'],
+  ];
+  for (const [name, kind, background] of cases) {
+    it(`Must become ${background} for a ${name} theme`, () => {
+      assert.strictEqual(rainbowBackgroundOf(kind), background);
+    });
+  }
 });
