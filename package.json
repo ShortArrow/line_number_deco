@@ -270,6 +270,12 @@
           "default": false,
           "description": "Color each line number by its distance from the cursor"
         },
+        "LineNumberDeco.rainbowMinimumContrast": {
+          "type": "string",
+          "enum": ["off", "3", "4.5", "7"],
+          "default": "4.5",
+          "description": "Darken or lighten a rainbow line number that would read below this contrast against the theme background, keeping its hue; lower it to let the highlight colors stand out"
+        },
         "LineNumberDeco.enableRepeatingDigits": {
           "type": "boolean",
           "default": false,

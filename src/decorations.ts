@@ -1,4 +1,4 @@
-import { shiftHue } from "./colors";
+import { shiftHue, withMinimumContrast } from "./colors";
 
 /**
  * A color the editor can paint a line number with.
@@ -25,6 +25,8 @@ export interface DecorationSettings {
   inactiveColor: LineColor;
   enableRainbow: boolean;
   centerColorOfRainbow: string;
+  /** What the rainbow must stay readable against and how strongly, or undefined to paint the hue steps as they are. */
+  rainbowContrast: { background: string; ratio: number } | undefined;
   enableRepeatingDigits: boolean;
   repeatingDigitsColor: LineColor;
   enableSequentialDigits: boolean;
@@ -105,6 +107,51 @@ export function isMultipleOfFive(distance: number): boolean {
 }
 
 /**
+ * The contrast ratio a rainbow option names, or undefined for off.
+ *
+ * 3 is what WCAG asks of large text, 4.5 of body text (1.4.3) and 7 of AAA
+ * (1.4.6). An option the setting does not offer falls back to 4.5, its default.
+ */
+export function minimumContrastOf(option: string): number | undefined {
+  switch (option) {
+    case "off":
+      return undefined;
+    case "3":
+      return 3;
+    case "7":
+      return 7;
+    default:
+      return 4.5;
+  }
+}
+
+/**
+ * The editor background each theme kind is assumed to have, since an extension
+ * can read the kind but not the color itself. Dark is Dark Modern's, the default
+ * dark theme, a step lighter than Dark+'s #1e1e1e and so the stricter of the two.
+ *
+ * The kind is vscode.ColorThemeKind passed as a plain number (1 Light, 2 Dark,
+ * 3 HighContrast, 4 HighContrastLight), which keeps this module free of vscode.
+ */
+export function rainbowBackgroundOf(kind: number): string {
+  switch (kind) {
+    case 2:
+      return "#1f1f1f";
+    case 3:
+      return "#000000";
+    default:
+      return "#ffffff";
+  }
+}
+
+/** One rainbow step, held to the minimum contrast when one is set. */
+function rainbowColor(distance: number, settings: DecorationSettings): string {
+  const color = shiftHue(settings.centerColorOfRainbow, distance);
+  const contrast = settings.rainbowContrast;
+  return contrast === undefined ? color : withMinimumContrast(color, contrast.background, contrast.ratio);
+}
+
+/**
  * The color one line's number is painted, by the first rule that claims it.
  *
  * A diagnostic outranks everything including the current line: a line the
@@ -143,7 +190,7 @@ function colorOfLine(
     return settings.multiplesOfFiveColor;
   }
   if (settings.enableRainbow) {
-    return shiftHue(settings.centerColorOfRainbow, distance);
+    return rainbowColor(distance, settings);
   }
   return settings.inactiveColor;
 }

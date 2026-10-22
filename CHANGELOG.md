@@ -116,3 +116,4 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - The settings panel's buttons, Reset icons and hex fields take the size, corner radius and focus ring of VS Code's own; Apply all is the only primary button, and each row's Apply and Reset all are secondary
 - In high contrast themes the settings panel outlines a switch that is on and the current line number mode, which were drawn in the same black as the panel
 - Settings panel rows follow the sidebar width: a wide sidebar puts each row's controls beside its label, and a narrow one moves them under it without scrolling sideways
+- Rainbow line numbers that would read below 4.5:1 against the theme background are darkened on light themes and lightened on dark ones, keeping their hue; `LineNumberDeco.rainbowMinimumContrast` sets the ratio to 3, 4.5 or 7, or turns it off so the highlight colors stand out more

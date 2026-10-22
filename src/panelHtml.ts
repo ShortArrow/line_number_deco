@@ -33,6 +33,8 @@ export function themeColorVariable(id: string): string {
  */
 export interface PanelSelect {
   key: string;
+  /** The heading it sits under: Decorations for this extension's, Editor for VS Code's own. */
+  section: "decorations" | "editor";
   label: string;
   values: ScopeValues<string>;
   options: string[];
@@ -228,9 +230,9 @@ function renderRow(row: PanelRow) {
  * source, because otherwise a user-level value would stay invisible behind
  * whatever the workspace holds.
  *
- * The select rows sit between the two: they are settings of the editor rather
- * than of this extension, and choosing one stages it without any local
- * rendering, because VS Code draws those numbers itself.
+ * A select of this extension follows the switches under Decorations and
+ * previews like them. One of the editor sits under its own Editor heading, and
+ * choosing it only stages it, because VS Code draws those numbers itself.
  *
  * The script and the stylesheet are bundled at build time from src/webview, so
  * nothing is read off disk here and the hex rule the field runs is the very
@@ -276,10 +278,11 @@ ${renderScopeRadios(hasWorkspace)}
     <div class="section">
       <h2>Decorations</h2>
 ${toggles.map(renderToggle).join("\n")}
+${selects.filter((select) => select.section === "decorations").map(renderSelect).join("\n")}
     </div>
     <div class="section">
       <h2>Editor</h2>
-${selects.map(renderSelect).join("\n")}
+${selects.filter((select) => select.section === "editor").map(renderSelect).join("\n")}
     </div>
     <div class="section">
       <h2>Colors</h2>

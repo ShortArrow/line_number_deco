@@ -1,12 +1,14 @@
 import * as assert from 'assert';
 import { describe, it } from 'mocha';
-import { shiftHue } from '../colors';
+import { contrastRatio, shiftHue } from '../colors';
 import {
   DecorationSettings,
   DiagnosticMark,
   LineColor,
   buildLineDecorationSpecs,
   isMultipleOfFive,
+  minimumContrastOf,
+  rainbowBackgroundOf,
   markDiagnosticLines,
 } from '../decorations';
 
@@ -27,6 +29,7 @@ const settingsWith = (overrides: Partial<DecorationSettings> = {}): DecorationSe
   inactiveColor,
   enableRainbow: false,
   centerColorOfRainbow: centerColor,
+  rainbowContrast: undefined,
   enableRepeatingDigits: false,
   repeatingDigitsColor: repeatingColor,
   enableSequentialDigits: false,
@@ -108,6 +111,23 @@ describe('Test build line decoration specs', () => {
       settingsWith({ activeLineNumber: 0, enableRainbow: true })
     );
     assert.strictEqual(specs[0].color, shiftHue(centerColor, 3));
+  });
+
+  it('Must keep every rainbow line readable against the background it is given', () => {
+    const lineIndexes = Array.from({ length: 16 }, (_, index) => index + 1);
+    const colors = colorsOf(lineIndexes, { activeLineNumber: 0, enableRainbow: true, rainbowContrast: { background: '#ffffff', ratio: 4.5 } });
+    colors.forEach((color, index) => {
+      const ratio = contrastRatio(color as string, '#ffffff');
+      assert.ok(ratio >= 4.5, `line ${index + 1}: ${color} is ${ratio.toFixed(2)}:1`);
+    });
+  });
+
+  it('Must let a lower minimum leave the rainbow fainter than 4.5:1', () => {
+    const lineIndexes = Array.from({ length: 16 }, (_, index) => index + 1);
+    const ratios = colorsOf(lineIndexes, { activeLineNumber: 0, enableRainbow: true, rainbowContrast: { background: '#ffffff', ratio: 3 } })
+      .map((color) => contrastRatio(color as string, '#ffffff'));
+    assert.ok(ratios.every((ratio) => ratio >= 3), ratios.map((ratio) => ratio.toFixed(2)).join(' '));
+    assert.ok(ratios.some((ratio) => ratio < 4.5), ratios.map((ratio) => ratio.toFixed(2)).join(' '));
   });
 
   it('Must fall back to the inactive color, passing a theme color through by identity', () => {
@@ -331,4 +351,33 @@ describe('Test multiples of five colors on line numbers', () => {
     );
     assert.strictEqual(spec.color, errorColor);
   });
+});
+
+describe('Test the background the rainbow is kept readable against', () => {
+  const cases: [string, number, string][] = [
+    ['light', 1, '#ffffff'],
+    ['dark', 2, '#1f1f1f'],
+    ['high contrast', 3, '#000000'],
+    ['high contrast light', 4, '#ffffff'],
+  ];
+  for (const [name, kind, background] of cases) {
+    it(`Must become ${background} for a ${name} theme`, () => {
+      assert.strictEqual(rainbowBackgroundOf(kind), background);
+    });
+  }
+});
+
+describe('Test the minimum contrast a rainbow option names', () => {
+  const cases: [string, number | undefined][] = [
+    ['off', undefined],
+    ['3', 3],
+    ['4.5', 4.5],
+    ['7', 7],
+    ['sideways', 4.5],
+  ];
+  for (const [option, ratio] of cases) {
+    it(`Must become ${ratio} for ${option}`, () => {
+      assert.strictEqual(minimumContrastOf(option), ratio);
+    });
+  }
 });

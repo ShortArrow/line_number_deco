@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import {
   buildLineDecorationSpecs,
   markDiagnosticLines,
+  minimumContrastOf,
+  rainbowBackgroundOf,
   DecorationSettings,
   DiagnosticMark,
   LineDecorationSpec,
@@ -13,6 +15,7 @@ import {
   getWarningLineNumberColor,
   getColorAtCenterOfRainbow,
   getEnableRainbow,
+  getRainbowMinimumContrast,
   getEnableRelativeLine,
   getEnableRepeatingDigits,
   getRepeatingDigitsLineNumberColor,
@@ -39,6 +42,7 @@ export function readDecorationSettings(editor: vscode.TextEditor): DecorationSet
     inactiveColor: getInactiveLineNumberColor(),
     enableRainbow: getEnableRainbow(),
     centerColorOfRainbow: getColorAtCenterOfRainbow(),
+    rainbowContrast: rainbowContrastOf(minimumContrastOf(getRainbowMinimumContrast())),
     enableRepeatingDigits: getEnableRepeatingDigits(),
     repeatingDigitsColor: getRepeatingDigitsLineNumberColor(),
     enableSequentialDigits: getEnableSequentialDigits(),
@@ -49,6 +53,13 @@ export function readDecorationSettings(editor: vscode.TextEditor): DecorationSet
     errorColor: getErrorLineNumberColor(),
     warningColor: getWarningLineNumberColor(),
   };
+}
+
+/** The minimum contrast against the current theme kind's background, or undefined for off. */
+function rainbowContrastOf(ratio: number | undefined): DecorationSettings["rainbowContrast"] {
+  return ratio === undefined
+    ? undefined
+    : { background: rainbowBackgroundOf(vscode.window.activeColorTheme.kind), ratio };
 }
 
 /**

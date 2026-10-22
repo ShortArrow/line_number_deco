@@ -115,3 +115,55 @@ export function rgbToColorCode(r: number, g: number, b: number): string {
   return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
+
+/** WCAG 2 relative luminance of a #rrggbb color, from 0 for black to 1 for white. */
+export function relativeLuminance(colorCode: string): number {
+  const [r, g, b] = rgbFromColorCode(colorCode).map((value) => {
+    const channel = value / 255;
+    return channel <= 0.03928
+      ? channel / 12.92
+      : Math.pow((channel + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** WCAG 2 contrast ratio between two #rrggbb colors, from 1 to 21. */
+export function contrastRatio(first: string, second: string): number {
+  const [lighter, darker] = [relativeLuminance(first), relativeLuminance(second)].sort(
+    (a, b) => b - a
+  );
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/**
+ * The color moved in lightness just far enough to reach a contrast ratio
+ * against a background, with its hue and saturation kept.
+ *
+ * A color that already reaches the ratio comes back unchanged. Otherwise the
+ * lightness moves toward whichever of black and white stands further from the
+ * background, so a light theme darkens and a dark theme lightens, and the
+ * search stops at the first rounded color that reaches the ratio.
+ *
+ * @param colorCode the color to keep readable (e.g. #ffff00)
+ * @param background the color it is read against (e.g. #ffffff)
+ * @param ratio the contrast ratio to reach, from 1 to 21
+ */
+export function withMinimumContrast(colorCode: string, background: string, ratio: number): string {
+  if (contrastRatio(colorCode, background) >= ratio) {
+    return colorCode;
+  }
+  const [r, g, b] = rgbFromColorCode(colorCode);
+  const [h, s, l] = hslFromRgb(r, g, b);
+  const toward = contrastRatio("#ffffff", background) >= contrastRatio("#000000", background) ? 1 : 0;
+  let short = l;
+  let reached = toward;
+  for (let step = 0; step < 24; step++) {
+    const middle = (short + reached) / 2;
+    if (contrastRatio(colorCodeFromHsl(h, s, middle), background) >= ratio) {
+      reached = middle;
+    } else {
+      short = middle;
+    }
+  }
+  return colorCodeFromHsl(h, s, reached);
+}

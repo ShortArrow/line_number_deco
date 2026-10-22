@@ -62,6 +62,17 @@ export function getEnableRainbow() {
   );
 }
 
+/**
+ * The rainbow's minimum contrast option. The panel stages it as a select, under
+ * the full key its row carries.
+ */
+export function getRainbowMinimumContrast() {
+  return (
+    getPreviewColor(`${nameOfExtension}.rainbowMinimumContrast`) ??
+    getConfig<string>("rainbowMinimumContrast", "4.5")
+  );
+}
+
 export function getEnableRepeatingDigits() {
   return (
     getPreviewToggle("enableRepeatingDigits") ??

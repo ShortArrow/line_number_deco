@@ -133,6 +133,7 @@ class Run {
       isSelectKey: (key: string) => key === selectKey,
       isValidSelectValue: (key: string, value: string) =>
         key === selectKey && ['on', 'off', 'relative', 'interval'].includes(value),
+      drawsItself: (key: string) => key === selectKey,
       save: (key: string, value: Value, scope: string) =>
         new Promise<void>((resolve, reject) => {
           const call: SaveCall = {

@@ -93,6 +93,9 @@ const commands = [
       updateRelativeLineNumbers(editor, decorationType);
     }
   }),
+  // The rainbow is held to a contrast against the theme kind's background,
+  // so a theme switch has to repaint it.
+  vscode.window.onDidChangeActiveColorTheme(() => refreshVisibleEditors()),
   vscode.languages.onDidChangeDiagnostics((event) => {
     // A language server reports for documents nobody is looking at, so the
     // changed uris decide whether anything on screen could have moved.
