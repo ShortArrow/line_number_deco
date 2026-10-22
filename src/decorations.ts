@@ -25,8 +25,8 @@ export interface DecorationSettings {
   inactiveColor: LineColor;
   enableRainbow: boolean;
   centerColorOfRainbow: string;
-  /** What the rainbow must stay readable against, or undefined to paint the hue steps as they are. */
-  rainbowBackground: string | undefined;
+  /** What the rainbow must stay readable against and how strongly, or undefined to paint the hue steps as they are. */
+  rainbowContrast: { background: string; ratio: number } | undefined;
   enableRepeatingDigits: boolean;
   repeatingDigitsColor: LineColor;
   enableSequentialDigits: boolean;
@@ -106,8 +106,24 @@ export function isMultipleOfFive(distance: number): boolean {
   return distance > 0 && distance % 5 === 0;
 }
 
-/** The contrast ratio WCAG 1.4.3 asks of text, which every rainbow line is held to. */
-const rainbowMinimumContrast = 4.5;
+/**
+ * The contrast ratio a rainbow option names, or undefined for off.
+ *
+ * 3 is what WCAG asks of large text, 4.5 of body text (1.4.3) and 7 of AAA
+ * (1.4.6). An option the setting does not offer falls back to 4.5, its default.
+ */
+export function minimumContrastOf(option: string): number | undefined {
+  switch (option) {
+    case "off":
+      return undefined;
+    case "3":
+      return 3;
+    case "7":
+      return 7;
+    default:
+      return 4.5;
+  }
+}
 
 /**
  * The editor background each theme kind is assumed to have, since an extension
@@ -128,12 +144,11 @@ export function rainbowBackgroundOf(kind: number): string {
   }
 }
 
-/** One rainbow step, held to the minimum contrast when a background is given. */
+/** One rainbow step, held to the minimum contrast when one is set. */
 function rainbowColor(distance: number, settings: DecorationSettings): string {
   const color = shiftHue(settings.centerColorOfRainbow, distance);
-  return settings.rainbowBackground === undefined
-    ? color
-    : withMinimumContrast(color, settings.rainbowBackground, rainbowMinimumContrast);
+  const contrast = settings.rainbowContrast;
+  return contrast === undefined ? color : withMinimumContrast(color, contrast.background, contrast.ratio);
 }
 
 /**

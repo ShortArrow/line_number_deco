@@ -30,6 +30,7 @@ const rows: PanelRow[] = [
 const sel: PanelSelect[] = [
   {
     key: 'editor.lineNumbers',
+    section: 'editor',
     label: 'Built-in line numbers',
     values: inWorkspace('relative'),
     options: ['on', 'off', 'relative', 'interval'],
@@ -184,6 +185,22 @@ describe('Test render the color panel html', () => {
         `the reset control for ${key} differs from the color row's`
       );
     }
+  });
+
+  it('Must place a select of this extension under Decorations and one of the editor under Editor', () => {
+    const ours: PanelSelect = {
+      key: 'LineNumberDeco.rainbowMinimumContrast',
+      section: 'decorations',
+      label: 'Rainbow minimum contrast',
+      values: unset<string>(),
+      options: ['off', '3', '4.5', '7'],
+    };
+    const html = markupOf(renderPanelHtml(toggles, [ours, ...sel], rows, 'n0nce', 'vscode-resource:', true));
+    const decorations = html.indexOf('<h2>Decorations</h2>');
+    const editor = html.indexOf('<h2>Editor</h2>');
+    const at = (key: string) => html.indexOf(`data-row="${key}"`);
+    assert.ok(decorations < at('LineNumberDeco.rainbowMinimumContrast') && at('LineNumberDeco.rainbowMinimumContrast') < editor, 'the rainbow select is not under Decorations');
+    assert.ok(editor < at('editor.lineNumbers'), 'the editor select is not under Editor');
   });
 
   it('Must offer exactly one apply all control', () => {
@@ -353,6 +370,7 @@ describe('Test render the color panel html', () => {
       [
         {
           key: 'editor.lineNumbers',
+          section: 'editor',
           label: 'Built-in line numbers',
           values: inWorkspace('"><img'),
           options: ['on', 'off', 'relative', 'interval'],

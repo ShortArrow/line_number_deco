@@ -38,7 +38,6 @@ const labels: { key: string; label: string; themeColor?: string }[] = [
 const toggles: { key: string; label: string }[] = [
   { key: "enableRelativeLine", label: "Relative line numbers" },
   { key: "enableRainbow", label: "Rainbow" },
-  { key: "enableRainbowMinimumContrast", label: "Rainbow minimum contrast" },
   { key: "enableRepeatingDigits", label: "Repeating digits" },
   { key: "enableSequentialDigits", label: "Sequential digits" },
   { key: "enableMultiplesOfFive", label: "Multiples of five" },
@@ -48,9 +47,11 @@ const toggles: { key: string; label: string }[] = [
 /**
  * The enumerated settings the panel offers, each named by its section and key
  * within it, since one of them belongs to the editor rather than this extension.
+ * A select the editor draws itself repaints nothing when staged or saved.
  */
-const selects: { section: string; name: string; label: string; options: string[] }[] = [
-  { section: "editor", name: "lineNumbers", label: "Built-in line numbers", options: ["on", "off", "relative", "interval"] },
+const selects: { section: string; name: string; label: string; options: string[]; drawsItself: boolean }[] = [
+  { section: nameOfExtension, name: "rainbowMinimumContrast", label: "Rainbow minimum contrast", options: ["off", "3", "4.5", "7"], drawsItself: false },
+  { section: "editor", name: "lineNumbers", label: "Built-in line numbers", options: ["on", "off", "relative", "interval"], drawsItself: true },
 ];
 
 /** The full configuration key of a select, the one its row and messages carry. */
@@ -99,6 +100,7 @@ function currentToggles(): PanelToggle[] {
 function currentSelects(): PanelSelect[] {
   return selects.map((select) => ({
     key: selectKeyOf(select),
+    section: select.drawsItself ? "editor" : "decorations",
     label: select.label,
     values: scopeValuesOf<string>(select.section, select.name),
     options: [...select.options],
@@ -146,6 +148,10 @@ function isKnownSelectValue(key: string, value: string) {
   return selectOf(key)?.options.includes(value) ?? false;
 }
 
+function isDrawnByEditor(key: string) {
+  return selectOf(key)?.drawsItself ?? false;
+}
+
 /**
  * The effects {@link handlePanelMessage} is allowed to have.
  *
@@ -157,6 +163,8 @@ export interface PanelMessageDeps {
   isToggleKey(key: string): boolean;
   isSelectKey(key: string): boolean;
   isValidSelectValue(key: string, value: string): boolean;
+  /** Whether VS Code draws what this key sets, so changing it repaints nothing of ours. */
+  drawsItself(key: string): boolean;
   save(key: string, value: string | boolean, scope: string): Promise<void>;
   refresh(): void;
   postState(): void;
@@ -240,12 +248,15 @@ export async function handlePanelMessage(
     return;
   }
   if (deps.isSelectKey(panelMessage.key)) {
-    // Nothing is repainted: VS Code renders these numbers itself, so the
-    // panel can only stage the value and let a real write change it.
+    // A select VS Code draws itself can only be staged until a real write
+    // changes it; one of ours previews like a color.
     if (!deps.isValidSelectValue(panelMessage.key, panelMessage.value)) {
       return;
     }
     setPreviewColor(panelMessage.key, panelMessage.value);
+    if (!deps.drawsItself(panelMessage.key)) {
+      deps.refresh();
+    }
     deps.postState();
     return;
   }
@@ -300,8 +311,7 @@ async function saveStaged(
         `to ${scope} settings: ${failed[0].reason}`
     );
   }
-  // The editor draws its own line numbers, so a select alone repaints nothing.
-  if (writes.some(({ key }) => !deps.isSelectKey(key))) {
+  if (writes.some(({ key }) => !deps.drawsItself(key))) {
     deps.refresh();
   }
   deps.postState();
@@ -501,6 +511,7 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
       isToggleKey: isKnownToggle,
       isSelectKey: isKnownSelect,
       isValidSelectValue: isKnownSelectValue,
+      drawsItself: isDrawnByEditor,
       save: (key, value, scope) => this.save(key, value, scope),
       refresh: () => this.refresh(),
       postState: () => {

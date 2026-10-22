@@ -4,7 +4,7 @@ The settings panel lets a value be tried before it is written. A value chosen in
 
 ## State
 
-Each key the panel offers (a color, a switch, or the editor's `editor.lineNumbers`) has three pieces of state.
+Each key the panel offers (a color, a switch, or a select: `LineNumberDeco.rainbowMinimumContrast` or the editor's `editor.lineNumbers`) has three pieces of state.
 
 | Name | Where it lives | What it is |
 | --- | --- | --- |
@@ -12,7 +12,7 @@ Each key the panel offers (a color, a switch, or the editor's `editor.lineNumber
 | `staged[k]` | The extension's preview store, `src/preview.ts` | The value chosen in the panel and not yet applied, or nothing |
 | display | The webview | What the row shows |
 
-`staged` is the single source of truth for unapplied values. The webview holds a copy of it and the saved values of both scopes, and draws each row from those copies. The config getters read `staged[k]` before the configuration, so the editors render a staged color or switch while it is staged. The editor draws its own line numbers, so a staged `editor.lineNumbers` changes nothing until it is applied.
+`staged` is the single source of truth for unapplied values. The webview holds a copy of it and the saved values of both scopes, and draws each row from those copies. The config getters read `staged[k]` before the configuration, so the editors render a staged color, switch or rainbow minimum contrast while it is staged. The editor draws its own line numbers, so a staged `editor.lineNumbers` changes nothing until it is applied.
 
 The scope radio at the top of the panel selects which scope the rows show and where Apply writes. With no folder open, the Workspace radio is disabled and the panel opens on User; a scope remembered from an earlier session falls back to User in that case. Opening or closing a folder while the panel is showing enables or disables the radio through the next state message.
 
