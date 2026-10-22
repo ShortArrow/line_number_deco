@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it } from 'mocha';
 import { contrastRatio } from '../colors';
-import { defaultCenterColorOfRainbow, nameOfExtension } from '../config';
+import { nameOfExtension, settingDefaults } from '../config';
 
 // VS Code disables an extension in Restricted Mode, and hides it from virtual
 // workspaces, unless the manifest says it is safe there. This one reads no
@@ -30,14 +30,16 @@ describe('Test manifest capabilities', () => {
 // that default must be the one the manifest declares.
 
 describe('Test manifest setting defaults', () => {
-  it(`${nameOfExtension}.centerColorOfRainbow must fall back to the manifest default`, () => {
-    assert.strictEqual(
-      defaultCenterColorOfRainbow,
-      manifest.contributes.configuration.properties[
-        `${nameOfExtension}.centerColorOfRainbow`
-      ]?.default
-    );
-  });
+  for (const [setting, fallback] of Object.entries(settingDefaults)) {
+    it(`${nameOfExtension}.${setting} must fall back to the manifest default`, () => {
+      assert.strictEqual(
+        fallback,
+        manifest.contributes.configuration.properties[
+          `${nameOfExtension}.${setting}`
+        ]?.default
+      );
+    });
+  }
 });
 
 // Three highlight colors resolve through theme colors when their setting is
