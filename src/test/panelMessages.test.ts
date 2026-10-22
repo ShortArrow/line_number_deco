@@ -13,8 +13,8 @@ import {
 
 const colorKeys = ['centerColorOfRainbow', 'foreground'];
 const toggleKeys = ['enableRainbow'];
-const selectKeys = ['editor.lineNumbers'];
-const selectValues = ['on', 'off', 'relative', 'interval'];
+const selectKeys = ['editor.lineNumbers', 'LineNumberDeco.rainbowMinimumContrast'];
+const selectValues = ['on', 'off', 'relative', 'interval', '3', '4.5', '7'];
 
 interface SaveCall {
   key: string;
@@ -33,6 +33,7 @@ function recordingDeps() {
     isSelectKey: (key) => selectKeys.includes(key),
     isValidSelectValue: (key, value) =>
       selectKeys.includes(key) && selectValues.includes(value),
+    drawsItself: (key) => key === 'editor.lineNumbers',
     save: async (key, value, scope) => {
       saves.push({ key, value, scope });
     },
@@ -176,6 +177,25 @@ describe('Test panel message handling', () => {
     assert.deepStrictEqual(saves, []);
     assert.strictEqual(counts.refresh, 0);
     assert.strictEqual(counts.postState, 1);
+  });
+
+  it('Must repaint a staged select whose setting the extension paints', async () => {
+    const { deps, saves, counts } = recordingDeps();
+    await handlePanelMessage(
+      { type: 'preview', key: 'LineNumberDeco.rainbowMinimumContrast', value: '3' },
+      deps
+    );
+    assert.strictEqual(getPreviewColor('LineNumberDeco.rainbowMinimumContrast'), '3');
+    assert.deepStrictEqual(saves, []);
+    assert.strictEqual(counts.refresh, 1);
+    assert.strictEqual(counts.postState, 1);
+  });
+
+  it('Must repaint after saving a select whose setting the extension paints', async () => {
+    const { deps, counts } = recordingDeps();
+    setPreviewColor('LineNumberDeco.rainbowMinimumContrast', '7');
+    await handlePanelMessage({ type: 'apply', key: 'LineNumberDeco.rainbowMinimumContrast', scope: 'user' }, deps);
+    assert.strictEqual(counts.refresh, 1);
   });
 
   it('Must have the staged select pending while that state is posted', async () => {
