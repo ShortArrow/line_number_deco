@@ -10,6 +10,7 @@ Every configuration key of the extension. All of them are also editable from the
 | `LineNumberDeco.foregroundColorOfSequentialDigits` | color | (theme color) | Color of sequential-digit line numbers (123, 543, 10); empty uses the theme color |
 | `LineNumberDeco.foregroundColorOfMultiplesOfFive` | color | (theme color) | Color of line numbers at multiples of five (5, 10, 15); empty uses the theme color |
 | `LineNumberDeco.enableRainbow` | boolean | `false` | Color each line number by its distance from the cursor |
+| `LineNumberDeco.enableRainbowMinimumContrast` | boolean | `true` | Darken or lighten a rainbow line number that would read below 4.5:1 against the theme background, keeping its hue |
 | `LineNumberDeco.enableRepeatingDigits` | boolean | `false` | Give repeating-digit line numbers (11, 22, 333) their own color |
 | `LineNumberDeco.enableSequentialDigits` | boolean | `false` | Give sequential-digit line numbers (123, 543, 10) their own color — the poker mode |
 | `LineNumberDeco.enableMultiplesOfFive` | boolean | `false` | Give line numbers at multiples of five (5, 10, 15) their own color |

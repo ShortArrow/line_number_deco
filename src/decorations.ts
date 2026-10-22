@@ -1,4 +1,4 @@
-import { shiftHue } from "./colors";
+import { shiftHue, withMinimumContrast } from "./colors";
 
 /**
  * A color the editor can paint a line number with.
@@ -25,6 +25,8 @@ export interface DecorationSettings {
   inactiveColor: LineColor;
   enableRainbow: boolean;
   centerColorOfRainbow: string;
+  /** What the rainbow must stay readable against, or undefined to paint the hue steps as they are. */
+  rainbowBackground: string | undefined;
   enableRepeatingDigits: boolean;
   repeatingDigitsColor: LineColor;
   enableSequentialDigits: boolean;
@@ -104,6 +106,36 @@ export function isMultipleOfFive(distance: number): boolean {
   return distance > 0 && distance % 5 === 0;
 }
 
+/** The contrast ratio WCAG 1.4.3 asks of text, which every rainbow line is held to. */
+const rainbowMinimumContrast = 4.5;
+
+/**
+ * The editor background each theme kind is assumed to have, since an extension
+ * can read the kind but not the color itself. Dark is Dark Modern's, the default
+ * dark theme, a step lighter than Dark+'s #1e1e1e and so the stricter of the two.
+ *
+ * The kind is vscode.ColorThemeKind passed as a plain number (1 Light, 2 Dark,
+ * 3 HighContrast, 4 HighContrastLight), which keeps this module free of vscode.
+ */
+export function rainbowBackgroundOf(kind: number): string {
+  switch (kind) {
+    case 2:
+      return "#1f1f1f";
+    case 3:
+      return "#000000";
+    default:
+      return "#ffffff";
+  }
+}
+
+/** One rainbow step, held to the minimum contrast when a background is given. */
+function rainbowColor(distance: number, settings: DecorationSettings): string {
+  const color = shiftHue(settings.centerColorOfRainbow, distance);
+  return settings.rainbowBackground === undefined
+    ? color
+    : withMinimumContrast(color, settings.rainbowBackground, rainbowMinimumContrast);
+}
+
 /**
  * The color one line's number is painted, by the first rule that claims it.
  *
@@ -143,7 +175,7 @@ function colorOfLine(
     return settings.multiplesOfFiveColor;
   }
   if (settings.enableRainbow) {
-    return shiftHue(settings.centerColorOfRainbow, distance);
+    return rainbowColor(distance, settings);
   }
   return settings.inactiveColor;
 }

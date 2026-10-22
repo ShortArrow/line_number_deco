@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import {
   buildLineDecorationSpecs,
   markDiagnosticLines,
+  rainbowBackgroundOf,
   DecorationSettings,
   DiagnosticMark,
   LineDecorationSpec,
@@ -13,6 +14,7 @@ import {
   getWarningLineNumberColor,
   getColorAtCenterOfRainbow,
   getEnableRainbow,
+  getEnableRainbowMinimumContrast,
   getEnableRelativeLine,
   getEnableRepeatingDigits,
   getRepeatingDigitsLineNumberColor,
@@ -39,6 +41,9 @@ export function readDecorationSettings(editor: vscode.TextEditor): DecorationSet
     inactiveColor: getInactiveLineNumberColor(),
     enableRainbow: getEnableRainbow(),
     centerColorOfRainbow: getColorAtCenterOfRainbow(),
+    rainbowBackground: getEnableRainbowMinimumContrast()
+      ? rainbowBackgroundOf(vscode.window.activeColorTheme.kind)
+      : undefined,
     enableRepeatingDigits: getEnableRepeatingDigits(),
     repeatingDigitsColor: getRepeatingDigitsLineNumberColor(),
     enableSequentialDigits: getEnableSequentialDigits(),

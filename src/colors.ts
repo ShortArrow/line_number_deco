@@ -134,3 +134,36 @@ export function contrastRatio(first: string, second: string): number {
   );
   return (lighter + 0.05) / (darker + 0.05);
 }
+
+/**
+ * The color moved in lightness just far enough to reach a contrast ratio
+ * against a background, with its hue and saturation kept.
+ *
+ * A color that already reaches the ratio comes back unchanged. Otherwise the
+ * lightness moves toward whichever of black and white stands further from the
+ * background, so a light theme darkens and a dark theme lightens, and the
+ * search stops at the first rounded color that reaches the ratio.
+ *
+ * @param colorCode the color to keep readable (e.g. #ffff00)
+ * @param background the color it is read against (e.g. #ffffff)
+ * @param ratio the contrast ratio to reach, from 1 to 21
+ */
+export function withMinimumContrast(colorCode: string, background: string, ratio: number): string {
+  if (contrastRatio(colorCode, background) >= ratio) {
+    return colorCode;
+  }
+  const [r, g, b] = rgbFromColorCode(colorCode);
+  const [h, s, l] = hslFromRgb(r, g, b);
+  const toward = contrastRatio("#ffffff", background) >= contrastRatio("#000000", background) ? 1 : 0;
+  let short = l;
+  let reached = toward;
+  for (let step = 0; step < 24; step++) {
+    const middle = (short + reached) / 2;
+    if (contrastRatio(colorCodeFromHsl(h, s, middle), background) >= ratio) {
+      reached = middle;
+    } else {
+      short = middle;
+    }
+  }
+  return colorCodeFromHsl(h, s, reached);
+}

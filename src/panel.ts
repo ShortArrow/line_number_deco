@@ -38,6 +38,7 @@ const labels: { key: string; label: string; themeColor?: string }[] = [
 const toggles: { key: string; label: string }[] = [
   { key: "enableRelativeLine", label: "Relative line numbers" },
   { key: "enableRainbow", label: "Rainbow" },
+  { key: "enableRainbowMinimumContrast", label: "Rainbow minimum contrast" },
   { key: "enableRepeatingDigits", label: "Repeating digits" },
   { key: "enableSequentialDigits", label: "Sequential digits" },
   { key: "enableMultiplesOfFive", label: "Multiples of five" },

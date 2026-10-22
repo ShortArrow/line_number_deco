@@ -62,6 +62,13 @@ export function getEnableRainbow() {
   );
 }
 
+export function getEnableRainbowMinimumContrast() {
+  return (
+    getPreviewToggle("enableRainbowMinimumContrast") ??
+    getConfig<boolean>("enableRainbowMinimumContrast", true)
+  );
+}
+
 export function getEnableRepeatingDigits() {
   return (
     getPreviewToggle("enableRepeatingDigits") ??

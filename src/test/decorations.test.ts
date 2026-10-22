@@ -347,7 +347,7 @@ describe('Test multiples of five colors on line numbers', () => {
 describe('Test the background the rainbow is kept readable against', () => {
   const cases: [string, number, string][] = [
     ['light', 1, '#ffffff'],
-    ['dark', 2, '#1e1e1e'],
+    ['dark', 2, '#1f1f1f'],
     ['high contrast', 3, '#000000'],
     ['high contrast light', 4, '#ffffff'],
   ];
