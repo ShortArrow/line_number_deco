@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it } from 'mocha';
 import { contrastRatio } from '../colors';
+import { defaultCenterColorOfRainbow, nameOfExtension } from '../config';
 
 // VS Code disables an extension in Restricted Mode, and hides it from virtual
 // workspaces, unless the manifest says it is safe there. This one reads no
@@ -22,6 +23,20 @@ describe('Test manifest capabilities', () => {
 
   it('Must run in a virtual workspace', () => {
     assert.strictEqual(manifest.capabilities?.virtualWorkspaces, true);
+  });
+});
+
+// The code falls back to a default of its own when a setting is absent, and
+// that default must be the one the manifest declares.
+
+describe('Test manifest setting defaults', () => {
+  it(`${nameOfExtension}.centerColorOfRainbow must fall back to the manifest default`, () => {
+    assert.strictEqual(
+      defaultCenterColorOfRainbow,
+      manifest.contributes.configuration.properties[
+        `${nameOfExtension}.centerColorOfRainbow`
+      ]?.default
+    );
   });
 });
 
