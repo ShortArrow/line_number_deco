@@ -115,3 +115,22 @@ export function rgbToColorCode(r: number, g: number, b: number): string {
   return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
+
+/** WCAG 2 relative luminance of a #rrggbb color, from 0 for black to 1 for white. */
+export function relativeLuminance(colorCode: string): number {
+  const [r, g, b] = rgbFromColorCode(colorCode).map((value) => {
+    const channel = value / 255;
+    return channel <= 0.03928
+      ? channel / 12.92
+      : Math.pow((channel + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** WCAG 2 contrast ratio between two #rrggbb colors, from 1 to 21. */
+export function contrastRatio(first: string, second: string): number {
+  const [lighter, darker] = [relativeLuminance(first), relativeLuminance(second)].sort(
+    (a, b) => b - a
+  );
+  return (lighter + 0.05) / (darker + 0.05);
+}

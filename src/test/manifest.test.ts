@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it } from 'mocha';
+import { contrastRatio } from '../colors';
 
 // VS Code disables an extension in Restricted Mode, and hides it from virtual
 // workspaces, unless the manifest says it is safe there. This one reads no
@@ -57,25 +58,6 @@ function colorDefaultsOf(id: string): ColorDefaults | undefined {
   const colors: { id: string; defaults: ColorDefaults }[] =
     manifest.contributes?.colors ?? [];
   return colors.find((color) => color.id === id)?.defaults;
-}
-
-/** WCAG 2 relative luminance of a #rrggbb color. */
-function relativeLuminance(hex: string) {
-  const [r, g, b] = [1, 3, 5].map((start) => {
-    const channel = parseInt(hex.slice(start, start + 2), 16) / 255;
-    return channel <= 0.03928
-      ? channel / 12.92
-      : Math.pow((channel + 0.055) / 1.055, 2.4);
-  });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-/** WCAG 2 contrast ratio between two #rrggbb colors, from 1 to 21. */
-function contrastRatio(first: string, second: string) {
-  const [lighter, darker] = [relativeLuminance(first), relativeLuminance(second)].sort(
-    (a, b) => b - a
-  );
-  return (lighter + 0.05) / (darker + 0.05);
 }
 
 const minimumContrast = 4.5;
