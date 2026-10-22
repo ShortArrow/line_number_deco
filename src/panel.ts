@@ -45,10 +45,22 @@ const toggles: { key: string; label: string }[] = [
   { key: "enableDiagnostics", label: "Diagnostics" },
 ];
 
-const selectSection = "editor";
-const selectName = "lineNumbers";
-const selectKey = `${selectSection}.${selectName}`;
-const selectOptions = ["on", "off", "relative", "interval"] as const;
+/**
+ * The enumerated settings the panel offers, each named by its section and key
+ * within it, since one of them belongs to the editor rather than this extension.
+ */
+const selects: { section: string; name: string; label: string; options: string[] }[] = [
+  { section: "editor", name: "lineNumbers", label: "Built-in line numbers", options: ["on", "off", "relative", "interval"] },
+];
+
+/** The full configuration key of a select, the one its row and messages carry. */
+function selectKeyOf(select: { section: string; name: string }): string {
+  return `${select.section}.${select.name}`;
+}
+
+function selectOf(key: string) {
+  return selects.find((select) => selectKeyOf(select) === key);
+}
 
 /**
  * What one setting holds in each scope it can be written to.
@@ -83,19 +95,14 @@ function currentToggles(): PanelToggle[] {
   }));
 }
 
-/**
- * The editor's own line number mode, read from VS Code rather than from this
- * extension: the panel offers it, but the setting is not ours.
- */
+/** The saved state of every select, read from the section each one belongs to. */
 function currentSelects(): PanelSelect[] {
-  return [
-    {
-      key: selectKey,
-      label: "Built-in line numbers",
-      values: scopeValuesOf<string>(selectSection, selectName),
-      options: [...selectOptions],
-    },
-  ];
+  return selects.map((select) => ({
+    key: selectKeyOf(select),
+    label: select.label,
+    values: scopeValuesOf<string>(select.section, select.name),
+    options: [...select.options],
+  }));
 }
 
 /**
@@ -132,13 +139,11 @@ function isKnownToggle(key: string) {
 }
 
 function isKnownSelect(key: string) {
-  return key === selectKey;
+  return selectOf(key) !== undefined;
 }
 
 function isKnownSelectValue(key: string, value: string) {
-  return (
-    isKnownSelect(key) && (selectOptions as readonly string[]).includes(value)
-  );
+  return selectOf(key)?.options.includes(value) ?? false;
 }
 
 /**
@@ -461,19 +466,20 @@ class ColorPanelProvider implements vscode.WebviewViewProvider {
   /**
    * Save one setting where the scope radio points.
    *
-   * The select rows name a setting of the editor, so they are written to that
-   * section rather than to this extension's: routing them through the
-   * extension's own section would silently create a key nothing reads.
+   * A select row is written to the section it names, which for the editor's
+   * own setting is not this extension's: routing it through the extension's
+   * own section would silently create a key nothing reads.
    */
   private async save(key: string, value: string | boolean, scope: string) {
     const target =
       scope === "user"
         ? vscode.ConfigurationTarget.Global
         : vscode.ConfigurationTarget.Workspace;
-    if (isKnownSelect(key)) {
+    const select = selectOf(key);
+    if (select) {
       await vscode.workspace
-        .getConfiguration(selectSection)
-        .update(selectName, value, target);
+        .getConfiguration(select.section)
+        .update(select.name, value, target);
       return;
     }
     if (scope === "user") {
@@ -529,7 +535,7 @@ export function registerColorPanel(
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (
         event.affectsConfiguration(nameOfExtension) ||
-        event.affectsConfiguration(selectKey)
+        selects.some((select) => event.affectsConfiguration(selectKeyOf(select)))
       ) {
         provider.postState();
       }
