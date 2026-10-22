@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { getPreviewColor, getPreviewToggle } from "./preview";
 
 export const nameOfExtension = "LineNumberDeco";
-export const defaultCenterColorOfRainbow = "#8888ff";
+export const defaultCenterColorOfRainbow = "#0000ff";
 
 /**
  * get is dark theme
