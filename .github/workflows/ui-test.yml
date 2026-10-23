@@ -5,9 +5,12 @@ name: UI Test
 # only proves the extension activates; neither could have caught the segment
 # bounce, where a state message overwrote the option the user had just picked.
 #
+# It runs on Linux, Windows and macOS, because what a click reaches depends on
+# the platform's window, fonts and keyboard, and a release ships to all three.
 # vscode-extension-tester drives VS Code through ChromeDriver, which needs a
-# display: the job runs under xvfb. The VSIX built here is the artifact under
-# test, installed into a throwaway VS Code instance rather than the runner's.
+# display: Linux runs it under xvfb, while the Windows and macOS runners have a
+# desktop of their own. The VSIX built here is the artifact under test,
+# installed into a throwaway VS Code instance rather than the runner's.
 
 on:
   pull_request:
@@ -19,10 +22,19 @@ permissions:
 
 jobs:
   ui-test:
-    name: Click the settings panel
-    runs-on: ubuntu-latest
+    name: Click the settings panel (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    defaults:
+      run:
+        shell: bash
+    env:
+      DISPLAY_WRAPPER: ${{ matrix.os == 'ubuntu-latest' && 'xvfb-run -a' || '' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -67,7 +79,7 @@ jobs:
       - name: Click the panel
         id: click
         working-directory: ui-test
-        run: xvfb-run -a pnpm exec extest run-tests --storage .resources --extensions_dir .test-extensions --code_version 1.135.0 "out/*.test.js"
+        run: $DISPLAY_WRAPPER pnpm exec extest run-tests --storage .resources --extensions_dir .test-extensions --code_version 1.135.0 "out/*.test.js"
 
       # Webview automation flakes: an iframe can be a frame late, a click can
       # land while the panel is still laying out. One retry keeps that from
@@ -75,12 +87,12 @@ jobs:
       - name: Click the panel (retry)
         if: failure() && steps.click.outcome == 'failure'
         working-directory: ui-test
-        run: xvfb-run -a pnpm exec extest run-tests --storage .resources --extensions_dir .test-extensions --code_version 1.135.0 "out/*.test.js"
+        run: $DISPLAY_WRAPPER pnpm exec extest run-tests --storage .resources --extensions_dir .test-extensions --code_version 1.135.0 "out/*.test.js"
 
       - name: Upload failure screenshots
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ui-test-screenshots
+          name: ui-test-screenshots-${{ matrix.os }}
           path: ui-test/.resources/screenshots
           if-no-files-found: ignore
