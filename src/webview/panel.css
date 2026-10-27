@@ -3,7 +3,7 @@
       .scope label { display: flex; align-items: center; gap: 4px; }
       .row { margin-bottom: 10px; }
       .row.pending .label::after { content: " ●"; color: var(--vscode-charts-orange, var(--vscode-button-background)); }
-      .row.inherited .controls, .row.inherited .switch { opacity: 0.6; }
+      .row.inherited:not(.pending) .controls, .row.inherited:not(.pending) .switch { opacity: 0.6; }
       .source { margin-left: 6px; opacity: 0.7; font-size: 0.85em; }
       .footer { position: sticky; bottom: 0; z-index: 1; background: var(--vscode-sideBar-background); border-top: 1px solid var(--vscode-panel-border); padding: 10px 0 8px; }
       .toggle-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
