@@ -3,6 +3,7 @@ import * as path from "path";
 import { By, WebElement } from "selenium-webdriver";
 import { ActivityBar, SideBarView, VSBrowser, WebviewView } from "vscode-extension-tester";
 import * as assert from "assert";
+import { clickInView } from "./clickInView";
 
 /**
  * The setting the segmented control edits, and the row that holds it.
@@ -158,7 +159,7 @@ describe("settings panel segmented control", function () {
   });
 
   it("U3 restores the saved option when the row is reset", async function () {
-    await (await view.findWebElement(By.css(`[data-reset="${selectKey}"]`))).click();
+    await clickInView(await view.findWebElement(By.css(`[data-reset="${selectKey}"]`)));
 
     await VSBrowser.instance.driver.wait(
       async () => (await markedOption()) === savedOption && !(await rowIsPending()),

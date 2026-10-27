@@ -3,6 +3,7 @@ import * as path from "path";
 import { By, WebElement } from "selenium-webdriver";
 import { ActivityBar, SideBarView, VSBrowser, WebviewView } from "vscode-extension-tester";
 import * as assert from "assert";
+import { clickInView } from "./clickInView";
 
 /**
  * Apply, Apply all and the scope radio in a real window.
@@ -101,11 +102,9 @@ describe("settings panel apply", function () {
     );
   }
 
-  /** Scroll a row's Reset clear of the pinned footer, as a reader would, and click it. */
+  /** Reset a row and wait until it no longer shows a staged value. */
   async function resetRow(key: string) {
-    const reset = await view.findWebElement(By.css(`[data-reset="${key}"]`));
-    await driver().executeScript(`arguments[0].scrollIntoView({ block: "center" });`, reset);
-    await reset.click();
+    await clickInView(await view.findWebElement(By.css(`[data-reset="${key}"]`)));
     await driver().wait(async () => !(await rowIsPending(key)), settleMs);
   }
 
