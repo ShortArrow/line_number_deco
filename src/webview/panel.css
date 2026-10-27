@@ -3,9 +3,9 @@
       .scope label { display: flex; align-items: center; gap: 4px; }
       .row { margin-bottom: 10px; }
       .row.pending .label::after { content: " ●"; color: var(--vscode-charts-orange, var(--vscode-button-background)); }
-      .row.inherited .controls, .row.inherited .switch { opacity: 0.6; }
+      .row.inherited:not(.pending) .controls, .row.inherited:not(.pending) .switch { opacity: 0.6; }
       .source { margin-left: 6px; opacity: 0.7; font-size: 0.85em; }
-      .footer { border-top: 1px solid var(--vscode-panel-border); padding-top: 10px; }
+      .footer { position: sticky; bottom: 0; z-index: 1; background: var(--vscode-sideBar-background); border-top: 1px solid var(--vscode-panel-border); padding: 10px 0 8px; }
       .toggle-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
       .toggle-row .toggle { flex: 1 1 0; min-width: 0; margin-bottom: 0; }
       .toggle-row .actions { display: flex; flex: none; gap: 6px; margin-left: auto; }
@@ -24,6 +24,8 @@
       button:disabled { opacity: 0.4; cursor: default; }
       button.secondary { color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); }
       button.secondary:hover:not(:disabled) { background: var(--vscode-button-secondaryHoverBackground); }
+      .row.pending button[data-apply], .row.pending button[data-apply-toggle] { color: var(--vscode-button-foreground); background: var(--vscode-button-background); }
+      .row.pending button[data-apply]:hover:not(:disabled), .row.pending button[data-apply-toggle]:hover:not(:disabled) { background: var(--vscode-button-hoverBackground); }
       h2 { font-size: var(--vscode-font-size); text-transform: uppercase; opacity: 0.7; margin: 0 0 8px; }
       .section { margin-bottom: 16px; }
       .toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; cursor: pointer; }
