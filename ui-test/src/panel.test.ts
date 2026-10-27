@@ -122,7 +122,7 @@ describe("settings panel segmented control", function () {
     // Any option other than the open one: clicking the current one would stage
     // nothing and the bounce would have nothing to undo.
     const target = savedOption === "relative" ? "off" : "relative";
-    await (await segmentFor(target)).click();
+    await clickInView(await segmentFor(target));
 
     // Deliberately a sleep, not a wait: the bug is a message arriving late and
     // overwriting the choice, so the assertion has to be made after any such

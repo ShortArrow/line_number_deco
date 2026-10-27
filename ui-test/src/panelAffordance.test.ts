@@ -10,6 +10,9 @@ const staged = "enableRainbow";
 /** A toggle left alone, so its Apply shows what a row with nothing staged looks like. */
 const untouched = "enableRepeatingDigits";
 
+/** A row whose Apply sits inside its controls, which are dimmed while they show an inherited value. */
+const stagedSelect = "editor.lineNumbers";
+
 describe("settings panel shows what can be applied", function () {
   this.timeout(240000);
 
@@ -20,6 +23,20 @@ describe("settings panel shows what can be applied", function () {
   async function backgroundOf(selector: string): Promise<string> {
     return await driver().executeScript<string>(
       `return getComputedStyle(document.querySelector(arguments[0])).backgroundColor;`,
+      selector
+    );
+  }
+
+  /** How opaque one button is drawn, counting every ancestor that dims it. */
+  async function drawnOpacityOf(selector: string): Promise<number> {
+    return await driver().executeScript<number>(
+      `
+      let opacity = 1;
+      for (let node = document.querySelector(arguments[0]); node; node = node.parentElement) {
+        opacity *= Number(getComputedStyle(node).opacity);
+      }
+      return opacity;
+      `,
       selector
     );
   }
@@ -62,6 +79,23 @@ describe("settings panel shows what can be applied", function () {
     const primary = await backgroundOf("button[data-apply-all]");
     assert.strictEqual(await backgroundOf(`button[data-apply-toggle="${staged}"]`), primary);
     assert.notStrictEqual(await backgroundOf(`button[data-apply-toggle="${untouched}"]`), primary);
+  });
+
+  it("Must draw the Apply of a staged row as opaque as Apply all, even where the saved value is inherited", async function () {
+    await driver().executeScript(
+      `document.querySelector('[data-select-for="' + arguments[0] + '"]:not([data-current="true"])').click();`,
+      stagedSelect
+    );
+    await driver().wait(
+      async () => await driver().executeScript<boolean>(`return document.querySelector('[data-row="' + arguments[0] + '"]').classList.contains("pending");`, stagedSelect),
+      5000,
+      `${stagedSelect} never showed as staged`
+    );
+    assert.ok(
+      await driver().executeScript<boolean>(`return document.querySelector('[data-row="' + arguments[0] + '"]').classList.contains("inherited");`, stagedSelect),
+      `${stagedSelect} is saved in the scope shown, so this proves nothing`
+    );
+    assert.strictEqual(await drawnOpacityOf(`button[data-apply="${stagedSelect}"]`), await drawnOpacityOf("button[data-apply-all]"));
   });
 
   it("Must scroll a focused control out from behind the pinned footer", async function () {
