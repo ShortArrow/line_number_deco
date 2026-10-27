@@ -95,7 +95,7 @@ Thank you for pioneering
 
 ## Development
 
-Building, testing, packaging and cutting a release are in [docs/development.md](docs/development.md); the decisions behind the toolchain and the pipeline are in [docs/adr/](docs/adr/).
+Building, testing, packaging and cutting a release are in [docs/development.md](docs/development.md); why the toolchain, the pipeline and the panel are arranged as they are is in [docs/design-intent.md](docs/design-intent.md).
 
 ## License
 
