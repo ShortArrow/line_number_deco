@@ -325,6 +325,17 @@ document.querySelectorAll("button[data-reset]").forEach((element) => {
     renderState();
   });
 });
+/**
+ * Keep a row scrolled into view clear of the footer pinned to the bottom.
+ *
+ * The footer wraps onto a second line in a narrow sidebar, so the padding
+ * follows its height rather than a fixed guess.
+ */
+document.querySelectorAll<HTMLElement>(".footer").forEach((footer) => {
+  new ResizeObserver(() => {
+    document.documentElement.style.scrollPaddingBottom = footer.offsetHeight + "px";
+  }).observe(footer);
+});
 document.querySelectorAll("button[data-apply-all]").forEach((button) => {
   button.addEventListener("click", () => {
     markBusy(Object.keys(shownPending()), post({ type: "applyAll", scope: scope() }));

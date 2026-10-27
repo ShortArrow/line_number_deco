@@ -101,8 +101,11 @@ describe("settings panel apply", function () {
     );
   }
 
+  /** Scroll a row's Reset clear of the pinned footer, as a reader would, and click it. */
   async function resetRow(key: string) {
-    await (await view.findWebElement(By.css(`[data-reset="${key}"]`))).click();
+    const reset = await view.findWebElement(By.css(`[data-reset="${key}"]`));
+    await driver().executeScript(`arguments[0].scrollIntoView({ block: "center" });`, reset);
+    await reset.click();
     await driver().wait(async () => !(await rowIsPending(key)), settleMs);
   }
 
