@@ -30,71 +30,71 @@ export async function updateEnableRainbowForWorkspace(set: boolean) {
 }
 
 export async function updateEnableRainbowForUser(set: boolean) {
-  updateUserConfig("enableRainbow", set);
+  await updateUserConfig("enableRainbow", set);
 }
 
 export async function updateColorAtCenterOfRainbow(set: string) {
-  updateWorkspaceConfig("centerColorOfRainbow", set);
+  await updateWorkspaceConfig("centerColorOfRainbow", set);
 }
 
 export async function updateColorAtCenterOfRainbowForUser(set: string) {
-  updateUserConfig("centerColorOfRainbow", set);
+  await updateUserConfig("centerColorOfRainbow", set);
 }
 
 export async function updateColorAtActiveRowNumber(set: string) {
-  updateWorkspaceConfig("activeForeground", set);
+  await updateWorkspaceConfig("activeForeground", set);
 }
 
 export async function updateColorAtActiveRowNumberForUser(set: string) {
-  updateUserConfig("activeForeground", set);
+  await updateUserConfig("activeForeground", set);
 }
 
 export async function updateColorAtInactiveRowNumber(set: string) {
-  updateWorkspaceConfig("foreground", set);
+  await updateWorkspaceConfig("foreground", set);
 }
 
 export async function updateColorAtInactiveRowNumberForUser(set: string) {
-  updateUserConfig("foreground", set);
+  await updateUserConfig("foreground", set);
 }
 
 export async function updateColorAtRepeatingDigits(set: string) {
-  updateWorkspaceConfig("foregroundColorOfRepeatingDigits", set);
+  await updateWorkspaceConfig("foregroundColorOfRepeatingDigits", set);
 }
 
 export async function updateColorAtRepeatingDigitsForUser(set: string) {
-  updateUserConfig("foregroundColorOfRepeatingDigits", set);
+  await updateUserConfig("foregroundColorOfRepeatingDigits", set);
 }
 
 export async function updateColorAtSequentialDigits(set: string) {
-  updateWorkspaceConfig("foregroundColorOfSequentialDigits", set);
+  await updateWorkspaceConfig("foregroundColorOfSequentialDigits", set);
 }
 
 export async function updateColorAtSequentialDigitsForUser(set: string) {
-  updateUserConfig("foregroundColorOfSequentialDigits", set);
+  await updateUserConfig("foregroundColorOfSequentialDigits", set);
 }
 
 export async function updateColorAtMultiplesOfFive(set: string) {
-  updateWorkspaceConfig("foregroundColorOfMultiplesOfFive", set);
+  await updateWorkspaceConfig("foregroundColorOfMultiplesOfFive", set);
 }
 
 export async function updateColorAtMultiplesOfFiveForUser(set: string) {
-  updateUserConfig("foregroundColorOfMultiplesOfFive", set);
+  await updateUserConfig("foregroundColorOfMultiplesOfFive", set);
 }
 
 export async function updateColorAtErrorLines(set: string) {
-  updateWorkspaceConfig("errorForeground", set);
+  await updateWorkspaceConfig("errorForeground", set);
 }
 
 export async function updateColorAtErrorLinesForUser(set: string) {
-  updateUserConfig("errorForeground", set);
+  await updateUserConfig("errorForeground", set);
 }
 
 export async function updateColorAtWarningLines(set: string) {
-  updateWorkspaceConfig("warningForeground", set);
+  await updateWorkspaceConfig("warningForeground", set);
 }
 
 export async function updateColorAtWarningLinesForUser(set: string) {
-  updateUserConfig("warningForeground", set);
+  await updateUserConfig("warningForeground", set);
 }
 
 async function getColorCode(
@@ -261,41 +261,41 @@ export async function getColorCodeAtInactiveRowNumberForUser() {
 }
 
 export async function updateEnableRelativeLine(set: boolean) {
-  updateWorkspaceConfig("enableRelativeLine", set);
+  await updateWorkspaceConfig("enableRelativeLine", set);
 }
 
 export async function updateEnableRelativeLineForUser(set: boolean) {
-  updateUserConfig("enableRelativeLine", set);
+  await updateUserConfig("enableRelativeLine", set);
 }
 
 export async function updateEnableRepeatingDigits(set: boolean) {
-  updateWorkspaceConfig("enableRepeatingDigits", set);
+  await updateWorkspaceConfig("enableRepeatingDigits", set);
 }
 
 export async function updateEnableRepeatingDigitsForUser(set: boolean) {
-  updateUserConfig("enableRepeatingDigits", set);
+  await updateUserConfig("enableRepeatingDigits", set);
 }
 
 export async function updateEnableSequentialDigits(set: boolean) {
-  updateWorkspaceConfig("enableSequentialDigits", set);
+  await updateWorkspaceConfig("enableSequentialDigits", set);
 }
 
 export async function updateEnableSequentialDigitsForUser(set: boolean) {
-  updateUserConfig("enableSequentialDigits", set);
+  await updateUserConfig("enableSequentialDigits", set);
 }
 
 export async function updateEnableMultiplesOfFive(set: boolean) {
-  updateWorkspaceConfig("enableMultiplesOfFive", set);
+  await updateWorkspaceConfig("enableMultiplesOfFive", set);
 }
 
 export async function updateEnableMultiplesOfFiveForUser(set: boolean) {
-  updateUserConfig("enableMultiplesOfFive", set);
+  await updateUserConfig("enableMultiplesOfFive", set);
 }
 
 export async function updateEnableDiagnostics(set: boolean) {
-  updateWorkspaceConfig("enableDiagnostics", set);
+  await updateWorkspaceConfig("enableDiagnostics", set);
 }
 
 export async function updateEnableDiagnosticsForUser(set: boolean) {
-  updateUserConfig("enableDiagnostics", set);
+  await updateUserConfig("enableDiagnostics", set);
 }
