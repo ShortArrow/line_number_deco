@@ -53,18 +53,20 @@ export async function updateSetting<K extends Setting>(
  * @param key the color setting to write
  * @param subject what the color paints, as the prompt names it
  * @param scope where the color is written
+ * @param ask the input box, which a test answers in place of a reader
  */
 export async function promptForColor(
   key: ColorSetting,
   subject: string,
-  scope: Scope
+  scope: Scope,
+  ask: (options: vscode.InputBoxOptions) => Thenable<string | undefined> = vscode.window.showInputBox
 ) {
   const preValue = getConfig(key) || settingDefaults[key];
   const options: vscode.InputBoxOptions = {
     prompt: `Please input color code at ${subject}`,
     placeHolder: preValue,
   };
-  const result = (await vscode.window.showInputBox(options)) || preValue;
+  const result = (await ask(options)) || preValue;
   if (result === preValue || result === "") {
     return;
   }
