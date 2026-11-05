@@ -25,7 +25,7 @@ export const settingDefaults = {
   warningForeground: "",
 };
 
-type Setting = keyof typeof settingDefaults;
+export type Setting = keyof typeof settingDefaults;
 
 /**
  * get is dark theme
@@ -70,14 +70,6 @@ export function getColorAtCenterOfRainbow() {
   );
 }
 
-export function getColorAtActiveRowNumber() {
-  return getConfig("activeForeground");
-}
-
-export function getColorAtInactiveRowNumber() {
-  return getConfig("foreground");
-}
-
 export function getEnableRainbow() {
   return (
     getPreviewToggle("enableRainbow") ??
@@ -114,10 +106,6 @@ export function getRepeatingDigitsLineNumberColor() {
     : new vscode.ThemeColor("LineNumberDeco.repeatingDigitsForeground");
 }
 
-export function getColorAtRepeatingDigits() {
-  return getConfig("foregroundColorOfRepeatingDigits");
-}
-
 export function getEnableSequentialDigits() {
   return (
     getPreviewToggle("enableSequentialDigits") ??
@@ -136,10 +124,6 @@ export function getSequentialDigitsLineNumberColor() {
     : new vscode.ThemeColor("LineNumberDeco.sequentialDigitsForeground");
 }
 
-export function getColorAtSequentialDigits() {
-  return getConfig("foregroundColorOfSequentialDigits");
-}
-
 export function getEnableMultiplesOfFive() {
   return (
     getPreviewToggle("enableMultiplesOfFive") ??
@@ -156,10 +140,6 @@ export function getMultiplesOfFiveLineNumberColor() {
   return config !== ""
     ? config
     : new vscode.ThemeColor("LineNumberDeco.multiplesOfFiveForeground");
-}
-
-export function getColorAtMultiplesOfFive() {
-  return getConfig("foregroundColorOfMultiplesOfFive");
 }
 
 export function getEnableDiagnostics() {
@@ -189,14 +169,6 @@ export function getWarningLineNumberColor() {
   return config !== ""
     ? config
     : new vscode.ThemeColor("editorWarning.foreground");
-}
-
-export function getColorAtErrorLines() {
-  return getConfig("errorForeground");
-}
-
-export function getColorAtWarningLines() {
-  return getConfig("warningForeground");
 }
 
 export function getEnableRelativeLine() {

@@ -4,7 +4,6 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import { colorCodeFromHsl } from '../../colors';
-import { updateEnableRainbowForUser } from '../../ui';
 
 const vsCodeGlobal = vscode.ConfigurationTarget.Global as vscode.ConfigurationTarget;
 const vsCodeWorkspace = vscode.ConfigurationTarget.Workspace as vscode.ConfigurationTarget;
@@ -37,12 +36,5 @@ suite('Extension Test Suite', () => {
 	// 	}
 	// 	const actual = config.get<boolean>(targetCofig);
 	// 	assert.equal(actual, false);	
-	// });
-	// test("must config can edit by updater", async () => {
-	// 	const targetCofig = "enableRainbow";
-	// 	await updateEnableRainbowForUser(true);
-	// 	const config = vscode.workspace.getConfiguration(extensionName);
-	// 	const actual = config.get<boolean>(targetCofig);
-	// 	assert.equal(actual, true);	
 	// });
 });
