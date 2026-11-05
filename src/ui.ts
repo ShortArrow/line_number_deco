@@ -44,30 +44,46 @@ export async function updateSetting<K extends Setting>(
   }
 }
 
+/** How a color prompt talks to the reader: VS Code's input box and notifications, or a test's stand-ins. */
+export interface PromptIo {
+  ask(options: vscode.InputBoxOptions): Thenable<string | undefined>;
+  tell(message: string): void;
+}
+
+const vsCodeIo: PromptIo = {
+  ask: (options) => vscode.window.showInputBox(options),
+  tell: (message) => {
+    void vscode.window.showInformationMessage(message);
+  },
+};
+
 /**
  * Ask for a color code and write it to a scope.
  *
  * The box shows the saved value, or the default when nothing is saved.
- * Dismissing it, or entering nothing or that same value, writes nothing.
+ * Dismissing it, or entering nothing or that same value, neither writes nor
+ * announces anything; a written color is announced once it has landed.
  *
  * @param key the color setting to write
  * @param subject what the color paints, as the prompt names it
  * @param scope where the color is written
+ * @param io how the prompt asks and tells, which a test answers in place of a reader
  */
 export async function promptForColor(
   key: ColorSetting,
   subject: string,
-  scope: Scope
+  scope: Scope,
+  io: PromptIo = vsCodeIo
 ) {
   const preValue = getConfig(key) || settingDefaults[key];
   const options: vscode.InputBoxOptions = {
     prompt: `Please input color code at ${subject}`,
     placeHolder: preValue,
   };
-  const result = (await vscode.window.showInputBox(options)) || preValue;
+  const result = (await io.ask(options)) || preValue;
   if (result === preValue || result === "") {
     return;
   }
   await updateSetting(key, result, scope);
-  vscode.window.showInformationMessage(`Color is updated by, ${result}!`);
+  io.tell(`Color is updated by, ${result}!`);
 }
