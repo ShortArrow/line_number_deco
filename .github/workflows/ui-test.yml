@@ -76,16 +76,19 @@ jobs:
           vsix="$(ls "$GITHUB_WORKSPACE"/*.vsix)"
           pnpm exec extest install-vsix --storage .resources --extensions_dir .test-extensions --vsix_file "$vsix"
 
-      - name: Click the panel
-        id: click
-        working-directory: ui-test
-        run: $DISPLAY_WRAPPER pnpm exec extest run-tests --storage .resources --extensions_dir .test-extensions --code_version 1.135.0 "out/*.test.js"
-
       # Webview automation flakes: an iframe can be a frame late, a click can
       # land while the panel is still laying out. One retry keeps that from
       # blocking a pull request, and two consecutive failures are a real one.
+      # The first run continues on error, because a failed step fails the job
+      # even when the retry after it passes; the retry alone decides the job.
+      - name: Click the panel
+        id: click
+        continue-on-error: true
+        working-directory: ui-test
+        run: $DISPLAY_WRAPPER pnpm exec extest run-tests --storage .resources --extensions_dir .test-extensions --code_version 1.135.0 "out/*.test.js"
+
       - name: Click the panel (retry)
-        if: failure() && steps.click.outcome == 'failure'
+        if: steps.click.outcome == 'failure'
         working-directory: ui-test
         run: $DISPLAY_WRAPPER pnpm exec extest run-tests --storage .resources --extensions_dir .test-extensions --code_version 1.135.0 "out/*.test.js"
 
