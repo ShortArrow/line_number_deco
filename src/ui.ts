@@ -5,7 +5,7 @@ import { getConfig, nameOfExtension, Setting, settingDefaults } from "./config";
 export type Scope = "user" | "workspace";
 
 /** The settings a command asks a color code for. */
-type ColorSetting =
+export type ColorSetting =
   | "centerColorOfRainbow"
   | "activeForeground"
   | "foreground"
