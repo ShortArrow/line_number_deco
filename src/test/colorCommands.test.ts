@@ -89,4 +89,14 @@ describe('Test color commands', () => {
       assert.strictEqual(userValueOf(settingOf[base]), '#00bb00');
     });
   }
+
+  // The test instance opens no folder, so a write to the workspace is refused,
+  // and a command that wrote to the user's settings instead would not be.
+  for (const { command, base } of colorCommands.filter(({ scope }) => scope === 'workspace')) {
+    it(`${command} must write ${settingOf[base]} to the workspace, not to user settings`, async () => {
+      answerInputBox('#00bb00');
+      await assert.rejects(Promise.resolve(vscode.commands.executeCommand(`line-number-deco.${command}`)));
+      assert.strictEqual(userValueOf(settingOf[base]), undefined);
+    });
+  }
 });
