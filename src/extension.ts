@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { promptForColor, updateSetting } from "./ui";
+import { ColorSetting, promptForColor, updateSetting } from "./ui";
 import { updateRelativeLineNumbers } from "./core";
 import {
   hideSettingsPanel,
@@ -42,6 +42,29 @@ function refreshVisibleEditors() {
     updateRelativeLineNumbers(editor, decorationType);
   }
 }
+
+type RegisterCommand = (callback: Function) => vscode.Disposable;
+
+/**
+ * The commands that ask for a color, one row per setting: the registrars for
+ * its workspace and user commands, and the subject the prompt names, worded
+ * as the commands' titles word it.
+ */
+const colorCommands: {
+  forWorkspace: RegisterCommand;
+  forUser: RegisterCommand;
+  setting: ColorSetting;
+  subject: string;
+}[] = [
+  { forWorkspace: LineNumberDeco.updateColorAtCenterOfRainbow, forUser: LineNumberDeco.updateColorAtCenterOfRainbowForUser, setting: "centerColorOfRainbow", subject: "the rainbow center" },
+  { forWorkspace: LineNumberDeco.updateColorAtActiveRowNumber, forUser: LineNumberDeco.updateColorAtActiveRowNumberForUser, setting: "activeForeground", subject: "the current line number" },
+  { forWorkspace: LineNumberDeco.updateColorAtInactiveRowNumber, forUser: LineNumberDeco.updateColorAtInactiveRowNumberForUser, setting: "foreground", subject: "inactive line numbers" },
+  { forWorkspace: LineNumberDeco.updateColorAtRepeatingDigits, forUser: LineNumberDeco.updateColorAtRepeatingDigitsForUser, setting: "foregroundColorOfRepeatingDigits", subject: "repeating digits" },
+  { forWorkspace: LineNumberDeco.updateColorAtSequentialDigits, forUser: LineNumberDeco.updateColorAtSequentialDigitsForUser, setting: "foregroundColorOfSequentialDigits", subject: "sequential digits" },
+  { forWorkspace: LineNumberDeco.updateColorAtMultiplesOfFive, forUser: LineNumberDeco.updateColorAtMultiplesOfFiveForUser, setting: "foregroundColorOfMultiplesOfFive", subject: "multiples of five" },
+  { forWorkspace: LineNumberDeco.updateColorAtErrorLines, forUser: LineNumberDeco.updateColorAtErrorLinesForUser, setting: "errorForeground", subject: "error lines" },
+  { forWorkspace: LineNumberDeco.updateColorAtWarningLines, forUser: LineNumberDeco.updateColorAtWarningLinesForUser, setting: "warningForeground", subject: "warning lines" },
+];
 
 const commands = [
   vscode.workspace.onDidChangeTextDocument((e) => {
@@ -89,34 +112,22 @@ const commands = [
   LineNumberDeco.disableRepeatingDigits(() => updateSetting("enableRepeatingDigits", false, "workspace")),
   LineNumberDeco.enableRepeatingDigitsForUser(() => updateSetting("enableRepeatingDigits", true, "user")),
   LineNumberDeco.disableRepeatingDigitsForUser(() => updateSetting("enableRepeatingDigits", false, "user")),
-  LineNumberDeco.updateColorAtRepeatingDigits(() => promptForColor("foregroundColorOfRepeatingDigits", "repeating digits", "workspace")),
-  LineNumberDeco.updateColorAtRepeatingDigitsForUser(() => promptForColor("foregroundColorOfRepeatingDigits", "repeating digits", "user")),
   LineNumberDeco.enableSequentialDigits(() => updateSetting("enableSequentialDigits", true, "workspace")),
   LineNumberDeco.disableSequentialDigits(() => updateSetting("enableSequentialDigits", false, "workspace")),
   LineNumberDeco.enableSequentialDigitsForUser(() => updateSetting("enableSequentialDigits", true, "user")),
   LineNumberDeco.disableSequentialDigitsForUser(() => updateSetting("enableSequentialDigits", false, "user")),
-  LineNumberDeco.updateColorAtSequentialDigits(() => promptForColor("foregroundColorOfSequentialDigits", "sequential digits", "workspace")),
-  LineNumberDeco.updateColorAtSequentialDigitsForUser(() => promptForColor("foregroundColorOfSequentialDigits", "sequential digits", "user")),
   LineNumberDeco.enableMultiplesOfFive(() => updateSetting("enableMultiplesOfFive", true, "workspace")),
   LineNumberDeco.disableMultiplesOfFive(() => updateSetting("enableMultiplesOfFive", false, "workspace")),
   LineNumberDeco.enableMultiplesOfFiveForUser(() => updateSetting("enableMultiplesOfFive", true, "user")),
   LineNumberDeco.disableMultiplesOfFiveForUser(() => updateSetting("enableMultiplesOfFive", false, "user")),
-  LineNumberDeco.updateColorAtMultiplesOfFive(() => promptForColor("foregroundColorOfMultiplesOfFive", "multiples of five", "workspace")),
-  LineNumberDeco.updateColorAtMultiplesOfFiveForUser(() => promptForColor("foregroundColorOfMultiplesOfFive", "multiples of five", "user")),
   LineNumberDeco.enableDiagnostics(() => updateSetting("enableDiagnostics", true, "workspace")),
   LineNumberDeco.disableDiagnostics(() => updateSetting("enableDiagnostics", false, "workspace")),
   LineNumberDeco.enableDiagnosticsForUser(() => updateSetting("enableDiagnostics", true, "user")),
   LineNumberDeco.disableDiagnosticsForUser(() => updateSetting("enableDiagnostics", false, "user")),
-  LineNumberDeco.updateColorAtErrorLines(() => promptForColor("errorForeground", "error lines", "workspace")),
-  LineNumberDeco.updateColorAtErrorLinesForUser(() => promptForColor("errorForeground", "error lines", "user")),
-  LineNumberDeco.updateColorAtWarningLines(() => promptForColor("warningForeground", "warning lines", "workspace")),
-  LineNumberDeco.updateColorAtWarningLinesForUser(() => promptForColor("warningForeground", "warning lines", "user")),
-  LineNumberDeco.updateColorAtCenterOfRainbow(() => promptForColor("centerColorOfRainbow", "center of rainbow", "workspace")),
-  LineNumberDeco.updateColorAtCenterOfRainbowForUser(() => promptForColor("centerColorOfRainbow", "center of rainbow", "user")),
-  LineNumberDeco.updateColorAtInactiveRowNumberForUser(() => promptForColor("foreground", "inactive row number", "user")),
-  LineNumberDeco.updateColorAtActiveRowNumberForUser(() => promptForColor("activeForeground", "active row number", "user")),
-  LineNumberDeco.updateColorAtInactiveRowNumber(() => promptForColor("foreground", "inactive row number", "workspace")),
-  LineNumberDeco.updateColorAtActiveRowNumber(() => promptForColor("activeForeground", "active row number", "workspace")),
+  ...colorCommands.flatMap(({ forWorkspace, forUser, setting, subject }) => [
+    forWorkspace(() => promptForColor(setting, subject, "workspace")),
+    forUser(() => promptForColor(setting, subject, "user")),
+  ]),
   LineNumberDeco.showSettingsPanel(showSettingsPanel),
   LineNumberDeco.hideSettingsPanel(hideSettingsPanel),
   LineNumberDeco.toggleSettingsPanel(toggleSettingsPanel),
