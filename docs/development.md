@@ -62,6 +62,10 @@ The `smoke/` harness asks two questions of a built `.vsix`, and the release pipe
 
 CI runs `run.js` twice: once without `--vsix` as a negative control that must exit 1, then once with the artifact. Without the negative control a green smoke run would prove nothing, because the assertions could be passing against a locally present copy of the extension.
 
+## Record a change
+
+A pull request that changes what a user sees, or clears a dependency advisory, adds one line to the `## Unreleased` section at the end of `CHANGELOG.md` in the same pull request. The line says what the user notices, not which files changed. Changes that touch only tests, CI or documentation get no line.
+
 ## Cut a release
 
 Releases are driven by a signed `v*` tag pushed to `main`; `.github/workflows/release.yml` does the rest in five jobs.
