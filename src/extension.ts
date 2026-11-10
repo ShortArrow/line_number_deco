@@ -1,34 +1,5 @@
 import * as vscode from "vscode";
-import {
-  getColorCodeAtActiveRowNumber,
-  getColorCodeAtActiveRowNumberForUser,
-  getColorCodeAtCenterOfRainbow,
-  getColorCodeAtCenterOfRainbowForUser,
-  getColorCodeAtInactiveRowNumber,
-  getColorCodeAtInactiveRowNumberForUser,
-  getColorCodeAtRepeatingDigits,
-  getColorCodeAtRepeatingDigitsForUser,
-  getColorCodeAtSequentialDigits,
-  getColorCodeAtSequentialDigitsForUser,
-  getColorCodeAtMultiplesOfFive,
-  getColorCodeAtMultiplesOfFiveForUser,
-  getColorCodeAtErrorLines,
-  getColorCodeAtErrorLinesForUser,
-  getColorCodeAtWarningLines,
-  getColorCodeAtWarningLinesForUser,
-  updateEnableDiagnostics,
-  updateEnableDiagnosticsForUser,
-  updateEnableRainbowForUser,
-  updateEnableRainbowForWorkspace,
-  updateEnableRelativeLine,
-  updateEnableRelativeLineForUser,
-  updateEnableRepeatingDigits,
-  updateEnableRepeatingDigitsForUser,
-  updateEnableSequentialDigits,
-  updateEnableSequentialDigitsForUser,
-  updateEnableMultiplesOfFive,
-  updateEnableMultiplesOfFiveForUser,
-} from "./ui";
+import { ColorSetting, promptForColor, updateSetting } from "./ui";
 import { updateRelativeLineNumbers } from "./core";
 import {
   hideSettingsPanel,
@@ -72,6 +43,29 @@ function refreshVisibleEditors() {
   }
 }
 
+type RegisterCommand = (callback: Function) => vscode.Disposable;
+
+/**
+ * The commands that ask for a color, one row per setting: the registrars for
+ * its workspace and user commands, and the subject the prompt names, worded
+ * as the commands' titles word it.
+ */
+const colorCommands: {
+  forWorkspace: RegisterCommand;
+  forUser: RegisterCommand;
+  setting: ColorSetting;
+  subject: string;
+}[] = [
+  { forWorkspace: LineNumberDeco.updateColorAtCenterOfRainbow, forUser: LineNumberDeco.updateColorAtCenterOfRainbowForUser, setting: "centerColorOfRainbow", subject: "the rainbow center" },
+  { forWorkspace: LineNumberDeco.updateColorAtActiveRowNumber, forUser: LineNumberDeco.updateColorAtActiveRowNumberForUser, setting: "activeForeground", subject: "the current line number" },
+  { forWorkspace: LineNumberDeco.updateColorAtInactiveRowNumber, forUser: LineNumberDeco.updateColorAtInactiveRowNumberForUser, setting: "foreground", subject: "inactive line numbers" },
+  { forWorkspace: LineNumberDeco.updateColorAtRepeatingDigits, forUser: LineNumberDeco.updateColorAtRepeatingDigitsForUser, setting: "foregroundColorOfRepeatingDigits", subject: "repeating digits" },
+  { forWorkspace: LineNumberDeco.updateColorAtSequentialDigits, forUser: LineNumberDeco.updateColorAtSequentialDigitsForUser, setting: "foregroundColorOfSequentialDigits", subject: "sequential digits" },
+  { forWorkspace: LineNumberDeco.updateColorAtMultiplesOfFive, forUser: LineNumberDeco.updateColorAtMultiplesOfFiveForUser, setting: "foregroundColorOfMultiplesOfFive", subject: "multiples of five" },
+  { forWorkspace: LineNumberDeco.updateColorAtErrorLines, forUser: LineNumberDeco.updateColorAtErrorLinesForUser, setting: "errorForeground", subject: "error lines" },
+  { forWorkspace: LineNumberDeco.updateColorAtWarningLines, forUser: LineNumberDeco.updateColorAtWarningLinesForUser, setting: "warningForeground", subject: "warning lines" },
+];
+
 const commands = [
   vscode.workspace.onDidChangeTextDocument((e) => {
     if (e.document === vscode.window.activeTextEditor?.document) {
@@ -106,46 +100,34 @@ const commands = [
       }
     }
   }),
-  LineNumberDeco.enableRelativeLineNumbers(() => updateEnableRelativeLine(true)),
-  LineNumberDeco.disableRelativeLineNumbers(() => updateEnableRelativeLine(false)),
-  LineNumberDeco.enableRelativeLineNumbersForUser(() => updateEnableRelativeLineForUser(true)),
-  LineNumberDeco.disableRelativeLineNumbersForUser(() => updateEnableRelativeLineForUser(false)),
-  LineNumberDeco.enableRainbow(() => updateEnableRainbowForWorkspace(true)),
-  LineNumberDeco.disableRainbow(() => updateEnableRainbowForWorkspace(false)),
-  LineNumberDeco.enableRainbowForUser(() => updateEnableRainbowForUser(true)),
-  LineNumberDeco.disableRainbowForUser(() => updateEnableRainbowForUser(false)),
-  LineNumberDeco.enableRepeatingDigits(() => updateEnableRepeatingDigits(true)),
-  LineNumberDeco.disableRepeatingDigits(() => updateEnableRepeatingDigits(false)),
-  LineNumberDeco.enableRepeatingDigitsForUser(() => updateEnableRepeatingDigitsForUser(true)),
-  LineNumberDeco.disableRepeatingDigitsForUser(() => updateEnableRepeatingDigitsForUser(false)),
-  LineNumberDeco.updateColorAtRepeatingDigits(getColorCodeAtRepeatingDigits),
-  LineNumberDeco.updateColorAtRepeatingDigitsForUser(getColorCodeAtRepeatingDigitsForUser),
-  LineNumberDeco.enableSequentialDigits(() => updateEnableSequentialDigits(true)),
-  LineNumberDeco.disableSequentialDigits(() => updateEnableSequentialDigits(false)),
-  LineNumberDeco.enableSequentialDigitsForUser(() => updateEnableSequentialDigitsForUser(true)),
-  LineNumberDeco.disableSequentialDigitsForUser(() => updateEnableSequentialDigitsForUser(false)),
-  LineNumberDeco.updateColorAtSequentialDigits(getColorCodeAtSequentialDigits),
-  LineNumberDeco.updateColorAtSequentialDigitsForUser(getColorCodeAtSequentialDigitsForUser),
-  LineNumberDeco.enableMultiplesOfFive(() => updateEnableMultiplesOfFive(true)),
-  LineNumberDeco.disableMultiplesOfFive(() => updateEnableMultiplesOfFive(false)),
-  LineNumberDeco.enableMultiplesOfFiveForUser(() => updateEnableMultiplesOfFiveForUser(true)),
-  LineNumberDeco.disableMultiplesOfFiveForUser(() => updateEnableMultiplesOfFiveForUser(false)),
-  LineNumberDeco.updateColorAtMultiplesOfFive(getColorCodeAtMultiplesOfFive),
-  LineNumberDeco.updateColorAtMultiplesOfFiveForUser(getColorCodeAtMultiplesOfFiveForUser),
-  LineNumberDeco.enableDiagnostics(() => updateEnableDiagnostics(true)),
-  LineNumberDeco.disableDiagnostics(() => updateEnableDiagnostics(false)),
-  LineNumberDeco.enableDiagnosticsForUser(() => updateEnableDiagnosticsForUser(true)),
-  LineNumberDeco.disableDiagnosticsForUser(() => updateEnableDiagnosticsForUser(false)),
-  LineNumberDeco.updateColorAtErrorLines(getColorCodeAtErrorLines),
-  LineNumberDeco.updateColorAtErrorLinesForUser(getColorCodeAtErrorLinesForUser),
-  LineNumberDeco.updateColorAtWarningLines(getColorCodeAtWarningLines),
-  LineNumberDeco.updateColorAtWarningLinesForUser(getColorCodeAtWarningLinesForUser),
-  LineNumberDeco.updateColorAtCenterOfRainbow(getColorCodeAtCenterOfRainbow),
-  LineNumberDeco.updateColorAtCenterOfRainbowForUser(getColorCodeAtCenterOfRainbowForUser),
-  LineNumberDeco.updateColorAtInactiveRowNumberForUser(getColorCodeAtInactiveRowNumberForUser),
-  LineNumberDeco.updateColorAtActiveRowNumberForUser(getColorCodeAtActiveRowNumberForUser),
-  LineNumberDeco.updateColorAtInactiveRowNumber(getColorCodeAtInactiveRowNumber),
-  LineNumberDeco.updateColorAtActiveRowNumber(getColorCodeAtActiveRowNumber),
+  LineNumberDeco.enableRelativeLineNumbers(() => updateSetting("enableRelativeLine", true, "workspace")),
+  LineNumberDeco.disableRelativeLineNumbers(() => updateSetting("enableRelativeLine", false, "workspace")),
+  LineNumberDeco.enableRelativeLineNumbersForUser(() => updateSetting("enableRelativeLine", true, "user")),
+  LineNumberDeco.disableRelativeLineNumbersForUser(() => updateSetting("enableRelativeLine", false, "user")),
+  LineNumberDeco.enableRainbow(() => updateSetting("enableRainbow", true, "workspace")),
+  LineNumberDeco.disableRainbow(() => updateSetting("enableRainbow", false, "workspace")),
+  LineNumberDeco.enableRainbowForUser(() => updateSetting("enableRainbow", true, "user")),
+  LineNumberDeco.disableRainbowForUser(() => updateSetting("enableRainbow", false, "user")),
+  LineNumberDeco.enableRepeatingDigits(() => updateSetting("enableRepeatingDigits", true, "workspace")),
+  LineNumberDeco.disableRepeatingDigits(() => updateSetting("enableRepeatingDigits", false, "workspace")),
+  LineNumberDeco.enableRepeatingDigitsForUser(() => updateSetting("enableRepeatingDigits", true, "user")),
+  LineNumberDeco.disableRepeatingDigitsForUser(() => updateSetting("enableRepeatingDigits", false, "user")),
+  LineNumberDeco.enableSequentialDigits(() => updateSetting("enableSequentialDigits", true, "workspace")),
+  LineNumberDeco.disableSequentialDigits(() => updateSetting("enableSequentialDigits", false, "workspace")),
+  LineNumberDeco.enableSequentialDigitsForUser(() => updateSetting("enableSequentialDigits", true, "user")),
+  LineNumberDeco.disableSequentialDigitsForUser(() => updateSetting("enableSequentialDigits", false, "user")),
+  LineNumberDeco.enableMultiplesOfFive(() => updateSetting("enableMultiplesOfFive", true, "workspace")),
+  LineNumberDeco.disableMultiplesOfFive(() => updateSetting("enableMultiplesOfFive", false, "workspace")),
+  LineNumberDeco.enableMultiplesOfFiveForUser(() => updateSetting("enableMultiplesOfFive", true, "user")),
+  LineNumberDeco.disableMultiplesOfFiveForUser(() => updateSetting("enableMultiplesOfFive", false, "user")),
+  LineNumberDeco.enableDiagnostics(() => updateSetting("enableDiagnostics", true, "workspace")),
+  LineNumberDeco.disableDiagnostics(() => updateSetting("enableDiagnostics", false, "workspace")),
+  LineNumberDeco.enableDiagnosticsForUser(() => updateSetting("enableDiagnostics", true, "user")),
+  LineNumberDeco.disableDiagnosticsForUser(() => updateSetting("enableDiagnostics", false, "user")),
+  ...colorCommands.flatMap(({ forWorkspace, forUser, setting, subject }) => [
+    forWorkspace(() => promptForColor(setting, subject, "workspace")),
+    forUser(() => promptForColor(setting, subject, "user")),
+  ]),
   LineNumberDeco.showSettingsPanel(showSettingsPanel),
   LineNumberDeco.hideSettingsPanel(hideSettingsPanel),
   LineNumberDeco.toggleSettingsPanel(toggleSettingsPanel),

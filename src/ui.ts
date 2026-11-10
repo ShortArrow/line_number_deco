@@ -1,17 +1,20 @@
 import * as vscode from "vscode";
-import { nameOfExtension } from "./config";
-import {
-    getColorAtCenterOfRainbow,
-    getColorAtActiveRowNumber,
-    getColorAtInactiveRowNumber,
-    getColorAtRepeatingDigits,
-    getColorAtSequentialDigits,
-    getColorAtMultiplesOfFive,
-    getColorAtErrorLines,
-    getColorAtWarningLines,
-    settingDefaults,
-} from "./config";
-    
+import { getConfig, nameOfExtension, Setting, settingDefaults } from "./config";
+
+/** Where a command writes: the user's settings or the open workspace's. */
+export type Scope = "user" | "workspace";
+
+/** The settings a command asks a color code for. */
+export type ColorSetting =
+  | "centerColorOfRainbow"
+  | "activeForeground"
+  | "foreground"
+  | "foregroundColorOfRepeatingDigits"
+  | "foregroundColorOfSequentialDigits"
+  | "foregroundColorOfMultiplesOfFive"
+  | "errorForeground"
+  | "warningForeground";
+
 const vsCodeGlobal = vscode.ConfigurationTarget
   .Global as vscode.ConfigurationTarget;
 
@@ -25,277 +28,62 @@ export async function updateWorkspaceConfig(key: string, set: any) {
   await extensionConfigs.update(key, set);
 }
 
-export async function updateEnableRainbowForWorkspace(set: boolean) {
-  await updateWorkspaceConfig("enableRainbow", set);
-}
-
-export async function updateEnableRainbowForUser(set: boolean) {
-  updateUserConfig("enableRainbow", set);
-}
-
-export async function updateColorAtCenterOfRainbow(set: string) {
-  updateWorkspaceConfig("centerColorOfRainbow", set);
-}
-
-export async function updateColorAtCenterOfRainbowForUser(set: string) {
-  updateUserConfig("centerColorOfRainbow", set);
-}
-
-export async function updateColorAtActiveRowNumber(set: string) {
-  updateWorkspaceConfig("activeForeground", set);
-}
-
-export async function updateColorAtActiveRowNumberForUser(set: string) {
-  updateUserConfig("activeForeground", set);
-}
-
-export async function updateColorAtInactiveRowNumber(set: string) {
-  updateWorkspaceConfig("foreground", set);
-}
-
-export async function updateColorAtInactiveRowNumberForUser(set: string) {
-  updateUserConfig("foreground", set);
-}
-
-export async function updateColorAtRepeatingDigits(set: string) {
-  updateWorkspaceConfig("foregroundColorOfRepeatingDigits", set);
-}
-
-export async function updateColorAtRepeatingDigitsForUser(set: string) {
-  updateUserConfig("foregroundColorOfRepeatingDigits", set);
-}
-
-export async function updateColorAtSequentialDigits(set: string) {
-  updateWorkspaceConfig("foregroundColorOfSequentialDigits", set);
-}
-
-export async function updateColorAtSequentialDigitsForUser(set: string) {
-  updateUserConfig("foregroundColorOfSequentialDigits", set);
-}
-
-export async function updateColorAtMultiplesOfFive(set: string) {
-  updateWorkspaceConfig("foregroundColorOfMultiplesOfFive", set);
-}
-
-export async function updateColorAtMultiplesOfFiveForUser(set: string) {
-  updateUserConfig("foregroundColorOfMultiplesOfFive", set);
-}
-
-export async function updateColorAtErrorLines(set: string) {
-  updateWorkspaceConfig("errorForeground", set);
-}
-
-export async function updateColorAtErrorLinesForUser(set: string) {
-  updateUserConfig("errorForeground", set);
-}
-
-export async function updateColorAtWarningLines(set: string) {
-  updateWorkspaceConfig("warningForeground", set);
-}
-
-export async function updateColorAtWarningLinesForUser(set: string) {
-  updateUserConfig("warningForeground", set);
-}
-
-async function getColorCode(
-  prompt: string,
-  defaultValue: string,
-  preValueGetter: () => string | undefined,
-  setter: (set: string) => Promise<void>
+/**
+ * Write one of this extension's settings to a scope, resolving once the write
+ * has landed, so a failed write is the caller's error.
+ */
+export async function updateSetting<K extends Setting>(
+  key: K,
+  value: (typeof settingDefaults)[K],
+  scope: Scope
 ) {
-  const preValue = preValueGetter() || defaultValue;
+  if (scope === "user") {
+    await updateUserConfig(key, value);
+  } else {
+    await updateWorkspaceConfig(key, value);
+  }
+}
+
+/** How a color prompt talks to the reader: VS Code's input box and notifications, or a test's stand-ins. */
+export interface PromptIo {
+  ask(options: vscode.InputBoxOptions): Thenable<string | undefined>;
+  tell(message: string): void;
+}
+
+const vsCodeIo: PromptIo = {
+  ask: (options) => vscode.window.showInputBox(options),
+  tell: (message) => {
+    void vscode.window.showInformationMessage(message);
+  },
+};
+
+/**
+ * Ask for a color code and write it to a scope.
+ *
+ * The box shows the saved value, or the default when nothing is saved.
+ * Dismissing it, or entering nothing or that same value, neither writes nor
+ * announces anything; a written color is announced once it has landed.
+ *
+ * @param key the color setting to write
+ * @param subject what the color paints, as the prompt names it
+ * @param scope where the color is written
+ * @param io how the prompt asks and tells, which a test answers in place of a reader
+ */
+export async function promptForColor(
+  key: ColorSetting,
+  subject: string,
+  scope: Scope,
+  io: PromptIo = vsCodeIo
+) {
+  const preValue = getConfig(key) || settingDefaults[key];
   const options: vscode.InputBoxOptions = {
-    prompt: prompt,
+    prompt: `Please input color code at ${subject}`,
     placeHolder: preValue,
   };
-  const result = (await vscode.window.showInputBox(options)) || preValue;
+  const result = (await io.ask(options)) || preValue;
   if (result === preValue || result === "") {
     return;
   }
-  await setter(result);
-  vscode.window.showInformationMessage(`Color is updated by, ${result}!`);
-}
-
-export async function getColorCodeAtRepeatingDigits() {
-  await getColorCode(
-    "Please input color code at repeating digits",
-    "",
-    getColorAtRepeatingDigits,
-    updateColorAtRepeatingDigits
-  );
-}
-
-export async function getColorCodeAtRepeatingDigitsForUser() {
-  await getColorCode(
-    "Please input color code at repeating digits",
-    "",
-    getColorAtRepeatingDigits,
-    updateColorAtRepeatingDigitsForUser
-  );
-}
-
-export async function getColorCodeAtSequentialDigits() {
-  await getColorCode(
-    "Please input color code at sequential digits",
-    "",
-    getColorAtSequentialDigits,
-    updateColorAtSequentialDigits
-  );
-}
-
-export async function getColorCodeAtSequentialDigitsForUser() {
-  await getColorCode(
-    "Please input color code at sequential digits",
-    "",
-    getColorAtSequentialDigits,
-    updateColorAtSequentialDigitsForUser
-  );
-}
-
-export async function getColorCodeAtMultiplesOfFive() {
-  await getColorCode(
-    "Please input color code at multiples of five",
-    "",
-    getColorAtMultiplesOfFive,
-    updateColorAtMultiplesOfFive
-  );
-}
-
-export async function getColorCodeAtMultiplesOfFiveForUser() {
-  await getColorCode(
-    "Please input color code at multiples of five",
-    "",
-    getColorAtMultiplesOfFive,
-    updateColorAtMultiplesOfFiveForUser
-  );
-}
-
-export async function getColorCodeAtErrorLines() {
-  await getColorCode(
-    "Please input color code at error lines",
-    "",
-    getColorAtErrorLines,
-    updateColorAtErrorLines
-  );
-}
-
-export async function getColorCodeAtErrorLinesForUser() {
-  await getColorCode(
-    "Please input color code at error lines",
-    "",
-    getColorAtErrorLines,
-    updateColorAtErrorLinesForUser
-  );
-}
-
-export async function getColorCodeAtWarningLines() {
-  await getColorCode(
-    "Please input color code at warning lines",
-    "",
-    getColorAtWarningLines,
-    updateColorAtWarningLines
-  );
-}
-
-export async function getColorCodeAtWarningLinesForUser() {
-  await getColorCode(
-    "Please input color code at warning lines",
-    "",
-    getColorAtWarningLines,
-    updateColorAtWarningLinesForUser
-  );
-}
-
-export async function getColorCodeAtCenterOfRainbow() {
-  await getColorCode(
-    "Please input color code at center of rainbow",
-    settingDefaults.centerColorOfRainbow,
-    getColorAtCenterOfRainbow,
-    updateColorAtCenterOfRainbow
-  );
-}
-
-export async function getColorCodeAtCenterOfRainbowForUser() {
-  await getColorCode(
-    "Please input color code at center of rainbow",
-    settingDefaults.centerColorOfRainbow,
-    getColorAtCenterOfRainbow,
-    updateColorAtCenterOfRainbowForUser
-  );
-}
-
-export async function getColorCodeAtActiveRowNumber() {
-  await getColorCode(
-    "Please input color code at active row number",
-    "",
-    getColorAtActiveRowNumber,
-    updateColorAtActiveRowNumber
-  );
-}
-
-export async function getColorCodeAtActiveRowNumberForUser() {
-  await getColorCode(
-    "Please input color code at active row number",
-    "",
-    getColorAtActiveRowNumber,
-    updateColorAtActiveRowNumberForUser
-  );
-}
-
-export async function getColorCodeAtInactiveRowNumber() {
-  await getColorCode(
-    "Please input color code at active row number",
-    "",
-    getColorAtInactiveRowNumber,
-    updateColorAtInactiveRowNumber
-  );
-}
-
-export async function getColorCodeAtInactiveRowNumberForUser() {
-  await getColorCode(
-    "Please input color code at active row number",
-    "",
-    getColorAtInactiveRowNumber,
-    updateColorAtInactiveRowNumberForUser
-  );
-}
-
-export async function updateEnableRelativeLine(set: boolean) {
-  updateWorkspaceConfig("enableRelativeLine", set);
-}
-
-export async function updateEnableRelativeLineForUser(set: boolean) {
-  updateUserConfig("enableRelativeLine", set);
-}
-
-export async function updateEnableRepeatingDigits(set: boolean) {
-  updateWorkspaceConfig("enableRepeatingDigits", set);
-}
-
-export async function updateEnableRepeatingDigitsForUser(set: boolean) {
-  updateUserConfig("enableRepeatingDigits", set);
-}
-
-export async function updateEnableSequentialDigits(set: boolean) {
-  updateWorkspaceConfig("enableSequentialDigits", set);
-}
-
-export async function updateEnableSequentialDigitsForUser(set: boolean) {
-  updateUserConfig("enableSequentialDigits", set);
-}
-
-export async function updateEnableMultiplesOfFive(set: boolean) {
-  updateWorkspaceConfig("enableMultiplesOfFive", set);
-}
-
-export async function updateEnableMultiplesOfFiveForUser(set: boolean) {
-  updateUserConfig("enableMultiplesOfFive", set);
-}
-
-export async function updateEnableDiagnostics(set: boolean) {
-  updateWorkspaceConfig("enableDiagnostics", set);
-}
-
-export async function updateEnableDiagnosticsForUser(set: boolean) {
-  updateUserConfig("enableDiagnostics", set);
+  await updateSetting(key, result, scope);
+  io.tell(`Color is updated by, ${result}!`);
 }

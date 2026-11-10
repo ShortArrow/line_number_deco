@@ -1,0 +1,45 @@
+name: Test
+
+# Runs the unit tests and lint on every pull request, on the same three OSes
+# the release tests on, so a change that breaks them on one platform fails
+# here instead of in the release workflow after the tag is pushed.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Test (Linux, under Xvfb)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a pnpm test
+
+      - name: Test
+        if: runner.os != 'Linux'
+        run: pnpm test
