@@ -70,6 +70,8 @@ A pull request that changes what a user sees, or clears a dependency advisory, a
 
 Releases are driven by a signed `v*` tag pushed to `main`; `.github/workflows/release.yml` does the rest in five jobs.
 
+Before tagging, rename the `## Unreleased` heading at the end of `CHANGELOG.md` to `## X.Y.Z`, the same version as `package.json`, and add an empty `## Unreleased` section only when the next change lands.
+
 1. `test` runs on ubuntu, windows and macos. It first fails the release if the tag's `X.Y.Z` disagrees with `version` in `package.json`, then refuses a version number either registry already carries, then runs `pnpm test`.
 2. `build` packages the artifact with `pnpm exec vsce package --no-dependencies` and uploads the `.vsix`.
 3. `smoke` checks out only `smoke/` — sparse, so no other copy of the extension exists on the runner — and runs the structural check, the negative control and the activation smoke against the uploaded artifact.

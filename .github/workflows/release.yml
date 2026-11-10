@@ -55,6 +55,27 @@ jobs:
             exit 1
           fi
 
+      # CHANGELOG.md ships in the VSIX and is the Marketplace's Changelog tab,
+      # so a release must not go out under an "Unreleased" heading.
+      - name: Check CHANGELOG has this version
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$tag" != "${tag%%-*}" ]; then
+            echo "pre-release v$tag: CHANGELOG.md is not checked"
+            exit 0
+          fi
+          headings="$(tr -d '\r' < CHANGELOG.md | grep '^## ' || true)"
+          if ! grep -qxF "## $tag" <<< "$headings"; then
+            echo "::error::CHANGELOG.md has no '## $tag' heading"
+            exit 1
+          fi
+          if grep -qxF '## Unreleased' <<< "$headings"; then
+            echo "::error::CHANGELOG.md still has an '## Unreleased' heading; rename it to '## $tag'"
+            exit 1
+          fi
+
       - run: pnpm install --frozen-lockfile
 
       - name: Refuse a version the Marketplace already has
