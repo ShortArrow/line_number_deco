@@ -40,7 +40,9 @@ pnpm coverage
 
 The panel's browser script under `src/webview/` runs in a webview, not in the extension host, so it is left out rather than reported as uncovered. The suite itself, and the generated and generator code under `src/generated/` and `src/generater/`, are left out as well.
 
-A line that follows an `await` which rejects reads as uncovered even though the call ran: the test instance opens no folder, so the workspace branch of `updateSetting` in `src/ui.ts` shows its closing lines as missed.
+A line that follows an `await` which rejects reads as uncovered even though the call ran.
+
+The `% Funcs` column does not count every function. `src/extension.ts` passes more than a dozen arrow callbacks to VS Code, the column counts four of them, and the bodies of the callbacks no test fires show up only in `Uncovered Line #s`. Read missed functions from the lines, not from that column.
 
 ## Regenerate the reference documents
 
