@@ -33,8 +33,12 @@ export { isRepeatingDigits, isSequentialDigits } from "./decorations";
  * Read every setting the decoration computation depends on, preview-aware,
  * together with the editor's current cursor line.
  * @param editor the editor whose cursor line is the origin of relative numbers
+ * @param diagnosticOpacity where error and warning lines are in their pulse, or undefined while nothing pulses
  */
-export function readDecorationSettings(editor: vscode.TextEditor): DecorationSettings {
+export function readDecorationSettings(
+  editor: vscode.TextEditor,
+  diagnosticOpacity?: number
+): DecorationSettings {
   return {
     enableRelativeLine: getEnableRelativeLine(),
     activeLineNumber: editor.selection.active.line,
@@ -52,6 +56,7 @@ export function readDecorationSettings(editor: vscode.TextEditor): DecorationSet
     enableDiagnostics: getEnableDiagnostics(),
     errorColor: getErrorLineNumberColor(),
     warningColor: getWarningLineNumberColor(),
+    diagnosticOpacity,
   };
 }
 
@@ -96,7 +101,7 @@ export function toDecorationOptions(
   labelWidth: number
 ): vscode.DecorationOptions[] {
   const decorations: vscode.DecorationOptions[] = [];
-  for (const { lineIndex, label, color } of specs) {
+  for (const { lineIndex, label, color, opacity } of specs) {
     try {
       const lineRange = document.lineAt(lineIndex).range;
 
@@ -106,7 +111,7 @@ export function toDecorationOptions(
         align: "right",
         contentText: label,
         color,
-        textDecoration: lineNumberCss,
+        textDecoration: opacity === undefined ? lineNumberCss : `${lineNumberCss} opacity: ${opacity};`,
         fontWeight: "bold",
       } as vscode.DecorationInstanceRenderOptions;
       const lineNumberAreaStyle: vscode.DecorationInstanceRenderOptions = {
@@ -140,11 +145,13 @@ export function editorVisibleLineIndexes(editor: vscode.TextEditor): number[] {
  * update relative line numbers
  * @param editor
  * @param decorationType
+ * @param diagnosticOpacity where error and warning lines are in their pulse, or undefined while nothing pulses
  * @returns void
  */
 export async function updateRelativeLineNumbers(
   editor: vscode.TextEditor | undefined,
-  decorationType: vscode.TextEditorDecorationType
+  decorationType: vscode.TextEditorDecorationType,
+  diagnosticOpacity?: number
 ) {
   if (!editor) {
     return;
@@ -153,6 +160,6 @@ export async function updateRelativeLineNumbers(
   const labelWidth = document.lineCount.toString().length;
   const lineIndexes = editorVisibleLineIndexes(editor);
   const diagnosticMarks = readDiagnosticMarks(document.uri);
-  const specs = buildLineDecorationSpecs(lineIndexes, readDecorationSettings(editor), diagnosticMarks);
+  const specs = buildLineDecorationSpecs(lineIndexes, readDecorationSettings(editor, diagnosticOpacity), diagnosticMarks);
   editor.setDecorations(decorationType, toDecorationOptions(specs, document, labelWidth));
 }

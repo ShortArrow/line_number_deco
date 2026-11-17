@@ -20,7 +20,7 @@ Relative line numbers appear beside the absolute ones, following the cursor as i
 ![Relative numbers following the cursor](./images/Animation.gif)
 ![Relative and absolute numbers side by side](./images/static_image.png)
 
-Five optional decorations color the numbers further. The rainbow colors each number by its distance from the cursor. Repeating digits gives numbers whose digits all repeat (11, 22, 333) their own color. Sequential digits does the same for runs of consecutive digits (123, 543, 10). Multiples of five colors every fifth number from the cursor (5, 10, 15), so jump counts read at a glance. Diagnostics paints the numbers of lines carrying an error or a warning.
+Five optional decorations color the numbers further. The rainbow colors each number by its distance from the cursor. Repeating digits gives numbers whose digits all repeat (11, 22, 333) their own color. Sequential digits does the same for runs of consecutive digits (123, 543, 10). Multiples of five colors every fifth number from the cursor (5, 10, 15), so jump counts read at a glance. Diagnostics paints the numbers of lines carrying an error or a warning, and with `pulseDiagnostics` on those numbers slowly brighten and dim, once every 1.6 seconds, unless `workbench.reduceMotion` is on.
 
 ## Settings panel
 
