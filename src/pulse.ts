@@ -8,13 +8,15 @@ const DIMMEST_OPACITY = 0.55;
  * The opacity a pulsing line number has at a moment of its breath.
  *
  * A cosine, so the number eases in and out of its dimmest point instead of
- * stepping, starting and ending each period fully opaque.
+ * stepping, starting and ending each period fully opaque. It is rounded to
+ * hundredths, so successive frames repeat the styles they have drawn before.
  *
  * @param elapsedMs time since the pulse started
  */
 export function pulseOpacity(elapsedMs: number): number {
   const phase = (2 * Math.PI * elapsedMs) / PULSE_PERIOD_MS;
-  return DIMMEST_OPACITY + ((1 - DIMMEST_OPACITY) * (1 + Math.cos(phase))) / 2;
+  const opacity = DIMMEST_OPACITY + ((1 - DIMMEST_OPACITY) * (1 + Math.cos(phase))) / 2;
+  return Math.round(opacity * 100) / 100;
 }
 
 /**

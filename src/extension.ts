@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { ColorSetting, promptForColor, updateSetting } from "./ui";
-import { updateRelativeLineNumbers } from "./core";
+import { readDiagnosticMarks, updateRelativeLineNumbers } from "./core";
 import {
   hideSettingsPanel,
   registerColorPanel,
@@ -57,7 +57,7 @@ function paint(editor: vscode.TextEditor) {
 /** Advance the pulse in the editors that have something to pulse. */
 function paintPulsingEditors() {
   for (const editor of vscode.window.visibleTextEditors) {
-    if (vscode.languages.getDiagnostics(editor.document.uri).length > 0) {
+    if (readDiagnosticMarks(editor.document.uri).size > 0) {
       paint(editor);
     }
   }
