@@ -20,9 +20,11 @@ Install the root dependencies with `pnpm install`. Each harness is installed sep
 pnpm test
 ```
 
-The `test` script runs `pretest` first, which is `pnpm run clean && pnpm run compile && pnpm run lint` — `rimraf ./out`, then the three steps of `compile`, then `eslint src --ext ts`. It then launches `node ./out/test/runTest.js`, which downloads a VS Code build and runs the Mocha suite inside it. Compiled JavaScript lands in `out/`, so `out/test/` holds the suite, `out/generated/generated.js` the command table the extension imports at runtime, and `out/generated/webviewAssets.js` the bundled panel script and stylesheet.
+The `test` script runs `pretest` first, which is `pnpm run clean && pnpm run compile && pnpm run lint` — `rimraf ./out`, then the steps of `compile`, then `eslint src --ext ts`. It then launches `node ./out/test/runTest.js`, which downloads a VS Code build and runs the Mocha suite inside it. Compiled JavaScript lands in `out/`, so `out/test/` holds the suite, `out/generated/generated.js` the command table the extension imports at runtime, and `out/generated/webviewAssets.js` the bundled panel script and stylesheet.
 
-`compile` is `node scripts/bundle-webview.mjs && tsc -p src/webview --noEmit && tsc -p ./`. The bundling step runs esbuild over `src/webview/panel.ts` and `src/webview/panel.css` and writes `src/generated/webviewAssets.ts`, which `src/panelHtml.ts` imports. That file is gitignored and produced by the build, so it has to exist before either tsc pass. The first pass typechecks the webview against DOM types under `src/webview/tsconfig.json` and emits nothing; the second builds the extension itself.
+`compile` is `pnpm run compile:unminified && node scripts/minify-out.mjs`, and `compile:unminified` is `node scripts/bundle-webview.mjs && tsc -p src/webview --noEmit && tsc -p ./`. The bundling step runs esbuild over `src/webview/panel.ts` and `src/webview/panel.css` and writes `src/generated/webviewAssets.ts`, which `src/panelHtml.ts` imports. That file is gitignored and produced by the build, so it has to exist before either tsc pass. The first pass typechecks the webview against DOM types under `src/webview/tsconfig.json` and emits nothing; the second builds the extension itself.
+
+`scripts/minify-out.mjs` then minifies each module under `out/` and `out/generated/` in place with esbuild, leaving `out/test/` readable. Each module stays its own file, because tests import modules such as `out/panel.js` and have to share their state with the running extension. esbuild reads tsc's source maps and writes ones that still point at `src/`. `src/test/minified.test.ts` checks that the modules the extension host loaded are minified, so the rest of the suite runs against the code that ships.
 
 `pnpm watch` runs `tsc -watch -p ./` alone, so it re-emits the extension but does not re-bundle. An edit to `src/webview/panel.ts` or `src/webview/panel.css` reaches the panel only after a `pnpm compile`.
 
@@ -36,7 +38,7 @@ To compile without testing, run `pnpm compile`. `pnpm package` is an alias for t
 pnpm coverage
 ```
 
-`coverage` runs the same suite as `test` under c8. c8 sets `NODE_V8_COVERAGE`, VS Code passes it down to the extension host, and the host writes V8's coverage when it exits; c8 then maps `out/*.js` back to `src/*.ts` through the source maps. It prints a table per file and writes an HTML report to `coverage/index.html`. `.c8rc.json` decides which files count.
+`coverage` runs the same suite as `test` under c8, built with `compile:unminified` so that each source line keeps a line of its own to be counted against; the minify checks are pending in that run. c8 sets `NODE_V8_COVERAGE`, VS Code passes it down to the extension host, and the host writes V8's coverage when it exits; c8 then maps `out/*.js` back to `src/*.ts` through the source maps. It prints a table per file and writes an HTML report to `coverage/index.html`. `.c8rc.json` decides which files count.
 
 The panel's browser script under `src/webview/` runs in a webview, not in the extension host, so it is left out rather than reported as uncovered. The suite itself, and the generated and generator code under `src/generated/` and `src/generater/`, are left out as well.
 
