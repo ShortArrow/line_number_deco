@@ -30,6 +30,18 @@ On Linux the suite needs a display; CI runs it as `xvfb-run -a pnpm test`.
 
 To compile without testing, run `pnpm compile`. `pnpm package` is an alias for the compile step that `vsce` calls through `vscode:prepublish`.
 
+## Measure test coverage
+
+```bash
+pnpm coverage
+```
+
+`coverage` runs the same suite as `test` under c8. c8 sets `NODE_V8_COVERAGE`, VS Code passes it down to the extension host, and the host writes V8's coverage when it exits; c8 then maps `out/*.js` back to `src/*.ts` through the source maps. It prints a table per file and writes an HTML report to `coverage/index.html`. `.c8rc.json` decides which files count.
+
+The panel's browser script under `src/webview/` runs in a webview, not in the extension host, so it is left out rather than reported as uncovered. The suite itself, and the generated and generator code under `src/generated/` and `src/generater/`, are left out as well.
+
+A line that follows an `await` which rejects reads as uncovered even though the call ran: the test instance opens no folder, so the workspace branch of `updateSetting` in `src/ui.ts` shows its closing lines as missed.
+
 ## Regenerate the reference documents
 
 ```bash

@@ -1,0 +1,7 @@
+{
+  "include": ["src/**"],
+  "exclude": ["src/test/**", "src/generated/**", "src/generater/**", "src/webview/**"],
+  "excludeAfterRemap": true,
+  "reporter": ["text", "html"],
+  "reportsDirectory": "coverage"
+}

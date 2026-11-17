@@ -21,3 +21,5 @@ images/panel.png
 images/icon.svg
 scripts/**
 .claude/**
+coverage/**
+.c8rc.json
