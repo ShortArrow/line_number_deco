@@ -15,6 +15,8 @@ export interface LineDecorationSpec {
   lineIndex: number;
   label: string;
   color: LineColor;
+  /** How opaque to draw the number, or undefined for fully; set only on a pulsing diagnostic line. */
+  opacity?: number;
 }
 
 /** Everything the computation reads, lifted out of the configuration. */
@@ -36,6 +38,8 @@ export interface DecorationSettings {
   enableDiagnostics: boolean;
   errorColor: LineColor;
   warningColor: LineColor;
+  /** The opacity error and warning lines are drawn at this moment of their pulse, or undefined while nothing pulses. */
+  diagnosticOpacity: number | undefined;
 }
 
 /** The worst diagnostic a line carries, among the two severities that color it. */
@@ -222,14 +226,10 @@ export function buildLineDecorationSpecs(
     const label = isCurrentLine
       ? String(settings.activeLineNumber + 1)
       : String(distance);
-    const color = colorOfLine(
-      label,
-      distance,
-      isCurrentLine,
-      diagnosticSeverities.get(lineIndex),
-      settings
-    );
-    specs.push({ lineIndex, label, color });
+    const mark = diagnosticSeverities.get(lineIndex);
+    const color = colorOfLine(label, distance, isCurrentLine, mark, settings);
+    const pulses = settings.enableDiagnostics && mark !== undefined && settings.diagnosticOpacity !== undefined;
+    specs.push(pulses ? { lineIndex, label, color, opacity: settings.diagnosticOpacity } : { lineIndex, label, color });
   }
   return specs;
 }

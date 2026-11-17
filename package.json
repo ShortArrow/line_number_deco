@@ -319,6 +319,11 @@
           "format": "color",
           "default": "",
           "description": "Color of line numbers on warning lines; empty uses the theme color"
+        },
+        "LineNumberDeco.pulseDiagnostics": {
+          "type": "boolean",
+          "default": false,
+          "description": "Let the line numbers of error and warning lines slowly brighten and dim while diagnostics are colored; stops when workbench.reduceMotion is on"
         }
       }
     },

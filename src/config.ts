@@ -23,6 +23,7 @@ export const settingDefaults = {
   enableDiagnostics: false,
   errorForeground: "",
   warningForeground: "",
+  pulseDiagnostics: false,
 };
 
 export type Setting = keyof typeof settingDefaults;
@@ -147,6 +148,18 @@ export function getEnableDiagnostics() {
     getPreviewToggle("enableDiagnostics") ??
     getConfig("enableDiagnostics")
   );
+}
+
+export function getPulseDiagnostics() {
+  return (
+    getPreviewToggle("pulseDiagnostics") ??
+    getConfig("pulseDiagnostics")
+  );
+}
+
+/** VS Code's own `workbench.reduceMotion`: "on", "off" or "auto". */
+export function getReduceMotion(): string {
+  return vscode.workspace.getConfiguration("workbench").get("reduceMotion", "auto");
 }
 
 export function getErrorLineNumberColor() {

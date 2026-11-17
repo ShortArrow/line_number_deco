@@ -42,6 +42,7 @@ const toggles: { key: string; label: string }[] = [
   { key: "enableSequentialDigits", label: "Sequential digits" },
   { key: "enableMultiplesOfFive", label: "Multiples of five" },
   { key: "enableDiagnostics", label: "Diagnostics" },
+  { key: "pulseDiagnostics", label: "Pulse diagnostics" },
 ];
 
 /**

@@ -8,6 +8,8 @@ import {
   toggleSettingsPanel,
 } from "./panel";
 import { throttleTrailing } from "./throttle";
+import { isPulseActive, pulseOpacity } from "./pulse";
+import { getEnableDiagnostics, getPulseDiagnostics, getReduceMotion, nameOfExtension } from "./config";
 import { LineNumberDeco } from "./generated/generated";
 
 const decorationType = vscode.window.createTextEditorDecorationType({});
@@ -28,7 +30,7 @@ function scheduleUpdate(editor: vscode.TextEditor | undefined) {
   if (!throttled) {
     throttled = throttleTrailing((target: vscode.TextEditor) => {
       if (vscode.window.visibleTextEditors.includes(target)) {
-        updateRelativeLineNumbers(target, decorationType);
+        paint(target);
       }
     }, UPDATE_DELAY_MS);
     editorThrottles.set(editor, throttled);
@@ -36,10 +38,52 @@ function scheduleUpdate(editor: vscode.TextEditor | undefined) {
   throttled(editor);
 }
 
+/**
+ * Ten frames a second: a breath in sixteen steps, smooth enough to ease, for
+ * one decoration update per frame in each visible editor with an error or warning.
+ */
+const PULSE_FRAME_MS = 100;
+let pulse: { startedAt: number; timer: ReturnType<typeof setInterval> } | undefined;
+
+/** Where error and warning lines are in their pulse now, or undefined while nothing pulses. */
+function diagnosticOpacityNow(): number | undefined {
+  return pulse === undefined ? undefined : pulseOpacity(Date.now() - pulse.startedAt);
+}
+
+function paint(editor: vscode.TextEditor) {
+  updateRelativeLineNumbers(editor, decorationType, diagnosticOpacityNow());
+}
+
+/** Advance the pulse in the editors that have something to pulse. */
+function paintPulsingEditors() {
+  for (const editor of vscode.window.visibleTextEditors) {
+    if (vscode.languages.getDiagnostics(editor.document.uri).length > 0) {
+      paint(editor);
+    }
+  }
+}
+
+function stopPulse() {
+  if (pulse !== undefined) {
+    clearInterval(pulse.timer);
+    pulse = undefined;
+  }
+}
+
+/** Start or stop the pulse to match the settings, previews included. */
+function syncPulse() {
+  if (!(getEnableDiagnostics() && isPulseActive(getPulseDiagnostics(), getReduceMotion()))) {
+    stopPulse();
+  } else if (pulse === undefined) {
+    pulse = { startedAt: Date.now(), timer: setInterval(paintPulsingEditors, PULSE_FRAME_MS) };
+  }
+}
+
 /** Redraw every visible editor at once, bypassing the per-editor throttle. */
 function refreshVisibleEditors() {
+  syncPulse();
   for (const editor of vscode.window.visibleTextEditors) {
-    updateRelativeLineNumbers(editor, decorationType);
+    paint(editor);
   }
 }
 
@@ -84,12 +128,18 @@ const commands = [
   }),
   vscode.window.onDidChangeVisibleTextEditors((editors) => {
     for (const editor of editors) {
-      updateRelativeLineNumbers(editor, decorationType);
+      paint(editor);
     }
   }),
   // The rainbow is held to a contrast against the theme kind's background,
   // so a theme switch has to repaint it.
   vscode.window.onDidChangeActiveColorTheme(() => refreshVisibleEditors()),
+  vscode.workspace.onDidChangeConfiguration((event) => {
+    if (event.affectsConfiguration(nameOfExtension) || event.affectsConfiguration("workbench.reduceMotion")) {
+      refreshVisibleEditors();
+    }
+  }),
+  new vscode.Disposable(stopPulse),
   vscode.languages.onDidChangeDiagnostics((event) => {
     // A language server reports for documents nobody is looking at, so the
     // changed uris decide whether anything on screen could have moved.

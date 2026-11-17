@@ -22,6 +22,7 @@ const toggleKeys = [
   'enableSequentialDigits',
   'enableMultiplesOfFive',
   'enableDiagnostics',
+  'pulseDiagnostics',
 ];
 
 describe('Test color panel view', () => {
