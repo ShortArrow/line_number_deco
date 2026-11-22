@@ -39,6 +39,7 @@ const settingsWith = (overrides: Partial<DecorationSettings> = {}): DecorationSe
   enableDiagnostics: false,
   errorColor,
   warningColor,
+  diagnosticOpacity: undefined,
   ...overrides,
 });
 

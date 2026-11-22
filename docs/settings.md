@@ -19,3 +19,4 @@ Every configuration key of the extension. All of them are also editable from the
 | `LineNumberDeco.enableDiagnostics` | boolean | `false` | Color line numbers on lines with errors or warnings |
 | `LineNumberDeco.errorForeground` | color | (theme color) | Color of line numbers on error lines; empty uses the theme color |
 | `LineNumberDeco.warningForeground` | color | (theme color) | Color of line numbers on warning lines; empty uses the theme color |
+| `LineNumberDeco.pulseDiagnostics` | boolean | `false` | Let the line numbers of error and warning lines slowly brighten and dim while diagnostics are colored; stops when workbench.reduceMotion is on |
