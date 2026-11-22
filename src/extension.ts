@@ -129,9 +129,11 @@ const colorCommands: {
 
 const commands = [
   vscode.workspace.onDidChangeTextDocument((e) => {
-    if (e.document === vscode.window.activeTextEditor?.document) {
-      // Update only if the change occurred in the currently active editor's document
-      scheduleUpdate(vscode.window.activeTextEditor);
+    // Every view of the document moves with the edit, not only the one typed in.
+    for (const editor of vscode.window.visibleTextEditors) {
+      if (editor.document === e.document) {
+        scheduleUpdate(editor);
+      }
     }
   }),
   vscode.window.onDidChangeTextEditorSelection((e) => {

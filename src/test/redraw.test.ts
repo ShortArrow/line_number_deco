@@ -31,15 +31,20 @@ async function afterSettling(trigger: () => Thenable<unknown> | void): Promise<v
   await trigger();
 }
 
-/** The last redraw of the document's editor once the trigger has run, failing if none comes. */
-async function redrawOf(document: vscode.TextDocument, trigger: () => Thenable<unknown> | void, what: string): Promise<Paint> {
+/**
+ * The last redraw of the target once the trigger has run, failing if none comes.
+ * A document stands for whichever editor shows it; an editor, for itself alone,
+ * when the document is shown in more than one.
+ */
+async function redrawOf(target: vscode.TextDocument | vscode.TextEditor, trigger: () => Thenable<unknown> | void, what: string): Promise<Paint> {
+  const isTarget = (p: Paint) => p.editor === target || p.editor.document === target;
   await afterSettling(trigger);
   const deadline = Date.now() + WAIT_MS;
-  while (Date.now() < deadline && !paints.some((p) => p.editor.document === document)) {
+  while (Date.now() < deadline && !paints.some(isTarget)) {
     await sleep(50);
   }
   await sleep(SETTLE_MS);
-  const own = paints.filter((p) => p.editor.document === document);
+  const own = paints.filter(isTarget);
   assert.ok(own.length > 0, `${what} did not redraw the editor`);
   return own[own.length - 1];
 }
@@ -137,6 +142,17 @@ describe('Test the redraws of the events the extension subscribes to', () => {
       const paint = await redrawOf(editor.document, () => editor.edit((edit) => edit.insert(new vscode.Position(3, 0), '\n')), 'an edit');
       assert.strictEqual(editor.document.lineCount, 1000);
       assertDrawnFor(paint, editor);
+    });
+
+    // One file split into two views, typing in one: the other shows the same
+    // lines, so it must follow the edit too, though its cursor and view stay
+    // where they were.
+    it('Must redraw the other view of a split file for an edit in one, widening its column too', async () => {
+      const typed = await openEditor(999);
+      const beside = await vscode.window.showTextDocument(typed.document, { viewColumn: vscode.ViewColumn.Two, preserveFocus: true });
+      assert.notStrictEqual(beside, typed);
+      const paint = await redrawOf(beside, () => typed.edit((edit) => edit.insert(new vscode.Position(3, 0), '\n')), 'an edit in the other view');
+      assertDrawnFor(paint, beside);
     });
 
     // Moving the cursor with a click or an arrow key: every label is a distance
