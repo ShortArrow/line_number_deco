@@ -1,51 +1,117 @@
 import * as assert from 'assert';
 import { describe, it, before, after, afterEach } from 'mocha';
 import * as vscode from 'vscode';
-import { onDidPaint } from '../extension';
+import { onDidPaint, Paint } from '../extension';
+import { contrastRatio } from '../colors';
+import { rainbowBackgroundOf } from '../decorations';
 
-// Each event the extension subscribes to must end in a redraw of the editor it
-// concerns. A redraw is observed through the onDidPaint event the extension
-// module exports, since a TextEditor's decorations cannot be read back. The
-// module has to be the instance VS Code activated, not a second copy.
+// Each event the extension subscribes to must redraw the editors it concerns,
+// with line numbers that are right for the editor as it is after the event,
+// and must leave every other editor alone. Redraws are observed through the
+// onDidPaint event the extension module exports, since a TextEditor's
+// decorations cannot be read back. The module has to be the instance VS Code
+// activated, not a second copy.
 
+/** How long a redraw that should happen may take: far above the 16 ms throttle. */
 const WAIT_MS = 5000;
 /** Longer than the per-editor throttle, so the redraws of the setup have landed. */
 const SETTLE_MS = 200;
+/** How long to watch for a redraw that must not happen, thirty times the throttle. */
+const QUIET_MS = 500;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-let painted: vscode.TextEditor[] = [];
+let paints: Paint[] = [];
 let subscription: vscode.Disposable | undefined;
 
-/** Clear what was painted so far, run the trigger, and wait for a redraw of the editor. */
-async function redrawnBy(editor: () => vscode.TextEditor | undefined, trigger: () => Thenable<unknown> | void): Promise<boolean> {
+/** Let the setup's redraws land, then collect only what the trigger causes. */
+async function afterSettling(trigger: () => Thenable<unknown> | void): Promise<void> {
   await sleep(SETTLE_MS);
-  painted = [];
+  paints = [];
   await trigger();
+}
+
+/** The last redraw of the document's editor once the trigger has run, failing if none comes. */
+async function redrawOf(document: vscode.TextDocument, trigger: () => Thenable<unknown> | void, what: string): Promise<Paint> {
+  await afterSettling(trigger);
   const deadline = Date.now() + WAIT_MS;
-  while (Date.now() < deadline) {
-    const target = editor();
-    if (target && painted.some((p) => p.document === target.document)) {
-      return true;
-    }
+  while (Date.now() < deadline && !paints.some((p) => p.editor.document === document)) {
     await sleep(50);
   }
-  return false;
+  await sleep(SETTLE_MS);
+  const own = paints.filter((p) => p.editor.document === document);
+  assert.ok(own.length > 0, `${what} did not redraw the editor`);
+  return own[own.length - 1];
 }
 
-async function openEditor(lines: number, column = vscode.ViewColumn.One, preserveFocus = false): Promise<vscode.TextEditor> {
-  const content = Array.from({ length: lines }, (_, i) => `line ${i + 1}`).join('\n');
-  const document = await vscode.workspace.openTextDocument({ content });
-  return vscode.window.showTextDocument(document, { viewColumn: column, preserveFocus });
+/** The documents redrawn while the trigger runs and for QUIET_MS after it. */
+async function documentsRedrawnBy(trigger: () => Thenable<unknown> | void): Promise<Set<vscode.TextDocument>> {
+  await afterSettling(trigger);
+  await sleep(QUIET_MS);
+  return new Set(paints.map((p) => p.editor.document));
 }
 
-describe('Test the redraw each subscribed event starts', () => {
+/** Lines of one width, so an edit above the last visible line cannot move the visible ranges. */
+async function openDocument(lines: number): Promise<vscode.TextDocument> {
+  return vscode.workspace.openTextDocument({ content: Array(lines).fill('xxxxxxxxxx').join('\n') });
+}
+
+async function openEditor(lines: number, viewColumn = vscode.ViewColumn.One, preserveFocus = false): Promise<vscode.TextEditor> {
+  return vscode.window.showTextDocument(await openDocument(lines), { viewColumn, preserveFocus });
+}
+
+/** The editor that now shows the document, since showing it again may hand back a new object. */
+function editorOf(document: vscode.TextDocument): vscode.TextEditor {
+  const editor = vscode.window.visibleTextEditors.find((e) => e.document === document);
+  assert.ok(editor, 'the document is not visible');
+  return editor;
+}
+
+/**
+ * Check a redraw against the editor as it stands: one decoration per visible
+ * line plus the line below each visible range, labelled with the distance to
+ * the cursor line and the cursor line with its own number, all in a column as
+ * wide as the line count's digits.
+ */
+function assertDrawnFor(paint: Paint, editor: vscode.TextEditor): void {
+  const lineCount = editor.document.lineCount;
+  const active = editor.selection.active.line;
+  const expectedLines = new Set<number>();
+  for (const range of editor.visibleRanges) {
+    for (let line = range.start.line; line <= Math.min(lineCount - 1, range.end.line + 1); line++) {
+      expectedLines.add(line);
+    }
+  }
+  const drawn = paint.decorations.map((d) => d.range.start.line);
+  assert.deepStrictEqual(drawn, [...expectedLines].sort((a, b) => a - b), 'the redraw does not cover exactly the visible lines');
+  const width = `${String(lineCount).length / 2 + 0.5}em`;
+  for (const decoration of paint.decorations) {
+    const line = decoration.range.start.line;
+    const label = line === active ? String(active + 1) : String(Math.abs(line - active));
+    assert.strictEqual(decoration.renderOptions?.before?.contentText, label, `line ${line} is labelled wrongly`);
+    assert.strictEqual(decoration.renderOptions?.before?.width, width, `line ${line} has the wrong column width`);
+  }
+}
+
+/** Change a user setting for the body, which may change it again, and put it back afterwards. */
+async function withSetting<T>(section: string, key: string, value: unknown, body: (set: (value: unknown) => Thenable<void>) => Promise<T>): Promise<T> {
+  const config = () => vscode.workspace.getConfiguration(section);
+  const set = (next: unknown) => config().update(key, next, vscode.ConfigurationTarget.Global);
+  const previous = config().inspect(key)?.globalValue;
+  await set(value);
+  try {
+    return await body(set);
+  } finally {
+    await set(previous);
+  }
+}
+
+describe('Test the redraws of the events the extension subscribes to', () => {
   before(async () => {
-    const extension = vscode.extensions.getExtension('ShortArrow.line-number-deco')!;
-    await extension.activate();
+    await vscode.extensions.getExtension('ShortArrow.line-number-deco')!.activate();
     const copies = Object.keys(require.cache).filter((key) => /[\\/]out[\\/]extension\.js$/i.test(key));
     assert.strictEqual(copies.length, 1, `the extension module is loaded ${copies.length} times: ${copies.join(', ')}`);
-    subscription = onDidPaint((editor) => painted.push(editor));
+    subscription = onDidPaint((paint) => paints.push(paint));
   });
 
   after(async () => {
@@ -53,70 +119,175 @@ describe('Test the redraw each subscribed event starts', () => {
     await vscode.commands.executeCommand('workbench.action.closeAllEditors');
   });
 
-  let collection: vscode.DiagnosticCollection | undefined;
-  afterEach(() => {
-    collection?.dispose();
-    collection = undefined;
+  describe('Test the redraw each subscribed event starts', () => {
+    let collection: vscode.DiagnosticCollection | undefined;
+    afterEach(async () => {
+      collection?.dispose();
+      collection = undefined;
+      await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    });
+
+    // Typing Enter in a long file: a line is added above the bottom of the
+    // screen while the cursor stays put. Crossing 999 to 1000 lines widens the
+    // number column, which only a redraw after the edit can know. The edit is
+    // made away from the cursor and the last visible line, so the selection and
+    // the visible ranges stay as they were and only the edit can start it.
+    it('Must redraw the active editor for an edit, widening the column when the line count gains a digit', async () => {
+      const editor = await openEditor(999);
+      const paint = await redrawOf(editor.document, () => editor.edit((edit) => edit.insert(new vscode.Position(3, 0), '\n')), 'an edit');
+      assert.strictEqual(editor.document.lineCount, 1000);
+      assertDrawnFor(paint, editor);
+    });
+
+    // Moving the cursor with a click or an arrow key: every label is a distance
+    // from the cursor line, so all of them change.
+    it('Must redraw an editor when its cursor moves, labelling each line by its distance to the new cursor line', async () => {
+      const editor = await openEditor(10);
+      const paint = await redrawOf(editor.document, () => {
+        editor.selection = new vscode.Selection(5, 0, 5, 0);
+      }, 'a cursor move');
+      assertDrawnFor(paint, editor);
+      assert.strictEqual(paint.decorations.find((d) => d.range.start.line === 5)?.renderOptions?.before?.contentText, '6');
+    });
+
+    // Scrolling with the wheel or the scroll bar, which moves the view and not
+    // the cursor: the lines that come into view must be drawn.
+    it('Must redraw an editor when it scrolls, drawing the lines that came into view', async () => {
+      const editor = await openEditor(500);
+      const paint = await redrawOf(editor.document, () => {
+        editor.revealRange(new vscode.Range(400, 0, 400, 0), vscode.TextEditorRevealType.AtTop);
+      }, 'a scroll');
+      assertDrawnFor(paint, editor);
+      assert.ok(paint.decorations.some((d) => d.range.start.line === 400), 'line 400 was not drawn');
+    });
+
+    // Opening a file beside the one being edited, the usual split: the new
+    // editor has never been drawn, and gets no cursor or scroll event.
+    it('Must draw an editor when it becomes visible beside another', async () => {
+      await openEditor(10);
+      const document = await openDocument(20);
+      const paint = await redrawOf(document, () => vscode.window.showTextDocument(document, { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true }), 'showing an editor');
+      assertDrawnFor(paint, editorOf(document));
+    });
+
+    // Switching between a dark and a light theme with the rainbow on: the
+    // rainbow is kept readable against the theme kind's background, so its
+    // colors must be worked out again against the new one.
+    it('Must redraw the visible editors when the color theme changes, keeping the rainbow readable on the new background', async () => {
+      await withSetting('LineNumberDeco', 'enableRainbow', true, async () => {
+        const editor = await openEditor(10);
+        editor.selection = new vscode.Selection(5, 0, 5, 0);
+        const light = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light;
+        await withSetting('workbench', 'colorTheme', undefined, async (setTheme) => {
+          const paint = await redrawOf(editor.document, () => setTheme(light ? 'Default Dark Modern' : 'Default Light Modern'), 'a theme change');
+          const background = rainbowBackgroundOf(vscode.window.activeColorTheme.kind);
+          const rainbow = paint.decorations.map((d) => d.renderOptions?.before?.color).filter((c): c is string => typeof c === 'string');
+          assert.ok(rainbow.length > 0, 'no line was drawn in a rainbow color');
+          for (const color of rainbow) {
+            assert.ok(contrastRatio(color, background) >= 4.5, `${color} is not readable on ${background}`);
+          }
+        });
+      });
+    });
+
+    // Turning the line numbers off from the settings or the command palette:
+    // what is on screen must go at once, not at the next cursor move.
+    it("Must redraw the visible editors when the extension's settings change, clearing them when the numbers are turned off", async () => {
+      const editor = await openEditor(10);
+      await withSetting('LineNumberDeco', 'enableRelativeLine', true, async (setEnabled) => {
+        const paint = await redrawOf(editor.document, () => setEnabled(false), 'a settings change');
+        assert.deepStrictEqual(paint.decorations, []);
+      });
+    });
+
+    // A language server reporting an error while the file is on screen: the
+    // line it is on must take the error color without the cursor moving.
+    it('Must redraw a visible editor when the diagnostics of its document change, coloring the error line', async () => {
+      await withSetting('LineNumberDeco', 'enableDiagnostics', true, async () => {
+        const editor = await openEditor(10);
+        collection = vscode.languages.createDiagnosticCollection('lineNumberDecoRedrawTest');
+        const paint = await redrawOf(editor.document, () => {
+          collection!.set(editor.document.uri, [new vscode.Diagnostic(new vscode.Range(2, 0, 2, 4), 'marked', vscode.DiagnosticSeverity.Error)]);
+        }, 'a diagnostics change');
+        assertDrawnFor(paint, editor);
+        const colorOf = (line: number) => (paint.decorations.find((d) => d.range.start.line === line)?.renderOptions?.before?.color as vscode.ThemeColor | undefined)?.id;
+        assert.strictEqual(colorOf(2), 'editorError.foreground');
+        assert.notStrictEqual(colorOf(3), 'editorError.foreground');
+      });
+    });
   });
 
-  it('Must redraw the active editor when its document is edited', async () => {
-    const editor = await openEditor(10);
-    // Off the last line and the cursor, so neither the visible ranges nor the
-    // selection move, and only the document change can start the redraw.
-    assert.ok(await redrawnBy(() => editor, () => editor.edit((edit) => edit.insert(new vscode.Position(2, 0), '!'))), 'an edit did not redraw the editor');
-  });
+  describe('Test the redraws no event may start', () => {
+    let collection: vscode.DiagnosticCollection | undefined;
+    afterEach(async () => {
+      collection?.dispose();
+      collection = undefined;
+      await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    });
 
-  it('Must redraw an editor when its selection moves', async () => {
-    const editor = await openEditor(10);
-    assert.ok(await redrawnBy(() => editor, () => {
-      editor.selection = new vscode.Selection(5, 0, 5, 0);
-    }), 'a selection change did not redraw the editor');
-  });
+    // Another extension's or the editor's own setting changing, which happens
+    // whenever any setting is touched: nothing this extension draws depends on it.
+    it('Must not redraw for a setting outside the extension and reduced motion', async () => {
+      await openEditor(10);
+      const redrawn = await withSetting('files', 'trimTrailingWhitespace', undefined, (set) => documentsRedrawnBy(() => set(true)));
+      assert.strictEqual(redrawn.size, 0);
+    });
 
-  it('Must redraw an editor when it scrolls', async () => {
-    const editor = await openEditor(500);
-    assert.ok(await redrawnBy(() => editor, () => {
-      editor.revealRange(new vscode.Range(400, 0, 400, 0), vscode.TextEditorRevealType.AtTop);
-    }), 'a scroll did not redraw the editor');
-  });
+    // A file being changed in the background, such as by a refactoring across
+    // files, while it is in no editor.
+    it('Must not redraw for an edit to a document no editor shows', async () => {
+      await openEditor(10);
+      const hidden = await openDocument(10);
+      const edit = new vscode.WorkspaceEdit();
+      edit.insert(hidden.uri, new vscode.Position(3, 0), '!');
+      const redrawn = await documentsRedrawnBy(() => vscode.workspace.applyEdit(edit));
+      assert.strictEqual(redrawn.size, 0);
+    });
 
-  it('Must redraw an editor when it becomes visible', async () => {
-    await openEditor(10);
-    const document = await vscode.workspace.openTextDocument({ content: 'one\ntwo\nthree' });
-    assert.ok(await redrawnBy(
-      () => vscode.window.visibleTextEditors.find((e) => e.document === document),
-      () => vscode.window.showTextDocument(document, { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true }),
-    ), 'a newly visible editor was not drawn');
-  });
+    // A language server reporting on a file whose tab is in the background.
+    it('Must not redraw for diagnostics of a document whose editor is hidden', async () => {
+      const hidden = await openEditor(10);
+      await openEditor(10);
+      collection = vscode.languages.createDiagnosticCollection('lineNumberDecoQuietTest');
+      const redrawn = await documentsRedrawnBy(() => {
+        collection!.set(hidden.document.uri, [new vscode.Diagnostic(new vscode.Range(2, 0, 2, 4), 'marked', vscode.DiagnosticSeverity.Error)]);
+      });
+      assert.strictEqual(redrawn.size, 0);
+    });
 
-  it('Must redraw the visible editors when the color theme changes', async () => {
-    const editor = await openEditor(10);
-    const workbench = () => vscode.workspace.getConfiguration('workbench');
-    const previous = workbench().inspect<string>('colorTheme')?.globalValue;
-    const next = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light ? 'Default Dark Modern' : 'Default Light Modern';
-    try {
-      assert.ok(await redrawnBy(() => editor, () => workbench().update('colorTheme', next, vscode.ConfigurationTarget.Global)), 'a theme change did not redraw the editor');
-    } finally {
-      await workbench().update('colorTheme', previous, vscode.ConfigurationTarget.Global);
-    }
-  });
+    // Two files side by side: moving the cursor in one leaves the other's
+    // labels as they are.
+    it('Must redraw only the editor whose cursor moved', async () => {
+      const left = await openEditor(10);
+      const right = await openEditor(10, vscode.ViewColumn.Two, true);
+      const redrawn = await documentsRedrawnBy(() => {
+        left.selection = new vscode.Selection(5, 0, 5, 0);
+      });
+      assert.ok(redrawn.has(left.document), 'the editor whose cursor moved was not redrawn');
+      assert.ok(!redrawn.has(right.document), 'the editor beside it was redrawn');
+    });
 
-  it("Must redraw the visible editors when the extension's settings change", async () => {
-    const editor = await openEditor(10);
-    const config = () => vscode.workspace.getConfiguration('LineNumberDeco');
-    const previous = config().inspect<boolean>('enableRainbow')?.globalValue;
-    try {
-      assert.ok(await redrawnBy(() => editor, () => config().update('enableRainbow', !config().get<boolean>('enableRainbow'), vscode.ConfigurationTarget.Global)), 'a settings change did not redraw the editor');
-    } finally {
-      await config().update('enableRainbow', previous, vscode.ConfigurationTarget.Global);
-    }
-  });
+    // Two files side by side: scrolling one leaves the other as it is.
+    it('Must redraw only the editor that scrolled', async () => {
+      const left = await openEditor(500);
+      const right = await openEditor(500, vscode.ViewColumn.Two, true);
+      const redrawn = await documentsRedrawnBy(() => {
+        left.revealRange(new vscode.Range(400, 0, 400, 0), vscode.TextEditorRevealType.AtTop);
+      });
+      assert.ok(redrawn.has(left.document), 'the editor that scrolled was not redrawn');
+      assert.ok(!redrawn.has(right.document), 'the editor beside it was redrawn');
+    });
 
-  it('Must redraw a visible editor when the diagnostics of its document change', async () => {
-    const editor = await openEditor(10);
-    collection = vscode.languages.createDiagnosticCollection('lineNumberDecoRedrawTest');
-    assert.ok(await redrawnBy(() => editor, () => {
-      collection!.set(editor.document.uri, [new vscode.Diagnostic(new vscode.Range(2, 0, 2, 4), 'marked', vscode.DiagnosticSeverity.Error)]);
-    }), 'a diagnostics change did not redraw the editor');
+    // Two files side by side: an error in one leaves the other as it is.
+    it('Must redraw only the editor whose diagnostics changed', async () => {
+      const left = await openEditor(10);
+      const right = await openEditor(10, vscode.ViewColumn.Two, true);
+      collection = vscode.languages.createDiagnosticCollection('lineNumberDecoQuietTest');
+      const redrawn = await documentsRedrawnBy(() => {
+        collection!.set(left.document.uri, [new vscode.Diagnostic(new vscode.Range(2, 0, 2, 4), 'marked', vscode.DiagnosticSeverity.Error)]);
+      });
+      assert.ok(redrawn.has(left.document), 'the editor whose diagnostics changed was not redrawn');
+      assert.ok(!redrawn.has(right.document), 'the editor beside it was redrawn');
+    });
   });
 });
