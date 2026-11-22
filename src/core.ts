@@ -146,20 +146,22 @@ export function editorVisibleLineIndexes(editor: vscode.TextEditor): number[] {
  * @param editor
  * @param decorationType
  * @param diagnosticOpacity where error and warning lines are in their pulse, or undefined while nothing pulses
- * @returns void
+ * @returns the decorations handed to the editor, none when there is no editor
  */
-export async function updateRelativeLineNumbers(
+export function updateRelativeLineNumbers(
   editor: vscode.TextEditor | undefined,
   decorationType: vscode.TextEditorDecorationType,
   diagnosticOpacity?: number
-) {
+): vscode.DecorationOptions[] {
   if (!editor) {
-    return;
+    return [];
   }
   const document = editor.document;
   const labelWidth = document.lineCount.toString().length;
   const lineIndexes = editorVisibleLineIndexes(editor);
   const diagnosticMarks = readDiagnosticMarks(document.uri);
   const specs = buildLineDecorationSpecs(lineIndexes, readDecorationSettings(editor, diagnosticOpacity), diagnosticMarks);
-  editor.setDecorations(decorationType, toDecorationOptions(specs, document, labelWidth));
+  const decorations = toDecorationOptions(specs, document, labelWidth);
+  editor.setDecorations(decorationType, decorations);
+  return decorations;
 }

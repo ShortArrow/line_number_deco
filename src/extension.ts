@@ -50,8 +50,25 @@ function diagnosticOpacityNow(): number | undefined {
   return pulse === undefined ? undefined : pulseOpacity(Date.now() - pulse.startedAt);
 }
 
+/** One redraw: the editor and the line number decorations it was given. */
+export interface Paint {
+  editor: vscode.TextEditor;
+  decorations: readonly vscode.DecorationOptions[];
+}
+
+const painted = new vscode.EventEmitter<Paint>();
+
+/**
+ * Fires after an editor's line numbers have been redrawn, with what was drawn.
+ * Only the tests use it, loading this module directly, since an editor's
+ * decorations cannot be read back through the API; activate does not return
+ * it, so it is not an API other extensions can reach.
+ */
+export const onDidPaint = painted.event;
+
 function paint(editor: vscode.TextEditor) {
-  updateRelativeLineNumbers(editor, decorationType, diagnosticOpacityNow());
+  const decorations = updateRelativeLineNumbers(editor, decorationType, diagnosticOpacityNow());
+  painted.fire({ editor, decorations });
 }
 
 /** Advance the pulse in the editors that have something to pulse. */
@@ -112,9 +129,11 @@ const colorCommands: {
 
 const commands = [
   vscode.workspace.onDidChangeTextDocument((e) => {
-    if (e.document === vscode.window.activeTextEditor?.document) {
-      // Update only if the change occurred in the currently active editor's document
-      scheduleUpdate(vscode.window.activeTextEditor);
+    // Every view of the document moves with the edit, not only the one typed in.
+    for (const editor of vscode.window.visibleTextEditors) {
+      if (editor.document === e.document) {
+        scheduleUpdate(editor);
+      }
     }
   }),
   vscode.window.onDidChangeTextEditorSelection((e) => {
@@ -188,7 +207,7 @@ const commands = [
  * @param context
  */
 export function activate(context: vscode.ExtensionContext) {
-  context.subscriptions.push(...commands);
+  context.subscriptions.push(...commands, painted);
   registerColorPanel(context, refreshVisibleEditors);
   refreshVisibleEditors();
 }
