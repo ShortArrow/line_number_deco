@@ -2,15 +2,32 @@
   <!--
     Monochrome activity-bar variant of images/icon.svg. VS Code uses view
     container icons as an alpha mask and colors them from the theme, so the
-    mark is a currentColor disc with the "12" and the cursor triangle of the
-    original icon knocked out. Generic bold sans-serif stands in for the
-    original Meiryo UI, which is not available on every platform.
+    mark is a currentColor disc with the original's shapes knocked out: the
+    "12", the cursor circle with its triangle left solid inside, and the
+    1, 2, 3 above and below that shrink along the rim. The digits are stroked
+    paths, so the mark does not depend on a font being installed.
   -->
+  <defs>
+    <path id="d1" d="M 12 24 L 36 8 L 36 92"/>
+    <path id="d2" d="M 8 30 C 8 10, 52 4, 52 30 C 52 50, 20 66, 8 92 L 54 92"/>
+    <path id="d3" d="M 10 16 C 26 2, 52 8, 50 28 C 48 44, 30 46, 26 46 C 34 46, 54 50, 52 70 C 50 92, 22 98, 8 84"/>
+  </defs>
   <mask id="knockout">
-    <rect width="128" height="128" fill="black"/>
-    <circle cx="64" cy="64" r="60" fill="white"/>
-    <text x="50" y="86" font-family="sans-serif" font-size="62" font-weight="bold" text-anchor="middle" fill="black">12</text>
-    <path d="M 102 50 L 102 78 L 81 64 Z" fill="black"/>
+    <circle cx="64" cy="64" r="62" fill="white"/>
+    <g fill="none" stroke="black" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+      <use href="#d1" transform="translate(8 42) scale(0.44)"/>
+      <use href="#d2" transform="translate(30 42) scale(0.44)"/>
+    </g>
+    <circle cx="98" cy="64" r="24" fill="black"/>
+    <path d="M 78 64 L 90 56 L 90 72 Z" fill="white"/>
+    <g fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round">
+      <use href="#d1" stroke-width="30" transform="translate(43.8 11.9) scale(0.26)"/>
+      <use href="#d1" stroke-width="30" transform="translate(43.8 87.9) scale(0.26)"/>
+      <use href="#d2" stroke-width="36" transform="translate(74.7 10.6) scale(0.17)"/>
+      <use href="#d2" stroke-width="36" transform="translate(74.7 100.6) scale(0.17)"/>
+      <use href="#d3" stroke-width="44" transform="translate(101.7 23.1) scale(0.107)"/>
+      <use href="#d3" stroke-width="44" transform="translate(101.7 93.1) scale(0.107)"/>
+    </g>
   </mask>
   <rect width="128" height="128" fill="currentColor" mask="url(#knockout)"/>
 </svg>
