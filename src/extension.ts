@@ -52,6 +52,14 @@ function diagnosticOpacityNow(): number | undefined {
 
 const painted = new vscode.EventEmitter<vscode.TextEditor>();
 
+/**
+ * Fires after an editor's line numbers have been redrawn, with that editor.
+ * Only the tests use it, loading this module directly, since an editor's
+ * decorations cannot be read back through the API; activate does not return
+ * it, so it is not an API other extensions can reach.
+ */
+export const onDidPaint = painted.event;
+
 function paint(editor: vscode.TextEditor) {
   updateRelativeLineNumbers(editor, decorationType, diagnosticOpacityNow());
   painted.fire(editor);
@@ -186,21 +194,14 @@ const commands = [
   LineNumberDeco.toggleSettingsPanel(toggleSettingsPanel),
 ];
 
-/** What activate returns to whoever activates the extension. */
-export interface LineNumberDecoApi {
-  /** Fires after an editor's line numbers have been redrawn, with that editor. */
-  onDidPaint: vscode.Event<vscode.TextEditor>;
-}
-
 /**
  * activate extension
  * @param context
  */
-export function activate(context: vscode.ExtensionContext): LineNumberDecoApi {
+export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(...commands, painted);
   registerColorPanel(context, refreshVisibleEditors);
   refreshVisibleEditors();
-  return { onDidPaint: painted.event };
 }
 
 /**

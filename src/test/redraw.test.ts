@@ -1,11 +1,12 @@
 import * as assert from 'assert';
 import { describe, it, before, after, afterEach } from 'mocha';
 import * as vscode from 'vscode';
-import type { LineNumberDecoApi } from '../extension';
+import { onDidPaint } from '../extension';
 
 // Each event the extension subscribes to must end in a redraw of the editor it
 // concerns. A redraw is observed through the onDidPaint event the extension
-// returns from activate, since a TextEditor's decorations cannot be read back.
+// module exports, since a TextEditor's decorations cannot be read back. The
+// module has to be the instance VS Code activated, not a second copy.
 
 const WAIT_MS = 5000;
 /** Longer than the per-editor throttle, so the redraws of the setup have landed. */
@@ -13,7 +14,6 @@ const SETTLE_MS = 200;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-let api: LineNumberDecoApi;
 let painted: vscode.TextEditor[] = [];
 let subscription: vscode.Disposable | undefined;
 
@@ -41,9 +41,11 @@ async function openEditor(lines: number, column = vscode.ViewColumn.One, preserv
 
 describe('Test the redraw each subscribed event starts', () => {
   before(async () => {
-    const extension = vscode.extensions.getExtension<LineNumberDecoApi>('ShortArrow.line-number-deco')!;
-    api = await extension.activate();
-    subscription = api.onDidPaint((editor) => painted.push(editor));
+    const extension = vscode.extensions.getExtension('ShortArrow.line-number-deco')!;
+    await extension.activate();
+    const copies = Object.keys(require.cache).filter((key) => /[\\/]out[\\/]extension\.js$/i.test(key));
+    assert.strictEqual(copies.length, 1, `the extension module is loaded ${copies.length} times: ${copies.join(', ')}`);
+    subscription = onDidPaint((editor) => painted.push(editor));
   });
 
   after(async () => {
