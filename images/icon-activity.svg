@@ -19,14 +19,14 @@
       <use href="#d2" transform="translate(30 42) scale(0.44)"/>
     </g>
     <circle cx="98" cy="64" r="24" fill="black"/>
-    <path d="M 78 64 L 90 56 L 90 72 Z" fill="white"/>
+    <path d="M 80 64 L 102 51 L 102 77 Z" fill="white"/>
     <g fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round">
-      <use href="#d1" stroke-width="30" transform="translate(43.8 11.9) scale(0.26)"/>
-      <use href="#d1" stroke-width="30" transform="translate(43.8 87.9) scale(0.26)"/>
-      <use href="#d2" stroke-width="36" transform="translate(74.7 10.6) scale(0.17)"/>
-      <use href="#d2" stroke-width="36" transform="translate(74.7 100.6) scale(0.17)"/>
-      <use href="#d3" stroke-width="44" transform="translate(101.7 23.1) scale(0.107)"/>
-      <use href="#d3" stroke-width="44" transform="translate(101.7 93.1) scale(0.107)"/>
+      <use href="#d1" stroke-width="30" transform="translate(45.76 14.92) scale(0.26)"/>
+      <use href="#d1" stroke-width="30" transform="translate(45.76 86.92) scale(0.26)"/>
+      <use href="#d2" stroke-width="42" transform="translate(74.28 18.04) scale(0.12)"/>
+      <use href="#d2" stroke-width="42" transform="translate(74.28 98.04) scale(0.12)"/>
+      <use href="#d3" stroke-width="56" transform="translate(95.77 28.42) scale(0.072)"/>
+      <use href="#d3" stroke-width="56" transform="translate(95.77 92.42) scale(0.072)"/>
     </g>
   </mask>
   <rect width="128" height="128" fill="currentColor" mask="url(#knockout)"/>
