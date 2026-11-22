@@ -1,16 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <!--
-    Monochrome activity-bar variant of images/icon.svg. VS Code uses view
-    container icons as an alpha mask and colors them from the theme, so the
-    mark is a currentColor disc with the "12" and the cursor triangle of the
-    original icon knocked out. Generic bold sans-serif stands in for the
-    original Meiryo UI, which is not available on every platform.
+    Monochrome activity-bar variant of images/icon.svg, drawn on the 24 px grid
+    the activity bar shows it at. VS Code uses view container icons as an alpha
+    mask and colors them from the theme, so the mark is a currentColor disc with
+    the original's shapes knocked out: the "12", the cursor circle with its
+    triangle left solid inside, and above and below the "12" a 1, then two dots
+    that shrink away from it, as the main icon's 1, 2, 3 do. The ids name the
+    marks for src/test/activityIcon.test.ts, which holds them to that order.
+    The digits' sources and licenses are in THIRD-PARTY-NOTICES.md.
   -->
   <mask id="knockout">
-    <rect width="128" height="128" fill="black"/>
-    <circle cx="64" cy="64" r="60" fill="white"/>
-    <text x="50" y="86" font-family="sans-serif" font-size="62" font-weight="bold" text-anchor="middle" fill="black">12</text>
-    <path d="M 102 50 L 102 78 L 81 64 Z" fill="black"/>
+    <circle cx="12" cy="12" r="11" fill="white"/>
+    <g fill="black">
+    <path id="twelve" d="M6.47 15.89L4.91 15.89L4.91 9.76L4.90 9.76L3.01 11.49L2.50 10.24L4.91 8.00L6.47 8.00L6.47 15.89Z M7.61 16L7.61 14.78Q9.09 13.62 9.88 12.84Q10.68 12.05 10.95 11.54Q11.22 11.02 11.22 10.45L11.22 10.45Q11.22 9.25 9.93 9.25L9.93 9.25Q9.02 9.25 7.87 10L7.87 10L7.47 8.79Q8.01 8.42 8.73 8.21Q9.45 8 10.15 8L10.15 8Q11.41 8 12.10 8.61Q12.79 9.22 12.79 10.30L12.79 10.30Q12.79 11.32 12.14 12.26Q11.50 13.20 9.63 14.76L9.63 14.76L9.63 14.78L12.80 14.78L12.80 16L7.61 16Z"/>
+    <path id="up1" d="M9 2h1v1h-1z M8 3h2v1h-2z M9 4h1v1h-1z M9 5h1v1h-1z M9 6h1v1h-1z"/>
+    <path id="up2" d="M12 3h2v2h-2z"/>
+    <path id="up3" d="M16 4h1v1h-1z"/>
+    <path id="down1" d="M9 17h1v1h-1z M8 18h2v1h-2z M9 19h1v1h-1z M9 20h1v1h-1z M9 21h1v1h-1z"/>
+    <path id="down2" d="M12 19h2v2h-2z"/>
+    <path id="down3" d="M16 19h1v1h-1z"/>
+    </g>
+    <circle cx="18" cy="12" r="4" fill="black"/>
+    <path d="M15.2 12 L20.4 9.2 V14.8 Z" fill="white"/>
   </mask>
-  <rect width="128" height="128" fill="currentColor" mask="url(#knockout)"/>
+  <rect width="24" height="24" fill="currentColor" mask="url(#knockout)"/>
 </svg>
