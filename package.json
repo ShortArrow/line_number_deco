@@ -8,7 +8,7 @@
     "url": "https://github.com/sponsors/ShortArrow"
   },
   "engines": {
-    "vscode": "^1.76.0"
+    "vscode": "^1.101.0"
   },
   "packageManager": "pnpm@11.22.0",
   "icon": "images/icon.png",
@@ -398,7 +398,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
-    "@types/vscode": "^1.76.0",
+    "@types/vscode": "^1.101.0",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.53.0",
     "@vscode/test-electron": "^3.1.0",
