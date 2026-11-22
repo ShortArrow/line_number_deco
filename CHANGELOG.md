@@ -124,3 +124,4 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - The input box of each color command names what the command's title names: "the rainbow center", "the current line number" and "inactive line numbers" replace "center of rainbow", "active row number" and "inactive row number"
 - Dependency advisories cleared: minimatch, inside the build and test tools, moves past its patched version
 - `LineNumberDeco.pulseDiagnostics`, off by default, lets the line numbers of error and warning lines slowly brighten and dim once every 1.6 seconds; `workbench.reduceMotion` set to on stops it, and the settings panel has a switch for it
+- VS Code 1.101 or later is required; earlier versions no longer receive updates of the extension
