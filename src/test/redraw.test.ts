@@ -307,7 +307,7 @@ describe('Test the redraws of the events the extension subscribes to', () => {
     });
   });
 
-  describe('Test the redraws of a held key and of reduced motion', () => {
+  describe('Test the redraws of a held key, a fold and reduced motion', () => {
     let collection: vscode.DiagnosticCollection | undefined;
     afterEach(async () => {
       collection?.dispose();
@@ -329,6 +329,16 @@ describe('Test the redraws of the events the extension subscribes to', () => {
             collection.set(editor.document.uri, [new vscode.Diagnostic(new vscode.Range(2, 0, 2, 4), 'marked', vscode.DiagnosticSeverity.Error)]);
             await body(editor, setReduceMotion);
           })));
+    }
+
+    /** Fold the block that starts at the line, failing if the view has not split within WAIT_MS. */
+    async function foldBlockAt(editor: vscode.TextEditor, line: number): Promise<void> {
+      await vscode.commands.executeCommand('editor.fold', { selectionLines: [line], levels: 1 });
+      const deadline = Date.now() + WAIT_MS;
+      while (editor.visibleRanges.length < 2 && Date.now() < deadline) {
+        await sleep(50);
+      }
+      assert.strictEqual(editor.visibleRanges.length, 2, 'the block did not fold');
     }
 
     /** The redraws of the editor over one second, room for ten frames of the pulse. */
@@ -355,6 +365,25 @@ describe('Test the redraws of the events the extension subscribes to', () => {
       assert.ok(own.length > 0, 'the edits did not redraw the editor');
       assert.strictEqual(editor.document.lineCount, 1000);
       assertDrawnFor(own[own.length - 1], editor);
+    });
+
+    // Folding a block from the gutter: the lines below it move up the screen
+    // while their document lines stay the same. The numbers count document
+    // lines, since vscode-neovim opens a fold that j or k crosses. The fold
+    // command does nothing while the window lacks the focus of the desktop,
+    // so a run on a desktop someone is using skips it; CI must not.
+    it('Must redraw an editor when a block folds, drawing only the lines left in view, labelled by document line', async function () {
+      if (!vscode.window.state.focused) {
+        assert.ok(!process.env.CI, 'the test window has no focus on CI, so the block cannot be folded');
+        this.skip();
+      }
+      const lines = [...Array(10).fill('x'), 'block', ...Array(10).fill('  inner'), ...Array(39).fill('x')];
+      const editor = await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({ content: lines.join('\n') }));
+      const paint = await redrawOf(editor, () => foldBlockAt(editor, 10), 'a fold');
+      assertDrawnFor(paint, editor);
+      const folded = paint.decorations.filter((d) => d.range.start.line >= 12 && d.range.start.line <= 20);
+      assert.deepStrictEqual(folded, [], 'a line hidden in the fold was drawn');
+      assert.strictEqual(paint.decorations.find((d) => d.range.start.line === 25)?.renderOptions?.before?.contentText, '25');
     });
 
     // Turning on reduced motion while an error line pulses, as someone made
