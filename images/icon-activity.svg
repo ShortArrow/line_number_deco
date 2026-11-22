@@ -1,33 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <!--
-    Monochrome activity-bar variant of images/icon.svg. VS Code uses view
-    container icons as an alpha mask and colors them from the theme, so the
-    mark is a currentColor disc with the original's shapes knocked out: the
-    "12", the cursor circle with its triangle left solid inside, and the
-    1, 2, 3 above and below that shrink along the rim. The digits are stroked
-    paths, so the mark does not depend on a font being installed.
+    Monochrome activity-bar variant of images/icon.svg, drawn on the 24 px grid
+    the activity bar shows it at. VS Code uses view container icons as an alpha
+    mask and colors them from the theme, so the mark is a currentColor disc with
+    the original's shapes knocked out: the "12", the cursor circle with its
+    triangle left solid inside, and above and below the "12" a 1, then two dots
+    that shrink away from it, as the main icon's 1, 2, 3 do. The ids name the
+    marks for src/test/activityIcon.test.ts, which holds them to that order.
+    The digits' sources and licenses are in THIRD-PARTY-NOTICES.md.
   -->
-  <defs>
-    <path id="d1" d="M 12 24 L 36 8 L 36 92"/>
-    <path id="d2" d="M 8 30 C 8 10, 52 4, 52 30 C 52 50, 20 66, 8 92 L 54 92"/>
-    <path id="d3" d="M 10 16 C 26 2, 52 8, 50 28 C 48 44, 30 46, 26 46 C 34 46, 54 50, 52 70 C 50 92, 22 98, 8 84"/>
-  </defs>
   <mask id="knockout">
-    <circle cx="64" cy="64" r="62" fill="white"/>
-    <g fill="none" stroke="black" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
-      <use href="#d1" transform="translate(8 42) scale(0.44)"/>
-      <use href="#d2" transform="translate(30 42) scale(0.44)"/>
+    <circle cx="12" cy="12" r="11" fill="white"/>
+    <g fill="black">
+    <path id="twelve" d="M6.47 15.89L4.91 15.89L4.91 9.76L4.90 9.76L3.01 11.49L2.50 10.24L4.91 8.00L6.47 8.00L6.47 15.89Z M7.61 16L7.61 14.78Q9.09 13.62 9.88 12.84Q10.68 12.05 10.95 11.54Q11.22 11.02 11.22 10.45L11.22 10.45Q11.22 9.25 9.93 9.25L9.93 9.25Q9.02 9.25 7.87 10L7.87 10L7.47 8.79Q8.01 8.42 8.73 8.21Q9.45 8 10.15 8L10.15 8Q11.41 8 12.10 8.61Q12.79 9.22 12.79 10.30L12.79 10.30Q12.79 11.32 12.14 12.26Q11.50 13.20 9.63 14.76L9.63 14.76L9.63 14.78L12.80 14.78L12.80 16L7.61 16Z"/>
+    <path id="up1" d="M9 2h1v1h-1z M8 3h2v1h-2z M9 4h1v1h-1z M9 5h1v1h-1z M9 6h1v1h-1z"/>
+    <path id="up2" d="M12 3h2v2h-2z"/>
+    <path id="up3" d="M16 4h1v1h-1z"/>
+    <path id="down1" d="M9 17h1v1h-1z M8 18h2v1h-2z M9 19h1v1h-1z M9 20h1v1h-1z M9 21h1v1h-1z"/>
+    <path id="down2" d="M12 19h2v2h-2z"/>
+    <path id="down3" d="M16 19h1v1h-1z"/>
     </g>
-    <circle cx="98" cy="64" r="24" fill="black"/>
-    <path d="M 80 64 L 102 51 L 102 77 Z" fill="white"/>
-    <g fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round">
-      <use href="#d1" stroke-width="30" transform="translate(45.76 14.92) scale(0.26)"/>
-      <use href="#d1" stroke-width="30" transform="translate(45.76 86.92) scale(0.26)"/>
-      <use href="#d2" stroke-width="42" transform="translate(74.28 18.04) scale(0.12)"/>
-      <use href="#d2" stroke-width="42" transform="translate(74.28 98.04) scale(0.12)"/>
-      <use href="#d3" stroke-width="56" transform="translate(95.77 28.42) scale(0.072)"/>
-      <use href="#d3" stroke-width="56" transform="translate(95.77 92.42) scale(0.072)"/>
-    </g>
+    <circle cx="18" cy="12" r="4" fill="black"/>
+    <path d="M15.2 12 L20.4 9.2 V14.8 Z" fill="white"/>
   </mask>
-  <rect width="128" height="128" fill="currentColor" mask="url(#knockout)"/>
+  <rect width="24" height="24" fill="currentColor" mask="url(#knockout)"/>
 </svg>
