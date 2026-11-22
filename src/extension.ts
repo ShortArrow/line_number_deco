@@ -50,8 +50,11 @@ function diagnosticOpacityNow(): number | undefined {
   return pulse === undefined ? undefined : pulseOpacity(Date.now() - pulse.startedAt);
 }
 
+const painted = new vscode.EventEmitter<vscode.TextEditor>();
+
 function paint(editor: vscode.TextEditor) {
   updateRelativeLineNumbers(editor, decorationType, diagnosticOpacityNow());
+  painted.fire(editor);
 }
 
 /** Advance the pulse in the editors that have something to pulse. */
@@ -183,14 +186,21 @@ const commands = [
   LineNumberDeco.toggleSettingsPanel(toggleSettingsPanel),
 ];
 
+/** What activate returns to whoever activates the extension. */
+export interface LineNumberDecoApi {
+  /** Fires after an editor's line numbers have been redrawn, with that editor. */
+  onDidPaint: vscode.Event<vscode.TextEditor>;
+}
+
 /**
  * activate extension
  * @param context
  */
-export function activate(context: vscode.ExtensionContext) {
-  context.subscriptions.push(...commands);
+export function activate(context: vscode.ExtensionContext): LineNumberDecoApi {
+  context.subscriptions.push(...commands, painted);
   registerColorPanel(context, refreshVisibleEditors);
   refreshVisibleEditors();
+  return { onDidPaint: painted.event };
 }
 
 /**
