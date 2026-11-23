@@ -92,12 +92,19 @@ Before tagging, rename the `## Unreleased` heading at the end of `CHANGELOG.md` 
 2. `build` packages the artifact with `pnpm exec vsce package --no-dependencies` and uploads the `.vsix`.
 3. `smoke` checks out only `smoke/` — sparse, so no other copy of the extension exists on the runner — and runs the structural check, the negative control and the activation smoke against the uploaded artifact.
 4. `release` attests build provenance for the `.vsix` through Sigstore, then creates the GitHub Release with generated notes and the artifact attached.
-5. `publish-marketplace` publishes to the VS Code Marketplace and to Open VSX.
+5. `publish-marketplace` publishes to Open VSX, and to the VS Code Marketplace only when a Marketplace credential is configured.
 
 The burned-version guard in step 1 queries `vsce show ShortArrow.line-number-deco` and `https://open-vsx.org/api/shortarrow/line-number-deco/<version>`. A published version number can never be reused, so a hit is a hard failure; an unreachable registry only warns, so that a store outage cannot block a GitHub release.
 
 A tag with a suffix, such as `v0.0.10-beta.1`, is a pre-release: the same checks run, the GitHub Release is marked pre-release, the burned-version guard is skipped because the base version is reused on purpose, and nothing is published to a registry. `[skip publish]` in the tagged commit's message also opts a release out of the registry step.
 
-Publishing authenticates with the `VSCE_PAT` and `OVSX_PAT` repository secrets. With neither configured, and no Entra variables set, the job skips itself and the GitHub Release still happens.
+Open VSX publishing authenticates with the `OVSX_PAT` repository secret. No Marketplace credential is configured, so the Marketplace step is skipped and the release is uploaded there by hand:
+
+1. Download the `.vsix` from the GitHub Release with `gh release download vX.Y.Z --pattern "*.vsix"`.
+2. Check that the workflow built it with `gh attestation verify line-number-deco-X.Y.Z.vsix --repo ShortArrow/line_number_deco`.
+3. On https://marketplace.visualstudio.com/manage/publishers/shortarrow, choose Update in the menu of `line-number-deco` and upload the `.vsix`.
+4. Once the Marketplace has verified it, the version on https://marketplace.visualstudio.com/items?itemName=ShortArrow.line-number-deco reads `X.Y.Z`.
+
+Open VSX answers 404 for a new version for a minute or two after it is published; check `https://open-vsx.org/api/shortarrow/line-number-deco/X.Y.Z` again before treating it as missing. With no credential configured at all, the job skips itself and the GitHub Release still happens.
 
 To publish a release that already exists — a registry added after the tag was cut, or a credential configured later — run `.github/workflows/publish.yml` by `workflow_dispatch` with the tag and a registry choice. It downloads the released `.vsix` and publishes it; nothing is rebuilt.
