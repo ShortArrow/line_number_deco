@@ -18,9 +18,9 @@ The release is built from a signed `v*` tag on `main` and passes the same gates 
 
 A tag with a suffix is a rehearsal: it reuses the base version on purpose, its GitHub Release is marked pre-release, and nothing is published to a registry. The Marketplace's own pre-release channel is not used. A user opts into that channel once and receives every higher version from then on, so it has to be fed continuously, which an extension with occasional releases cannot do. Each channel release would also consume a version number, because the Marketplace accepts only `major.minor.patch`.
 
-## Registries are published to with personal access tokens
+## Open VSX is published by CI, the Marketplace by hand
 
-`vsce publish` authenticates with `VSCE_PAT` and `ovsx publish` with `OVSX_PAT`. The secretless route, an Entra identity reached through GitHub OIDC, is already written into `release.yml` ahead of the PAT step, and it stays dormant while `AZURE_CLIENT_ID` and `AZURE_TENANT_ID` are unset. The `ShortArrow` publisher is owned by a Microsoft personal account, and the Marketplace cannot resolve an Entra service principal as a member of such a publisher; it answers TF14045. The day the publisher moves under an Entra tenant, setting the two variables switches the route without a code change.
+`ovsx publish` authenticates with `OVSX_PAT`. The Marketplace gets no personal access token, because Azure DevOps is moving away from them; with `VSCE_PAT` unset the workflow skips the Marketplace step, and the Release's `.vsix` is uploaded through the publisher's management page instead. The secretless route, an Entra identity reached through GitHub OIDC, is already written into `release.yml` ahead of the PAT step, and it stays dormant while `AZURE_CLIENT_ID` and `AZURE_TENANT_ID` are unset. The `ShortArrow` publisher is owned by a Microsoft personal account, and the Marketplace cannot resolve an Entra service principal as a member of such a publisher; it answers TF14045. The day the publisher moves under an Entra tenant, setting the two variables switches the route without a code change.
 
 `publish.yml` reads the same secrets, so a release whose credential was missing when it was tagged can be published later from the VSIX it already built, without a rebuild.
 
