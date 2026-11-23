@@ -306,4 +306,116 @@ describe('Test the redraws of the events the extension subscribes to', () => {
       assert.ok(!redrawn.has(right.document), 'the editor beside it was redrawn');
     });
   });
+
+  describe('Test the redraws of a held key, a fold and reduced motion', () => {
+    let collection: vscode.DiagnosticCollection | undefined;
+    afterEach(async () => {
+      collection?.dispose();
+      collection = undefined;
+      await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    });
+
+    /** The opacity a redraw gives the line, or undefined when it is drawn solid. */
+    const opacityOf = (paint: Paint, line: number) =>
+      /opacity: ([\d.]+)/.exec(String(paint.decorations.find((d) => d.range.start.line === line)?.renderOptions?.before?.textDecoration))?.[1];
+
+    /** Run the body on an editor with an error on line 2, with the pulse on and reduced motion as given. */
+    async function withPulsingError(reduceMotion: string, body: (editor: vscode.TextEditor, setReduceMotion: (value: unknown) => Thenable<void>) => Promise<void>): Promise<void> {
+      await withSetting('LineNumberDeco', 'enableDiagnostics', true, () =>
+        withSetting('LineNumberDeco', 'pulseDiagnostics', true, () =>
+          withSetting('workbench', 'reduceMotion', reduceMotion, async (setReduceMotion) => {
+            const editor = await openEditor(10);
+            collection = vscode.languages.createDiagnosticCollection('lineNumberDecoMotionTest');
+            collection.set(editor.document.uri, [new vscode.Diagnostic(new vscode.Range(2, 0, 2, 4), 'marked', vscode.DiagnosticSeverity.Error)]);
+            await body(editor, setReduceMotion);
+          })));
+    }
+
+    /** Fold the block that starts at the line, failing if the view has not split within WAIT_MS. */
+    async function foldBlockAt(editor: vscode.TextEditor, line: number): Promise<void> {
+      await vscode.commands.executeCommand('editor.fold', { selectionLines: [line], levels: 1 });
+      const deadline = Date.now() + WAIT_MS;
+      while (editor.visibleRanges.length < 2 && Date.now() < deadline) {
+        await sleep(50);
+      }
+      assert.strictEqual(editor.visibleRanges.length, 2, 'the block did not fold');
+    }
+
+    /** The redraws of the editor over one second, room for ten frames of the pulse. */
+    async function redrawsOverASecond(editor: vscode.TextEditor): Promise<Paint[]> {
+      await afterSettling(() => undefined);
+      await sleep(1000);
+      return paints.filter((p) => p.editor === editor);
+    }
+
+    // Holding Enter in a long file: key repeat outpaces the 16 ms throttle, so
+    // the keypresses are drawn together, and the last redraw must be of the
+    // file after the last one. The fifth keypress takes 999 lines to 1000,
+    // so only a redraw after it has the wider column. The lines go in away
+    // from the cursor and the last visible line, so only the edits start redraws.
+    it('Must end a burst of edits with a redraw of the editor as the last edit left it', async () => {
+      const editor = await openEditor(995);
+      await afterSettling(async () => {
+        for (let i = 0; i < 5; i++) {
+          await editor.edit((edit) => edit.insert(new vscode.Position(3, 0), '\n'));
+        }
+      });
+      await sleep(QUIET_MS);
+      const own = paints.filter((p) => p.editor === editor);
+      assert.ok(own.length > 0, 'the edits did not redraw the editor');
+      assert.strictEqual(editor.document.lineCount, 1000);
+      assertDrawnFor(own[own.length - 1], editor);
+    });
+
+    // Folding a block from the gutter: the lines below it move up the screen
+    // while their document lines stay the same. The numbers count document
+    // lines, since vscode-neovim opens a fold that j or k crosses. The fold
+    // command does nothing while the window lacks the focus of the desktop,
+    // so a run on a desktop someone is using skips it. The Linux and Windows
+    // CI runners give the window focus and must not skip it. The macOS runner
+    // skips it too: its window had no focus in a CI run on 2026-11-22.
+    it('Must redraw an editor when a block folds, drawing only the lines left in view, labelled by document line', async function () {
+      if (!vscode.window.state.focused) {
+        const runnerGivesFocus = !!process.env.CI && process.platform !== 'darwin';
+        assert.ok(!runnerGivesFocus, 'the test window has no focus on a Linux or Windows CI runner, so the block cannot be folded');
+        this.skip();
+      }
+      const lines = [...Array(10).fill('x'), 'block', ...Array(10).fill('  inner'), ...Array(39).fill('x')];
+      const editor = await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({ content: lines.join('\n') }));
+      const paint = await redrawOf(editor, () => foldBlockAt(editor, 10), 'a fold');
+      assertDrawnFor(paint, editor);
+      const folded = paint.decorations.filter((d) => d.range.start.line >= 12 && d.range.start.line <= 20);
+      assert.deepStrictEqual(folded, [], 'a line hidden in the fold was drawn');
+      assert.strictEqual(paint.decorations.find((d) => d.range.start.line === 25)?.renderOptions?.before?.contentText, '25');
+    });
+
+    // Turning on reduced motion while an error line pulses, as someone made
+    // uneasy by motion would: the pulse must stop at once, leaving the line solid.
+    it('Must stop the pulse when reduced motion is turned on, drawing the error line solid', async () => {
+      await withPulsingError('off', async (editor, setReduceMotion) => {
+        const pulsing = await redrawsOverASecond(editor);
+        assert.ok(pulsing.length >= 5, `the error line did not pulse: ${pulsing.length} redraws in a second`);
+        assert.ok(pulsing.some((p) => opacityOf(p, 2) !== undefined), 'the error line was never dimmed');
+        const paint = await redrawOf(editor, () => setReduceMotion('on'), 'turning reduced motion on');
+        assertDrawnFor(paint, editor);
+        assert.strictEqual(opacityOf(paint, 2), undefined, 'the error line is still drawn dimmed');
+        const redrawn = await documentsRedrawnBy(() => undefined);
+        assert.strictEqual(redrawn.size, 0, 'the pulse went on');
+      });
+    });
+
+    // Turning reduced motion off again: the pulse comes back without the cursor
+    // moving, and only on the error line.
+    it('Must resume the pulse when reduced motion is turned off, dimming only the error line', async () => {
+      await withPulsingError('on', async (editor, setReduceMotion) => {
+        const still = await documentsRedrawnBy(() => undefined);
+        assert.strictEqual(still.size, 0, 'the error line pulsed under reduced motion');
+        await setReduceMotion('off');
+        const pulsing = await redrawsOverASecond(editor);
+        assert.ok(pulsing.length >= 5, `the pulse did not resume: ${pulsing.length} redraws in a second`);
+        assert.ok(pulsing.some((p) => opacityOf(p, 2) !== undefined), 'the error line was never dimmed');
+        assert.ok(pulsing.every((p) => opacityOf(p, 3) === undefined), 'a line without an error was dimmed');
+      });
+    });
+  });
 });
