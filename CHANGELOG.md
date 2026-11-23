@@ -119,7 +119,7 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Rainbow line numbers that would read below 4.5:1 against the theme background are darkened on light themes and lightened on dark ones, keeping their hue; `LineNumberDeco.rainbowMinimumContrast` sets the ratio to 3, 4.5 or 7, or turns it off so the highlight colors stand out more
 - Dependency advisories cleared: markdown-it and follow-redirects, both inside the packaging and publishing tools, move past their patched versions
 
-## Unreleased
+## 0.0.15
 
 - The input box of each color command names what the command's title names: "the rainbow center", "the current line number" and "inactive line numbers" replace "center of rainbow", "active row number" and "inactive row number"
 - Dependency advisories cleared: minimatch, inside the build and test tools, moves past its patched version
