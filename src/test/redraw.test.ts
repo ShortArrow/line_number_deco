@@ -371,10 +371,13 @@ describe('Test the redraws of the events the extension subscribes to', () => {
     // while their document lines stay the same. The numbers count document
     // lines, since vscode-neovim opens a fold that j or k crosses. The fold
     // command does nothing while the window lacks the focus of the desktop,
-    // so a run on a desktop someone is using skips it; CI must not.
+    // so a run on a desktop someone is using skips it. The Linux and Windows
+    // CI runners give the window focus and must not skip it. The macOS runner
+    // skips it too: its window had no focus in a CI run on 2026-11-22.
     it('Must redraw an editor when a block folds, drawing only the lines left in view, labelled by document line', async function () {
       if (!vscode.window.state.focused) {
-        assert.ok(!process.env.CI, 'the test window has no focus on CI, so the block cannot be folded');
+        const runnerGivesFocus = !!process.env.CI && process.platform !== 'darwin';
+        assert.ok(!runnerGivesFocus, 'the test window has no focus on a Linux or Windows CI runner, so the block cannot be folded');
         this.skip();
       }
       const lines = [...Array(10).fill('x'), 'block', ...Array(10).fill('  inner'), ...Array(39).fill('x')];
