@@ -4,21 +4,22 @@
     the activity bar shows it at. VS Code uses view container icons as an alpha
     mask and colors them from the theme, so the mark is a currentColor disc with
     the original's shapes knocked out: the "12", the cursor circle with its
-    triangle left solid inside, and above and below the "12" a 1, then two dots
-    that shrink away from it, as the main icon's 1, 2, 3 do. The ids name the
-    marks for src/test/activityIcon.test.ts, which holds them to that order.
-    The digits' sources and licenses are in THIRD-PARTY-NOTICES.md.
+    triangle left solid inside, and above and below the "12" three dots that
+    shrink away from it along the arc the main icon sets its 1, 2, 3 on. The
+    ids name the marks for src/test/activityIcon.test.ts, which holds them to
+    that order.
+    The "12"'s source and license are in THIRD-PARTY-NOTICES.md.
   -->
   <mask id="knockout">
     <circle cx="12" cy="12" r="11" fill="white"/>
     <g fill="black">
     <path id="twelve" d="M6.47 15.89L4.91 15.89L4.91 9.76L4.90 9.76L3.01 11.49L2.50 10.24L4.91 8.00L6.47 8.00L6.47 15.89Z M7.61 16L7.61 14.78Q9.09 13.62 9.88 12.84Q10.68 12.05 10.95 11.54Q11.22 11.02 11.22 10.45L11.22 10.45Q11.22 9.25 9.93 9.25L9.93 9.25Q9.02 9.25 7.87 10L7.87 10L7.47 8.79Q8.01 8.42 8.73 8.21Q9.45 8 10.15 8L10.15 8Q11.41 8 12.10 8.61Q12.79 9.22 12.79 10.30L12.79 10.30Q12.79 11.32 12.14 12.26Q11.50 13.20 9.63 14.76L9.63 14.76L9.63 14.78L12.80 14.78L12.80 16L7.61 16Z"/>
-    <path id="up1" d="M9 2h1v1h-1z M8 3h2v1h-2z M9 4h1v1h-1z M9 5h1v1h-1z M9 6h1v1h-1z"/>
-    <path id="up2" d="M12 3h2v2h-2z"/>
-    <path id="up3" d="M16 4h1v1h-1z"/>
-    <path id="down1" d="M9 17h1v1h-1z M8 18h2v1h-2z M9 19h1v1h-1z M9 20h1v1h-1z M9 21h1v1h-1z"/>
-    <path id="down2" d="M12 19h2v2h-2z"/>
-    <path id="down3" d="M16 19h1v1h-1z"/>
+<path id="up1" d="M7.744 5.097C7.744 4.213 8.46 3.497 9.344 3.497C10.227 3.497 10.944 4.213 10.944 5.097C10.944 5.98 10.227 6.697 9.344 6.697C8.46 6.697 7.744 5.98 7.744 5.097Z"/>
+    <path id="up2" d="M12.794 3.653C12.794 3.045 13.287 2.553 13.894 2.553C14.502 2.553 14.994 3.045 14.994 3.653C14.994 4.261 14.502 4.753 13.894 4.753C13.287 4.753 12.794 4.261 12.794 3.653Z"/>
+    <path id="up3" d="M16.8 4.5C16.8 4.113 17.113 3.8 17.5 3.8C17.887 3.8 18.2 4.113 18.2 4.5C18.2 4.887 17.887 5.2 17.5 5.2C17.113 5.2 16.8 4.887 16.8 4.5Z"/>
+    <path id="down1" d="M7.744 18.903C7.744 18.02 8.46 17.303 9.344 17.303C10.227 17.303 10.944 18.02 10.944 18.903C10.944 19.787 10.227 20.503 9.344 20.503C8.46 20.503 7.744 19.787 7.744 18.903Z"/>
+    <path id="down2" d="M12.794 20.347C12.794 19.739 13.287 19.247 13.894 19.247C14.502 19.247 14.994 19.739 14.994 20.347C14.994 20.955 14.502 21.447 13.894 21.447C13.287 21.447 12.794 20.955 12.794 20.347Z"/>
+    <path id="down3" d="M16.8 19.5C16.8 19.113 17.113 18.8 17.5 18.8C17.887 18.8 18.2 19.113 18.2 19.5C18.2 19.887 17.887 20.2 17.5 20.2C17.113 20.2 16.8 19.887 16.8 19.5Z"/>
     </g>
     <circle cx="18" cy="12" r="4" fill="black"/>
     <path d="M15.2 12 L20.4 9.2 V14.8 Z" fill="white"/>

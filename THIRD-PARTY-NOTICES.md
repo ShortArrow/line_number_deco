@@ -1,7 +1,7 @@
 # Third-party notices
 
-`images/icon-activity.svg` draws its digits from two fonts. Their outlines and
-bitmaps are copied into the icon as paths; neither font file is shipped.
+`images/icon-activity.svg` draws its "12" from one font. The outlines are
+copied into the icon as paths; the font file is not shipped.
 
 ## M PLUS 1p
 
@@ -105,9 +105,3 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 Copyright 2016 The Rounded M+ Project Authors.
 ```
-
-## Tom Thumb
-
-The small "1" above and below the "12" is the bitmap of "1" in Tom Thumb by
-Robey Pointer, after a font by Brian Swetland, from
-https://robey.lag.net/2010/01/23/tiny-monospace-font.html, used under CC0.
