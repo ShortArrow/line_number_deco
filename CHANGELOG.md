@@ -125,3 +125,6 @@ All notable changes to the "ShortArrow.line-number-deco" extension will be docum
 - Dependency advisories cleared: minimatch, inside the build and test tools, moves past its patched version
 - `LineNumberDeco.pulseDiagnostics`, off by default, lets the line numbers of error and warning lines slowly brighten and dim once every 1.6 seconds; `workbench.reduceMotion` set to on stops it, and the settings panel has a switch for it
 - VS Code 1.101 or later is required; earlier versions no longer receive updates of the extension
+- With one file open in two editors side by side, typing in one also redraws the line numbers of the other, which used to keep its old numbers until its own cursor moved or it scrolled
+- The activity-bar icon also carries the main icon's cursor circle and, above and below the "12", a small 1 and two dots, so the two icons read as one mark
+- The extension's code in the VSIX is minified, from about 114 KB to 56 KB
